@@ -1,10 +1,15 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// This is a placeholder for the Supabase URL and anon key
-// In a real implementation, these would be provided after connecting to Supabase
-const supabaseUrl = 'https://placeholder-project.supabase.co';
-const supabaseAnonKey = 'placeholder-key';
+// To use Supabase in your application:
+// 1. Create a Supabase project at https://supabase.com
+// 2. Get your URL and anon key from your project's API settings
+// 3. Connect your Lovable project to Supabase using the Supabase button in the top right
+// 4. Or replace these values with your actual Supabase URL and anon key
+
+// These placeholder values allow the app to build, but won't connect to a real database
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder-project.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
