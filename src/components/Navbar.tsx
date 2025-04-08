@@ -65,10 +65,9 @@ const Navbar = ({
           {/* Desktop navigation */}
           <div className="hidden md:flex md:items-center md:space-x-8">
             {navItems.map((item) => (
-              <a
+              <Link
                 key={item.name}
-                href={item.path}
-                onClick={(e) => handleNavClick(e, item.path)}
+                to={item.path}
                 className={`px-3 py-2 text-sm font-medium transition-colors ${
                   isActive(item.path)
                     ? "text-primary border-b-2 border-primary"
@@ -76,17 +75,14 @@ const Navbar = ({
                 }`}
               >
                 {item.name}
-              </a>
+              </Link>
             ))}
             
             {ctaText && ctaLink && (
               <Button asChild>
-                <a 
-                  href={ctaLink.startsWith('#') ? ctaLink : `/${ctaLink}`}
-                  onClick={(e) => ctaLink.startsWith('#') && handleNavClick(e, ctaLink)}
-                >
+                <Link to={ctaLink}>
                   {ctaText}
-                </a>
+                </Link>
               </Button>
             )}
           </div>
@@ -113,33 +109,28 @@ const Navbar = ({
         <div className="md:hidden bg-white shadow-lg">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {navItems.map((item) => (
-              <a
+              <Link
                 key={item.name}
-                href={item.path}
-                onClick={(e) => handleNavClick(e, item.path)}
+                to={item.path}
                 className={`block px-3 py-2 text-base font-medium ${
                   isActive(item.path)
                     ? "text-primary bg-gray-50"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 }`}
+                onClick={() => setIsOpen(false)}
               >
                 {item.name}
-              </a>
+              </Link>
             ))}
             
             {ctaText && ctaLink && (
-              <a 
-                href={ctaLink.startsWith('#') ? ctaLink : `/${ctaLink}`}
-                onClick={(e) => {
-                  if (ctaLink.startsWith('#')) {
-                    handleNavClick(e, ctaLink);
-                  }
-                  setIsOpen(false);
-                }}
+              <Link 
+                to={ctaLink}
                 className="block w-full px-3 py-2 mt-4 text-center bg-primary text-white rounded-md"
+                onClick={() => setIsOpen(false)}
               >
                 {ctaText}
-              </a>
+              </Link>
             )}
           </div>
         </div>
