@@ -6,6 +6,8 @@ import CleanSlate from "./templates/cleanslate/CleanSlate";
 import TradecraftHome from "./templates/tradecraft/Home";
 import TradecraftContact from "./templates/tradecraft/Contact";
 import TradecraftAuth from "./templates/tradecraft/Auth";
+import RetailHome from "./templates/retail/Home";
+import ExpertHome from "./templates/expert/Home";
 
 export const routes: RouteObject[] = [
   {
@@ -33,5 +35,15 @@ export const routes: RouteObject[] = [
   {
     path: "/tradecraft/auth",
     element: <TradecraftAuth />,
+  },
+  // Retail Template
+  {
+    path: "/retail",
+    element: <RetailHome />,
+  },
+  // Expert Template
+  {
+    path: "/expert",
+    element: <ExpertHome />,
   },
 ];
