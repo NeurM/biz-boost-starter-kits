@@ -1,4 +1,3 @@
-
 import { RouteObject } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -8,6 +7,11 @@ import TradecraftContact from "./templates/tradecraft/Contact";
 import TradecraftAuth from "./templates/tradecraft/Auth";
 import RetailHome from "./templates/retail/Home";
 import ExpertHome from "./templates/expert/Home";
+import ServiceHome from "./templates/service/Home";
+import ServiceAbout from "./templates/service/About";
+import ServiceServices from "./templates/service/Services";
+import ServiceBlog from "./templates/service/Blog";
+import ServiceContact from "./templates/service/Contact";
 import { Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -15,8 +19,7 @@ import { Card, CardContent } from "./components/ui/card";
 import { Button } from "./components/ui/button";
 import { ChevronRight, FileText, Info, MapPin, MessageSquare, Users } from "lucide-react";
 
-// Create general template components for reusability
-const TemplatePage = ({ 
+export const TemplatePage = ({ 
   title, 
   description, 
   logo, 
@@ -39,7 +42,6 @@ const TemplatePage = ({
   children: React.ReactNode;
   headerBgColor?: string;
 }) => {
-  // Determine template-specific colors
   let ctaButtonColor = "bg-blue-600 hover:bg-blue-700";
   let linkColor = "text-blue-600";
   
@@ -55,6 +57,10 @@ const TemplatePage = ({
     headerBgColor = "bg-blue-700";
     ctaButtonColor = "bg-blue-600 hover:bg-blue-700";
     linkColor = "text-blue-600";
+  } else if (basePath === "service") {
+    headerBgColor = "bg-teal-700";
+    ctaButtonColor = "bg-teal-600 hover:bg-teal-700";
+    linkColor = "text-teal-600";
   }
 
   return (
@@ -82,8 +88,7 @@ const TemplatePage = ({
   );
 };
 
-// Generic About Page
-const AboutPage = ({ 
+export const AboutPage = ({ 
   template, 
   title,
   description, 
@@ -104,7 +109,6 @@ const AboutPage = ({
     email: string;
   };
 }) => {
-  // Determine template-specific colors
   let headerBgColor = "bg-blue-700";
   let buttonColor = "bg-blue-600 hover:bg-blue-700";
   
@@ -117,6 +121,9 @@ const AboutPage = ({
   } else if (basePath === "tradecraft") {
     headerBgColor = "bg-blue-700";
     buttonColor = "bg-blue-600 hover:bg-blue-700";
+  } else if (basePath === "service") {
+    headerBgColor = "bg-teal-700";
+    buttonColor = "bg-teal-600 hover:bg-teal-700";
   }
 
   return (
@@ -199,8 +206,7 @@ const AboutPage = ({
   );
 };
 
-// Generic Services/Products Page
-const ServicesPage = ({ 
+export const ServicesPage = ({ 
   template, 
   title,
   serviceType, // "Services" or "Products"
@@ -223,7 +229,6 @@ const ServicesPage = ({
     email: string;
   };
 }) => {
-  // Determine template-specific colors
   let headerBgColor = "bg-blue-700";
   let buttonColor = "bg-blue-600 hover:bg-blue-700";
   
@@ -236,6 +241,9 @@ const ServicesPage = ({
   } else if (basePath === "tradecraft") {
     headerBgColor = "bg-blue-700";
     buttonColor = "bg-blue-600 hover:bg-blue-700";
+  } else if (basePath === "service") {
+    headerBgColor = "bg-teal-700";
+    buttonColor = "bg-teal-600 hover:bg-teal-700";
   }
 
   const items = basePath === "retail" 
@@ -321,8 +329,7 @@ const ServicesPage = ({
   );
 };
 
-// Generic Blog Page
-const BlogPage = ({ 
+export const BlogPage = ({ 
   template, 
   title,
   description, 
@@ -343,7 +350,6 @@ const BlogPage = ({
     email: string;
   };
 }) => {
-  // Determine template-specific colors
   let headerBgColor = "bg-blue-700";
   let buttonColor = "bg-blue-600 hover:bg-blue-700";
   
@@ -356,6 +362,9 @@ const BlogPage = ({
   } else if (basePath === "tradecraft") {
     headerBgColor = "bg-blue-700";
     buttonColor = "bg-blue-600 hover:bg-blue-700";
+  } else if (basePath === "service") {
+    headerBgColor = "bg-teal-700";
+    buttonColor = "bg-teal-600 hover:bg-teal-700";
   }
 
   const blogPosts = [
@@ -451,8 +460,7 @@ const BlogPage = ({
   );
 };
 
-// Generic Contact Page for Expert and RetailReady templates
-const ContactPageGeneric = ({ 
+export const ContactPageGeneric = ({ 
   template, 
   title,
   description, 
@@ -473,7 +481,6 @@ const ContactPageGeneric = ({
     email: string;
   };
 }) => {
-  // Determine template-specific colors
   let headerBgColor = "bg-blue-700";
   let accentColor = "text-blue-600";
   let buttonColor = "bg-blue-600 hover:bg-blue-700";
@@ -494,6 +501,11 @@ const ContactPageGeneric = ({
     accentColor = "text-blue-600";
     buttonColor = "bg-blue-600 hover:bg-blue-700";
     borderColor = "border-blue-200";
+  } else if (basePath === "service") {
+    headerBgColor = "bg-teal-700";
+    accentColor = "text-teal-600";
+    buttonColor = "bg-teal-600 hover:bg-teal-700";
+    borderColor = "border-teal-200";
   }
 
   return (
@@ -608,7 +620,6 @@ const ContactPageGeneric = ({
   );
 };
 
-// Template-specific data
 const tradecraftData = {
   logo: "Trade<span class='text-blue-600'>Craft</span>",
   description: "Your trusted partner for professional trade services.",
@@ -663,7 +674,24 @@ const expertData = {
   }
 };
 
-// Template-specific placeholders
+const serviceProData = {
+  logo: "Service<span class='text-teal-600'>Pro</span>",
+  description: "Professional services for businesses and individuals.",
+  basePath: "service",
+  navItems: [
+    { name: "Home", path: "/service" },
+    { name: "About", path: "/service/about" },
+    { name: "Services", path: "/service/services" },
+    { name: "Blog", path: "/service/blog" },
+    { name: "Contact", path: "/service/contact" },
+  ],
+  contactInfo: {
+    address: "123 Service Ave, Professional Park, SP 54321",
+    phone: "(555) 123-9876",
+    email: "info@servicepro.com",
+  }
+};
+
 const TradecraftAbout = () => (
   <AboutPage
     template="TradeCraft"
@@ -799,6 +827,55 @@ const ExpertContact = () => (
   />
 );
 
+const ServiceProAbout = () => (
+  <AboutPage
+    template="ServicePro"
+    title="About ServicePro"
+    description={serviceProData.description}
+    logo={serviceProData.logo}
+    basePath={serviceProData.basePath}
+    navItems={serviceProData.navItems}
+    contactInfo={serviceProData.contactInfo}
+  />
+);
+
+const ServiceProServices = () => (
+  <ServicesPage
+    template="ServicePro"
+    title="Our Services"
+    serviceType="Services"
+    description={serviceProData.description}
+    logo={serviceProData.logo}
+    basePath={serviceProData.basePath}
+    navItems={serviceProData.navItems}
+    contactInfo={serviceProData.contactInfo}
+  />
+);
+
+const ServiceProBlog = () => (
+  <BlogPage
+    template="ServicePro"
+    title="ServicePro Blog"
+    description={serviceProData.description}
+    logo={serviceProData.logo}
+    basePath={serviceProData.basePath}
+    navItems={serviceProData.navItems}
+    contactInfo={serviceProData.contactInfo}
+  />
+);
+
+const ServiceProContact = () => (
+  <ContactPageGeneric
+    template="ServicePro"
+    title="Contact ServicePro"
+    description={serviceProData.description}
+    logo={serviceProData.logo}
+    basePath={serviceProData.basePath}
+    navItems={serviceProData.navItems}
+    contactInfo={serviceProData.contactInfo}
+  />
+);
+
 export const routes: RouteObject[] = [
   {
     path: "/",
@@ -808,12 +885,10 @@ export const routes: RouteObject[] = [
     path: "*",
     element: <NotFound />,
   },
-  // Clean Slate Template
   {
     path: "/cleanslate",
     element: <CleanSlate />,
   },
-  // Tradecraft Template
   {
     path: "/tradecraft",
     element: <TradecraftHome />,
@@ -838,7 +913,6 @@ export const routes: RouteObject[] = [
     path: "/tradecraft/auth",
     element: <TradecraftAuth />,
   },
-  // Retail Template
   {
     path: "/retail",
     element: <RetailHome />,
@@ -859,7 +933,6 @@ export const routes: RouteObject[] = [
     path: "/retail/contact",
     element: <RetailContact />,
   },
-  // Expert Template
   {
     path: "/expert",
     element: <ExpertHome />,
@@ -879,5 +952,25 @@ export const routes: RouteObject[] = [
   {
     path: "/expert/contact",
     element: <ExpertContact />,
+  },
+  {
+    path: "/service",
+    element: <ServiceHome />,
+  },
+  {
+    path: "/service/about",
+    element: <ServiceProAbout />,
+  },
+  {
+    path: "/service/services",
+    element: <ServiceProServices />,
+  },
+  {
+    path: "/service/blog",
+    element: <ServiceProBlog />,
+  },
+  {
+    path: "/service/contact",
+    element: <ServiceProContact />,
   },
 ];
