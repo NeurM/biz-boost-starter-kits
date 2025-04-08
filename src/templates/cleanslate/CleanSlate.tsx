@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 const CleanSlate = () => {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-white">
       <div className="text-center max-w-md">
         <h1 className="text-4xl font-bold mb-4">Clean Slate</h1>
         <p className="mb-6">

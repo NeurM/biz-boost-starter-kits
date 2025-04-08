@@ -2,11 +2,7 @@
 import { RouteObject } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-
-// Clean Slate Template
 import CleanSlate from "./templates/cleanslate/CleanSlate";
-
-// Tradecraft Template (Plumber, Electrician)
 import TradecraftHome from "./templates/tradecraft/Home";
 import TradecraftContact from "./templates/tradecraft/Contact";
 import TradecraftAuth from "./templates/tradecraft/Auth";
