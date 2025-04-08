@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { PostgrestError } from '@supabase/supabase-js';
 
 // Auth functions
 export const signUp = async (email: string, password: string) => {
@@ -24,41 +25,40 @@ export const getCurrentUser = async () => {
   return await supabase.auth.getUser();
 };
 
-// Database functions - using generic approach for empty database
-export const fetchData = async <T>(table: string): Promise<{ data: T[] | null, error: Error | null }> => {
-  const { data, error } = await supabase
-    .from(table as any)
-    .select('*');
-  
-  return { data, error };
+// Database functions for empty database
+// We'll use type assertions and a more flexible approach to handle the empty schema
+export const fetchData = async <T>(tableName: string): Promise<{ data: T[] | null; error: PostgrestError | null }> => {
+  // Use type assertion to bypass TypeScript's type checking for table names
+  const result = await (supabase.from as any)(tableName).select('*');
+  return result;
 };
 
-export const insertData = async <T>(table: string, data: T): Promise<{ data: T | null, error: Error | null }> => {
-  const { data: insertedData, error } = await supabase
-    .from(table as any)
-    .insert(data as any)
+export const insertData = async <T>(tableName: string, data: T): Promise<{ data: T | null; error: PostgrestError | null }> => {
+  // Use type assertion to bypass TypeScript's type checking
+  const result = await (supabase.from as any)(tableName)
+    .insert(data)
     .select()
-    .single();
+    .maybeSingle();
   
-  return { data: insertedData as T | null, error };
+  return result;
 };
 
-export const updateData = async <T>(table: string, id: string, data: Partial<T>): Promise<{ data: T | null, error: Error | null }> => {
-  const { data: updatedData, error } = await supabase
-    .from(table as any)
-    .update(data as any)
+export const updateData = async <T>(tableName: string, id: string, data: Partial<T>): Promise<{ data: T | null; error: PostgrestError | null }> => {
+  // Use type assertion to bypass TypeScript's type checking
+  const result = await (supabase.from as any)(tableName)
+    .update(data)
     .eq('id', id)
     .select()
-    .single();
+    .maybeSingle();
   
-  return { data: updatedData as T | null, error };
+  return result;
 };
 
-export const deleteData = async (table: string, id: string): Promise<{ error: Error | null }> => {
-  const { error } = await supabase
-    .from(table as any)
+export const deleteData = async (tableName: string, id: string): Promise<{ error: PostgrestError | null }> => {
+  // Use type assertion to bypass TypeScript's type checking
+  const result = await (supabase.from as any)(tableName)
     .delete()
     .eq('id', id);
   
-  return { error };
+  return result;
 };
