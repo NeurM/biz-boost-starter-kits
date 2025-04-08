@@ -23,7 +23,8 @@ const TemplatePage = ({
   basePath, 
   navItems, 
   contactInfo,
-  children 
+  children,
+  headerBgColor = "bg-blue-700" 
 }: {
   title: string;
   description: string;
@@ -36,7 +37,26 @@ const TemplatePage = ({
     email: string;
   };
   children: React.ReactNode;
+  headerBgColor?: string;
 }) => {
+  // Determine template-specific colors
+  let ctaButtonColor = "bg-blue-600 hover:bg-blue-700";
+  let linkColor = "text-blue-600";
+  
+  if (basePath === "retail") {
+    headerBgColor = "bg-gradient-to-r from-purple-700 to-pink-500";
+    ctaButtonColor = "bg-purple-600 hover:bg-purple-700";
+    linkColor = "text-purple-600";
+  } else if (basePath === "expert") {
+    headerBgColor = "bg-amber-600";
+    ctaButtonColor = "bg-amber-600 hover:bg-amber-700";
+    linkColor = "text-amber-600";
+  } else if (basePath === "tradecraft") {
+    headerBgColor = "bg-blue-700";
+    ctaButtonColor = "bg-blue-600 hover:bg-blue-700";
+    linkColor = "text-blue-600";
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar
@@ -52,7 +72,7 @@ const TemplatePage = ({
       </main>
       
       <Footer
-        logo={typeof logo === "string" ? logo : basePath.charAt(0).toUpperCase() + basePath.slice(1)}
+        logo={logo}
         description={description}
         basePath={basePath}
         navItems={navItems}
@@ -84,6 +104,21 @@ const AboutPage = ({
     email: string;
   };
 }) => {
+  // Determine template-specific colors
+  let headerBgColor = "bg-blue-700";
+  let buttonColor = "bg-blue-600 hover:bg-blue-700";
+  
+  if (basePath === "retail") {
+    headerBgColor = "bg-gradient-to-r from-purple-700 to-pink-500";
+    buttonColor = "bg-purple-600 hover:bg-purple-700";
+  } else if (basePath === "expert") {
+    headerBgColor = "bg-amber-600";
+    buttonColor = "bg-amber-600 hover:bg-amber-700";
+  } else if (basePath === "tradecraft") {
+    headerBgColor = "bg-blue-700";
+    buttonColor = "bg-blue-600 hover:bg-blue-700";
+  }
+
   return (
     <TemplatePage 
       title={title}
@@ -92,11 +127,12 @@ const AboutPage = ({
       basePath={basePath}
       navItems={navItems}
       contactInfo={contactInfo}
+      headerBgColor={headerBgColor}
     >
-      <div className="py-12 bg-blue-700 text-white">
+      <div className={`py-12 ${headerBgColor} text-white`}>
         <div className="container mx-auto px-4">
           <h1 className="text-3xl md:text-4xl font-bold">{title}</h1>
-          <p className="text-xl mt-2 text-blue-100">Learn more about our company and mission</p>
+          <p className="text-xl mt-2 text-white/80">Learn more about our company and mission</p>
         </div>
       </div>
       
@@ -187,6 +223,21 @@ const ServicesPage = ({
     email: string;
   };
 }) => {
+  // Determine template-specific colors
+  let headerBgColor = "bg-blue-700";
+  let buttonColor = "bg-blue-600 hover:bg-blue-700";
+  
+  if (basePath === "retail") {
+    headerBgColor = "bg-gradient-to-r from-purple-700 to-pink-500";
+    buttonColor = "bg-purple-600 hover:bg-purple-700";
+  } else if (basePath === "expert") {
+    headerBgColor = "bg-amber-600";
+    buttonColor = "bg-amber-600 hover:bg-amber-700";
+  } else if (basePath === "tradecraft") {
+    headerBgColor = "bg-blue-700";
+    buttonColor = "bg-blue-600 hover:bg-blue-700";
+  }
+
   const items = basePath === "retail" 
     ? [
         { title: "Premium Collection", description: "Our flagship line of high-quality products designed for the discerning customer." },
@@ -213,11 +264,12 @@ const ServicesPage = ({
       basePath={basePath}
       navItems={navItems}
       contactInfo={contactInfo}
+      headerBgColor={headerBgColor}
     >
-      <div className="py-12 bg-blue-700 text-white">
+      <div className={`py-12 ${headerBgColor} text-white`}>
         <div className="container mx-auto px-4">
           <h1 className="text-3xl md:text-4xl font-bold">{title}</h1>
-          <p className="text-xl mt-2 text-blue-100">
+          <p className="text-xl mt-2 text-white/80">
             {basePath === "retail" 
               ? "Browse our selection of high-quality products" 
               : "Discover our professional and reliable services"}
@@ -241,7 +293,7 @@ const ServicesPage = ({
               <CardContent className="p-6">
                 <h3 className="text-xl font-semibold mb-3">{item.title}</h3>
                 <p className="text-gray-600 mb-4">{item.description}</p>
-                <Button variant="outline" className="flex items-center gap-2">
+                <Button variant="outline" className={`flex items-center gap-2`}>
                   Learn More <ChevronRight className="h-4 w-4" />
                 </Button>
               </CardContent>
@@ -259,7 +311,7 @@ const ServicesPage = ({
                   : "Have a specific requirement? We offer customized services to meet your needs."}
               </p>
             </div>
-            <Button asChild size="lg">
+            <Button asChild size="lg" className={buttonColor}>
               <a href={`/${basePath}/contact`}>Contact Us</a>
             </Button>
           </div>
@@ -291,6 +343,21 @@ const BlogPage = ({
     email: string;
   };
 }) => {
+  // Determine template-specific colors
+  let headerBgColor = "bg-blue-700";
+  let buttonColor = "bg-blue-600 hover:bg-blue-700";
+  
+  if (basePath === "retail") {
+    headerBgColor = "bg-gradient-to-r from-purple-700 to-pink-500";
+    buttonColor = "bg-purple-600 hover:bg-purple-700";
+  } else if (basePath === "expert") {
+    headerBgColor = "bg-amber-600";
+    buttonColor = "bg-amber-600 hover:bg-amber-700";
+  } else if (basePath === "tradecraft") {
+    headerBgColor = "bg-blue-700";
+    buttonColor = "bg-blue-600 hover:bg-blue-700";
+  }
+
   const blogPosts = [
     {
       title: "Industry Trends for 2025",
@@ -344,11 +411,12 @@ const BlogPage = ({
       basePath={basePath}
       navItems={navItems}
       contactInfo={contactInfo}
+      headerBgColor={headerBgColor}
     >
-      <div className="py-12 bg-blue-700 text-white">
+      <div className={`py-12 ${headerBgColor} text-white`}>
         <div className="container mx-auto px-4">
           <h1 className="text-3xl md:text-4xl font-bold">{title}</h1>
-          <p className="text-xl mt-2 text-blue-100">News, insights, and updates from our team</p>
+          <p className="text-xl mt-2 text-white/80">News, insights, and updates from our team</p>
         </div>
       </div>
       
@@ -376,7 +444,7 @@ const BlogPage = ({
         </div>
         
         <div className="mt-12 text-center">
-          <Button>Load More Articles</Button>
+          <Button className={buttonColor}>Load More Articles</Button>
         </div>
       </div>
     </TemplatePage>
@@ -405,6 +473,29 @@ const ContactPageGeneric = ({
     email: string;
   };
 }) => {
+  // Determine template-specific colors
+  let headerBgColor = "bg-blue-700";
+  let accentColor = "text-blue-600";
+  let buttonColor = "bg-blue-600 hover:bg-blue-700";
+  let borderColor = "border-blue-200";
+  
+  if (basePath === "retail") {
+    headerBgColor = "bg-gradient-to-r from-purple-700 to-pink-500";
+    accentColor = "text-purple-600";
+    buttonColor = "bg-purple-600 hover:bg-purple-700";
+    borderColor = "border-purple-200";
+  } else if (basePath === "expert") {
+    headerBgColor = "bg-amber-600";
+    accentColor = "text-amber-600";
+    buttonColor = "bg-amber-600 hover:bg-amber-700";
+    borderColor = "border-amber-200";
+  } else if (basePath === "tradecraft") {
+    headerBgColor = "bg-blue-700";
+    accentColor = "text-blue-600";
+    buttonColor = "bg-blue-600 hover:bg-blue-700";
+    borderColor = "border-blue-200";
+  }
+
   return (
     <TemplatePage 
       title={title}
@@ -413,11 +504,12 @@ const ContactPageGeneric = ({
       basePath={basePath}
       navItems={navItems}
       contactInfo={contactInfo}
+      headerBgColor={headerBgColor}
     >
-      <div className="py-12 bg-blue-700 text-white">
+      <div className={`py-12 ${headerBgColor} text-white`}>
         <div className="container mx-auto px-4">
           <h1 className="text-3xl md:text-4xl font-bold">{title}</h1>
-          <p className="text-xl mt-2 text-blue-100">Get in touch with our team</p>
+          <p className="text-xl mt-2 text-white/80">Get in touch with our team</p>
         </div>
       </div>
       
@@ -432,10 +524,10 @@ const ContactPageGeneric = ({
                 </p>
               </div>
               
-              <Card className="overflow-hidden border-blue-200">
+              <Card className={`overflow-hidden ${borderColor}`}>
                 <CardContent className="p-0">
                   <div className="flex items-center p-6 border-b">
-                    <Info className="h-6 w-6 text-blue-600 mr-4" />
+                    <Info className={`h-6 w-6 ${accentColor} mr-4`} />
                     <div>
                       <h3 className="font-semibold text-lg">{template}</h3>
                       <p className="text-gray-600">{description}</p>
@@ -443,7 +535,7 @@ const ContactPageGeneric = ({
                   </div>
                   
                   <div className="flex items-center p-6 border-b">
-                    <MessageSquare className="h-6 w-6 text-blue-600 mr-4" />
+                    <MessageSquare className={`h-6 w-6 ${accentColor} mr-4`} />
                     <div>
                       <h3 className="font-semibold text-lg">Phone</h3>
                       <p className="text-gray-600">{contactInfo.phone}</p>
@@ -451,7 +543,7 @@ const ContactPageGeneric = ({
                   </div>
                   
                   <div className="flex items-center p-6 border-b">
-                    <MapPin className="h-6 w-6 text-blue-600 mr-4" />
+                    <MapPin className={`h-6 w-6 ${accentColor} mr-4`} />
                     <div>
                       <h3 className="font-semibold text-lg">Address</h3>
                       <p className="text-gray-600">{contactInfo.address}</p>
@@ -473,7 +565,7 @@ const ContactPageGeneric = ({
                       <input
                         type="text"
                         id="name"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
                         placeholder="Your name"
                       />
                     </div>
@@ -482,7 +574,7 @@ const ContactPageGeneric = ({
                       <input
                         type="email"
                         id="email"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
                         placeholder="Your email"
                       />
                     </div>
@@ -492,7 +584,7 @@ const ContactPageGeneric = ({
                     <input
                       type="text"
                       id="subject"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
                       placeholder="Subject"
                     />
                   </div>
@@ -501,11 +593,11 @@ const ContactPageGeneric = ({
                     <textarea
                       id="message"
                       rows={5}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
                       placeholder="Your message"
                     ></textarea>
                   </div>
-                  <Button type="submit" className="w-full">Send Message</Button>
+                  <Button type="submit" className={`w-full ${buttonColor}`}>Send Message</Button>
                 </form>
               </CardContent>
             </Card>

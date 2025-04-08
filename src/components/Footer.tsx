@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Mail, MapPin, Phone } from "lucide-react";
 
 interface FooterProps {
-  logo: string;
+  logo: string | React.ReactNode;
   description: string;
   basePath: string;
   navItems: Array<{ name: string; path: string; }>;
@@ -24,6 +24,13 @@ const Footer = ({
   contactInfo,
   className = ""
 }: FooterProps) => {
+  const renderLogo = () => {
+    if (typeof logo === "string") {
+      return <span dangerouslySetInnerHTML={{ __html: logo }} />;
+    }
+    return logo;
+  };
+
   return (
     <footer className={`bg-gray-900 text-white py-12 ${className}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -31,7 +38,7 @@ const Footer = ({
           {/* Brand */}
           <div>
             <h3 className="text-xl font-bold mb-4">
-              <span dangerouslySetInnerHTML={{ __html: logo }} />
+              {renderLogo()}
             </h3>
             <p className="text-gray-400 mb-6">
               {description}
@@ -86,7 +93,7 @@ const Footer = ({
         </div>
         
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
-          <p>&copy; {new Date().getFullYear()} <span dangerouslySetInnerHTML={{ __html: logo }} />. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} {renderLogo()}. All rights reserved.</p>
         </div>
       </div>
     </footer>

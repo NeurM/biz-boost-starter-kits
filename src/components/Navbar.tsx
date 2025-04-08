@@ -10,7 +10,7 @@ interface NavItem {
 }
 
 interface NavbarProps {
-  logo: string;
+  logo: string | React.ReactNode;
   basePath: string;
   navItems: NavItem[];
   ctaText?: string;
@@ -45,13 +45,20 @@ const Navbar = ({
     }
   };
 
+  const renderLogo = () => {
+    if (typeof logo === "string") {
+      return <span dangerouslySetInnerHTML={{ __html: logo }} />;
+    }
+    return logo;
+  };
+
   return (
     <nav className={`bg-white shadow-sm ${className}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
             <Link to={`/${basePath}`} className="flex-shrink-0 flex items-center">
-              <span className="text-2xl font-bold">{logo}</span>
+              <span className="text-2xl font-bold">{renderLogo()}</span>
             </Link>
           </div>
 
