@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 
 // This is a placeholder for the Supabase URL and anon key
 // In a real implementation, these would be provided after connecting to Supabase
-const supabaseUrl = 'YOUR_SUPABASE_URL';
-const supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
+const supabaseUrl = 'https://placeholder-project.supabase.co';
+const supabaseAnonKey = 'placeholder-key';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
