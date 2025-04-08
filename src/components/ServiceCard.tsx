@@ -22,7 +22,7 @@ const ServiceCard = ({
   className = ""
 }: ServiceCardProps) => {
   return (
-    <Card className={`hover-grow ${className}`}>
+    <Card className={`hover:shadow-lg transition-shadow ${className}`}>
       <CardHeader className="pb-2">
         {icon && <div className="mb-4">{icon}</div>}
         <CardTitle>{title}</CardTitle>
