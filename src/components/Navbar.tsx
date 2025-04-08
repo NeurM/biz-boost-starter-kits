@@ -34,6 +34,17 @@ const Navbar = ({
       (path !== `/${basePath}` && location.pathname.startsWith(path));
   };
 
+  const handleNavClick = (event: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+    if (path.startsWith('#')) {
+      event.preventDefault();
+      const element = document.querySelector(path);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+        setIsOpen(false);
+      }
+    }
+  };
+
   return (
     <nav className={`bg-white shadow-sm ${className}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -47,9 +58,10 @@ const Navbar = ({
           {/* Desktop navigation */}
           <div className="hidden md:flex md:items-center md:space-x-8">
             {navItems.map((item) => (
-              <Link
+              <a
                 key={item.name}
-                to={item.path}
+                href={item.path}
+                onClick={(e) => handleNavClick(e, item.path)}
                 className={`px-3 py-2 text-sm font-medium transition-colors ${
                   isActive(item.path)
                     ? "text-primary border-b-2 border-primary"
@@ -57,12 +69,17 @@ const Navbar = ({
                 }`}
               >
                 {item.name}
-              </Link>
+              </a>
             ))}
             
             {ctaText && ctaLink && (
               <Button asChild>
-                <Link to={ctaLink}>{ctaText}</Link>
+                <a 
+                  href={ctaLink.startsWith('#') ? ctaLink : `/${ctaLink}`}
+                  onClick={(e) => ctaLink.startsWith('#') && handleNavClick(e, ctaLink)}
+                >
+                  {ctaText}
+                </a>
               </Button>
             )}
           </div>
@@ -89,28 +106,33 @@ const Navbar = ({
         <div className="md:hidden bg-white shadow-lg">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {navItems.map((item) => (
-              <Link
+              <a
                 key={item.name}
-                to={item.path}
+                href={item.path}
+                onClick={(e) => handleNavClick(e, item.path)}
                 className={`block px-3 py-2 text-base font-medium ${
                   isActive(item.path)
                     ? "text-primary bg-gray-50"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 }`}
-                onClick={() => setIsOpen(false)}
               >
                 {item.name}
-              </Link>
+              </a>
             ))}
             
             {ctaText && ctaLink && (
-              <Link 
-                to={ctaLink}
+              <a 
+                href={ctaLink.startsWith('#') ? ctaLink : `/${ctaLink}`}
+                onClick={(e) => {
+                  if (ctaLink.startsWith('#')) {
+                    handleNavClick(e, ctaLink);
+                  }
+                  setIsOpen(false);
+                }}
                 className="block w-full px-3 py-2 mt-4 text-center bg-primary text-white rounded-md"
-                onClick={() => setIsOpen(false)}
               >
                 {ctaText}
-              </Link>
+              </a>
             )}
           </div>
         </div>
