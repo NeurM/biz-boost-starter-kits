@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,24 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+                // Template-specific color schemes
+                tradecraft: {
+                    primary: 'hsl(var(--tradecraft-primary))',
+                    accent: 'hsl(var(--tradecraft-accent))',
+                },
+                retail: {
+                    primary: 'hsl(var(--retail-primary))',
+                    secondary: 'hsl(var(--retail-secondary))',
+                },
+                service: {
+                    primary: 'hsl(var(--service-primary))',
+                    secondary: 'hsl(var(--service-secondary))',
+                },
+                expert: {
+                    primary: 'hsl(var(--expert-primary))',
+                    secondary: 'hsl(var(--expert-secondary))',
+                },
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
