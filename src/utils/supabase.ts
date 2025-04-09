@@ -88,23 +88,25 @@ export const getAllWebsiteConfigs = async () => {
 };
 
 // Generic database functions for flexible table access
+// Modified to work with TypeScript's type checking for Supabase
+type TableNames = 'website_configs' | string; // Add other table names as needed
+
 interface TableRow {
   [key: string]: any;
 }
 
-export const fetchData = async <T extends TableRow>(tableName: string): Promise<{ data: T[] | null; error: PostgrestError | null }> => {
-  // Type assertion used because we're dynamically selecting a table
-  const result = await (supabase
-    .from(tableName) as any)
+export const fetchData = async <T extends TableRow>(tableName: TableNames): Promise<{ data: T[] | null; error: PostgrestError | null }> => {
+  // Using type assertion with 'as const' to help TypeScript understand this is a valid table name
+  const result = await supabase
+    .from(tableName as any)
     .select('*');
   
   return result;
 };
 
-export const insertData = async <T extends TableRow>(tableName: string, data: T): Promise<{ data: T | null; error: PostgrestError | null }> => {
-  // Type assertion used because we're dynamically selecting a table
-  const result = await (supabase
-    .from(tableName) as any)
+export const insertData = async <T extends TableRow>(tableName: TableNames, data: T): Promise<{ data: T | null; error: PostgrestError | null }> => {
+  const result = await supabase
+    .from(tableName as any)
     .insert(data)
     .select()
     .maybeSingle();
@@ -112,10 +114,9 @@ export const insertData = async <T extends TableRow>(tableName: string, data: T)
   return result;
 };
 
-export const updateData = async <T extends TableRow>(tableName: string, id: string, data: Partial<T>): Promise<{ data: T | null; error: PostgrestError | null }> => {
-  // Type assertion used because we're dynamically selecting a table
-  const result = await (supabase
-    .from(tableName) as any)
+export const updateData = async <T extends TableRow>(tableName: TableNames, id: string, data: Partial<T>): Promise<{ data: T | null; error: PostgrestError | null }> => {
+  const result = await supabase
+    .from(tableName as any)
     .update(data)
     .eq('id', id)
     .select()
@@ -124,10 +125,9 @@ export const updateData = async <T extends TableRow>(tableName: string, id: stri
   return result;
 };
 
-export const deleteData = async (tableName: string, id: string): Promise<{ error: PostgrestError | null }> => {
-  // Type assertion used because we're dynamically selecting a table
-  const result = await (supabase
-    .from(tableName) as any)
+export const deleteData = async (tableName: TableNames, id: string): Promise<{ error: PostgrestError | null }> => {
+  const result = await supabase
+    .from(tableName as any)
     .delete()
     .eq('id', id);
   
