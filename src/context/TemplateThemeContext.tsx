@@ -13,6 +13,8 @@ interface TemplateThemeContextProps {
     muted: string;
     border: string;
   };
+  homeColor: string;
+  setHomeColor: (color: string) => void;
 }
 
 const TemplateThemeContext = createContext<TemplateThemeContextProps>({
@@ -25,7 +27,9 @@ const TemplateThemeContext = createContext<TemplateThemeContextProps>({
     hover: 'hover:bg-blue-700',
     muted: 'text-blue-500',
     border: 'border-blue-600',
-  }
+  },
+  homeColor: 'blue',
+  setHomeColor: () => {},
 });
 
 export const useTemplateTheme = () => useContext(TemplateThemeContext);
@@ -61,6 +65,12 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     return savedColor || getDefaultColor(templateType);
   });
   
+  const [homeColor, setHomeColor] = useState<string>(() => {
+    // Try to get from localStorage first
+    const savedColor = localStorage.getItem('home-theme-color');
+    return savedColor || 'blue';
+  });
+  
   // Update color when template changes
   useEffect(() => {
     if (templateType) {
@@ -88,7 +98,9 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
         templateColor, 
         setTemplateColor, 
         templateType,
-        colorClasses
+        colorClasses,
+        homeColor,
+        setHomeColor
       }}
     >
       {children}

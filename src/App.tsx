@@ -4,6 +4,7 @@ import { AppProviders } from "./components/AppProviders";
 import { routes } from "./routes";
 import TemplatesNavigation from "./components/TemplatesNavigation";
 import { useTransition } from "react";
+import HomeColorSwitcher from "./components/HomeColorSwitcher";
 
 // Router component to separate the routes logic
 const Router = () => {
@@ -28,7 +29,12 @@ function App() {
   return (
     <AppProviders>
       <div className="flex flex-col min-h-screen">
-        <TemplatesNavigation />
+        <div className="flex justify-between items-center">
+          <TemplatesNavigation />
+          <div className="p-2 mr-4">
+            <HomeColorSwitcher />
+          </div>
+        </div>
         <main className="flex-1">
           <Router />
         </main>
