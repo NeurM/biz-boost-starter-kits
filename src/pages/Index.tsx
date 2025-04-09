@@ -10,11 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [formData, setFormData] = useState<{[key: string]: {
-    companyName: string;
-    domainName: string;
-    logo: string;
-  }}>({
+  
+  const [formData, setFormData] = useState({
     cleanslate: {
       companyName: '',
       domainName: '',
