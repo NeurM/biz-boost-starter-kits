@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
@@ -28,28 +28,57 @@ const Navbar = ({
 }: NavbarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const [companyData, setCompanyData] = useState<{
+    companyName?: string;
+    domainName?: string;
+    logo?: string;
+  } | null>(null);
+  
+  useEffect(() => {
+    // Try to get company data from session storage or location state
+    const storedData = sessionStorage.getItem('companyData');
+    if (storedData) {
+      setCompanyData(JSON.parse(storedData));
+    } else if (location.state) {
+      const { companyName, domainName, logoUrl } = location.state;
+      if (companyName || domainName || logoUrl) {
+        setCompanyData({ companyName, domainName, logo: logoUrl });
+      }
+    }
+  }, [location]);
   
   const isActive = (path: string) => {
     return location.pathname === path || 
       (path !== `/${basePath}` && location.pathname.startsWith(path));
   };
 
-  const handleNavClick = (event: React.MouseEvent<HTMLAnchorElement>, path: string) => {
-    if (path.startsWith('#')) {
-      event.preventDefault();
-      const element = document.querySelector(path);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-        setIsOpen(false);
+  const renderLogo = () => {
+    // If we have company data with a logo, use that
+    if (companyData?.logo) {
+      // Check if it looks like a URL
+      if (companyData.logo.startsWith('http') && (companyData.logo.includes('.jpg') || 
+          companyData.logo.includes('.png') || companyData.logo.includes('.svg') || 
+          companyData.logo.includes('.jpeg') || companyData.logo.includes('.gif'))) {
+        return <img src={companyData.logo} alt={companyData.companyName || "Company Logo"} className="h-8" />;
+      } else {
+        // Use as text
+        return <span>{companyData.logo}</span>;
       }
     }
-  };
-
-  const renderLogo = () => {
+    
+    // Fall back to the default logo
     if (typeof logo === "string") {
       return <span dangerouslySetInnerHTML={{ __html: logo }} />;
     }
     return logo;
+  };
+  
+  // Use company name in titles if available
+  const getPageTitle = (itemName: string) => {
+    if (companyData?.companyName && itemName === "Home") {
+      return companyData.companyName;
+    }
+    return itemName;
   };
 
   return (
@@ -74,7 +103,7 @@ const Navbar = ({
                     : "text-gray-600 hover:text-gray-900"
                 }`}
               >
-                {item.name}
+                {getPageTitle(item.name)}
               </Link>
             ))}
             
@@ -119,7 +148,7 @@ const Navbar = ({
                 }`}
                 onClick={() => setIsOpen(false)}
               >
-                {item.name}
+                {getPageTitle(item.name)}
               </Link>
             ))}
             

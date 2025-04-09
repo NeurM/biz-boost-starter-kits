@@ -1,10 +1,47 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [formData, setFormData] = useState<{[key: string]: {
+    companyName: string;
+    domainName: string;
+    logo: string;
+  }}>({
+    cleanslate: {
+      companyName: '',
+      domainName: '',
+      logo: ''
+    },
+    tradecraft: {
+      companyName: '',
+      domainName: '',
+      logo: ''
+    },
+    retail: {
+      companyName: '',
+      domainName: '',
+      logo: ''
+    },
+    service: {
+      companyName: '',
+      domainName: '',
+      logo: ''
+    },
+    expert: {
+      companyName: '',
+      domainName: '',
+      logo: ''
+    }
+  });
+
   const templates = [
     {
       id: "cleanslate",
@@ -48,6 +85,43 @@ const Index = () => {
     }
   ];
 
+  const handleInputChange = (templateId: string, field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [templateId]: {
+        ...prev[templateId],
+        [field]: value
+      }
+    }));
+  };
+
+  const handleCreateWebsite = (templateId: string) => {
+    const { companyName, domainName, logo } = formData[templateId];
+    
+    if (!companyName.trim() || !domainName.trim() || !logo.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all fields to create your website",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Store the data in session storage to be accessed by the template
+    sessionStorage.setItem('companyData', JSON.stringify({
+      companyName,
+      domainName,
+      logo
+    }));
+
+    // Navigate to the selected template
+    navigate(`/${templateId}`, { state: { 
+      companyName, 
+      domainName, 
+      logo 
+    }});
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <header className="py-12 bg-white shadow-md">
@@ -83,9 +157,45 @@ const Index = () => {
                     <span className="text-sm text-gray-600">{template.color}</span>
                   </div>
                 </div>
+                
+                <div className="mt-6 space-y-3">
+                  <div className="space-y-1">
+                    <Label htmlFor={`companyName-${template.id}`}>Company Name</Label>
+                    <Input 
+                      id={`companyName-${template.id}`}
+                      value={formData[template.id].companyName}
+                      onChange={(e) => handleInputChange(template.id, 'companyName', e.target.value)}
+                      placeholder="Your Company Name"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor={`domainName-${template.id}`}>Domain Name</Label>
+                    <Input 
+                      id={`domainName-${template.id}`}
+                      value={formData[template.id].domainName}
+                      onChange={(e) => handleInputChange(template.id, 'domainName', e.target.value)}
+                      placeholder="yourdomain.com"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor={`logo-${template.id}`}>Logo (Text or URL)</Label>
+                    <Input 
+                      id={`logo-${template.id}`}
+                      value={formData[template.id].logo}
+                      onChange={(e) => handleInputChange(template.id, 'logo', e.target.value)}
+                      placeholder="Company Logo or URL"
+                    />
+                  </div>
+                </div>
               </CardContent>
-              <CardFooter>
-                <Button asChild className="w-full">
+              <CardFooter className="flex flex-col space-y-3">
+                <Button 
+                  onClick={() => handleCreateWebsite(template.id)}
+                  className="w-full bg-primary hover:bg-primary/80"
+                >
+                  Create Website
+                </Button>
+                <Button asChild variant="outline" className="w-full">
                   <Link to={`/${template.id}`}>
                     View Template
                   </Link>
