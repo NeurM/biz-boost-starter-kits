@@ -86,7 +86,7 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }) => {
   
   if (!user) {
     return (
-      <Button variant="outline" asChild size="sm" className="template-login-btn">
+      <Button variant="outline" asChild size="sm" className={isTemplate ? "template-login-btn" : ""}>
         <Link to={authLink}>
           <User className="h-4 w-4 mr-2" />
           Login
@@ -100,7 +100,7 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }) => {
       variant="outline" 
       size="sm"
       onClick={handleLogout}
-      className="flex items-center template-logout-btn"
+      className={`flex items-center ${isTemplate ? "template-logout-btn" : ""}`}
     >
       <LogOut className="h-4 w-4 mr-2" />
       Logout

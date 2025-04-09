@@ -40,7 +40,7 @@ const TradecraftHome = () => {
       />
       
       {/* Template-specific User Menu */}
-      <div className="absolute top-4 right-20 z-50">
+      <div className="absolute top-4 right-4 z-50">
         <UserMenu isTemplate={true} templatePath="tradecraft" />
       </div>
       
