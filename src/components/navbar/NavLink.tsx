@@ -20,11 +20,8 @@ const NavLink = ({
   companyName,
   forceTemplateName = false
 }: NavLinkProps) => {
-  // Get page title - use template name if in preview mode
+  // Always show template page names, regardless of login status
   const getPageTitle = (itemName: string) => {
-    if (companyName && itemName === "Home" && !forceTemplateName) {
-      return companyName;
-    }
     return itemName;
   };
 

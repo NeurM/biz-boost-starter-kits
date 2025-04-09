@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation } from "react-router-dom";
 import NavLogo from './navbar/NavLogo';
@@ -45,28 +44,10 @@ const Navbar = ({
   }, [location.pathname]);
   
   useEffect(() => {
-    // Only load company data if not in template preview mode
-    if (forceTemplateName) {
-      setCompanyData(null);
-      return;
-    }
-    
-    // Try to get company data from session storage or location state
-    const storedData = sessionStorage.getItem('companyData');
-    if (storedData) {
-      try {
-        setCompanyData(JSON.parse(storedData));
-      } catch (e) {
-        console.error("Failed to parse company data from session storage", e);
-        setCompanyData(null);
-      }
-    } else if (location.state) {
-      const { companyName, domainName, logoUrl } = location.state;
-      if (companyName || domainName || logoUrl) {
-        setCompanyData({ companyName, domainName, logo: logoUrl });
-      }
-    }
-  }, [location, forceTemplateName]);
+    // Always force template names for template pages
+    // This keeps templates looking like templates regardless of login status
+    setCompanyData(null);
+  }, [location]);
   
   const isActive = (path: string) => {
     // For hash links
@@ -91,7 +72,7 @@ const Navbar = ({
               logo={logo}
               basePath={basePath}
               companyData={companyData}
-              forceTemplateName={!!forceTemplateName}
+              forceTemplateName={true} // Always force template name
             />
           </div>
 
@@ -103,7 +84,7 @@ const Navbar = ({
               ctaLink={ctaLink}
               isActive={isActive}
               companyData={companyData}
-              forceTemplateName={forceTemplateName}
+              forceTemplateName={true} // Always force template name
             />
             
             {/* UserMenu is already here */}
@@ -129,7 +110,7 @@ const Navbar = ({
         ctaLink={ctaLink}
         isActive={isActive}
         companyData={companyData}
-        forceTemplateName={forceTemplateName}
+        forceTemplateName={true} // Always force template name
         onNavClick={closeMenu}
       />
     </nav>
