@@ -1,65 +1,13 @@
 
 import { lazy } from "react";
 import { RouteConfig } from "../types/template";
-import { serviceProData } from "../data/serviceProData";
-import { 
-  AboutPageComponent, 
-  ServicesPageComponent, 
-  BlogPageComponent, 
-  ContactPageGenericComponent 
-} from "../components/generic/GenericTemplatePages";
 
 // Lazy load templates
 const ServiceHome = lazy(() => import("../templates/service/Home"));
-
-export const ServiceProAbout = () => (
-  <AboutPageComponent
-    template="ServicePro"
-    title="About ServicePro"
-    description={serviceProData.description}
-    logo={serviceProData.logo}
-    basePath={serviceProData.basePath}
-    navItems={serviceProData.navItems}
-    contactInfo={serviceProData.contactInfo}
-  />
-);
-
-export const ServiceProServices = () => (
-  <ServicesPageComponent
-    template="ServicePro"
-    title="Our Services"
-    serviceType="Services"
-    description={serviceProData.description}
-    logo={serviceProData.logo}
-    basePath={serviceProData.basePath}
-    navItems={serviceProData.navItems}
-    contactInfo={serviceProData.contactInfo}
-  />
-);
-
-export const ServiceProBlog = () => (
-  <BlogPageComponent
-    template="ServicePro"
-    title="ServicePro Blog"
-    description={serviceProData.description}
-    logo={serviceProData.logo}
-    basePath={serviceProData.basePath}
-    navItems={serviceProData.navItems}
-    contactInfo={serviceProData.contactInfo}
-  />
-);
-
-export const ServiceProContact = () => (
-  <ContactPageGenericComponent
-    template="ServicePro"
-    title="Contact ServicePro"
-    description={serviceProData.description}
-    logo={serviceProData.logo}
-    basePath={serviceProData.basePath}
-    navItems={serviceProData.navItems}
-    contactInfo={serviceProData.contactInfo}
-  />
-);
+const ServiceAbout = lazy(() => import("../templates/service/About"));
+const ServiceBlog = lazy(() => import("../templates/service/Blog"));
+const ServiceContact = lazy(() => import("../templates/service/Contact"));
+const ServiceServices = lazy(() => import("../templates/service/Services"));
 
 export const serviceRoutes: RouteConfig[] = [
   {
@@ -68,18 +16,18 @@ export const serviceRoutes: RouteConfig[] = [
   },
   {
     path: "/service/about",
-    element: <ServiceProAbout />,
+    element: <ServiceAbout />,
   },
   {
     path: "/service/services",
-    element: <ServiceProServices />,
+    element: <ServiceServices />,
   },
   {
     path: "/service/blog",
-    element: <ServiceProBlog />,
+    element: <ServiceBlog />,
   },
   {
     path: "/service/contact",
-    element: <ServiceProContact />,
+    element: <ServiceContact />,
   },
 ];
