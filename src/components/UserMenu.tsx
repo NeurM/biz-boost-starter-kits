@@ -19,39 +19,36 @@ const UserMenu = () => {
   const location = useLocation();
   
   // Check if we're on a template page
-  const isTemplatePage = location.pathname !== "/" && 
-                         location.pathname !== "/auth" && 
-                         location.pathname !== "/saved-websites";
+  const isTemplatePage = location.pathname.startsWith("/service") || 
+                         location.pathname.startsWith("/tradecraft") || 
+                         location.pathname.startsWith("/retail") || 
+                         location.pathname.startsWith("/expert") || 
+                         location.pathname.startsWith("/cleanslate");
   
-  // Check which template we're on
-  const isServiceTemplate = location.pathname.startsWith("/service");
-  const isTradeTemplate = location.pathname.startsWith("/tradecraft");
-  const isRetailTemplate = location.pathname.startsWith("/retail");
-  const isExpertTemplate = location.pathname.startsWith("/expert");
+  // Check if we're on the main home page
+  const isMainHomePage = location.pathname === "/";
   
-  // Templates that should show login/logout
-  const showAuthTemplates = isServiceTemplate || isTradeTemplate || isRetailTemplate || isExpertTemplate;
+  // Check if we're on a template that has its own auth-related UI
+  const isTemplateWithSpecialUI = isTemplatePage;
+  
+  // If on a template page with its own auth UI, don't show this UserMenu
+  if (isTemplateWithSpecialUI && !isMainHomePage) {
+    return null;
+  }
   
   useEffect(() => {
-    // Only check for user if not on a template page except specific templates
-    // or if we're on the saved websites page
-    if (!isTemplatePage || showAuthTemplates || location.pathname === "/saved-websites") {
-      const checkUser = async () => {
-        try {
-          const { data } = await getCurrentUser();
-          setUser(data.user);
-        } catch (error) {
-          console.error('Error checking user:', error);
-          setUser(null);
-        }
-      };
-      
-      checkUser();
-    } else {
-      // For other template pages, don't use the authenticated user
-      setUser(null);
-    }
-  }, [location.pathname, isTemplatePage, showAuthTemplates]);
+    const checkUser = async () => {
+      try {
+        const { data } = await getCurrentUser();
+        setUser(data.user);
+      } catch (error) {
+        console.error('Error checking user:', error);
+        setUser(null);
+      }
+    };
+    
+    checkUser();
+  }, [location.pathname]);
   
   const handleLogout = async () => {
     try {
@@ -64,7 +61,14 @@ const UserMenu = () => {
       });
       
       setUser(null);
-      navigate('/');
+      
+      // If on a template page, stay on that template's home
+      if (isTemplatePage) {
+        const currentTemplate = location.pathname.split('/')[1];
+        navigate(`/${currentTemplate}`);
+      } else {
+        navigate('/');
+      }
     } catch (error: any) {
       console.error('Logout error:', error);
       toast({
@@ -75,12 +79,7 @@ const UserMenu = () => {
     }
   };
   
-  // If on a template page (except allowed templates), don't show UserMenu
-  if (isTemplatePage && !showAuthTemplates) {
-    return null;
-  }
-  
-  // For non-template pages or allowed templates, show login or user menu
+  // For non-template pages or main home page, show login or user menu
   if (!user) {
     return (
       <Button variant="outline" asChild size="sm">
@@ -92,37 +91,17 @@ const UserMenu = () => {
     );
   }
   
-  // For home page and allowed templates, show a simpler logout button
-  if (location.pathname === "/" || showAuthTemplates) {
-    return (
-      <Button 
-        variant="outline" 
-        size="sm"
-        onClick={handleLogout}
-        className="flex items-center"
-      >
-        <LogOut className="h-4 w-4 mr-2" />
-        Logout
-      </Button>
-    );
-  }
-  
-  // For other pages like saved-websites, show the dropdown
+  // For all pages when logged in, show a simple logout button
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm">
-          <User className="h-4 w-4 mr-2" />
-          {user.email ? user.email.split('@')[0] : 'Account'}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={handleLogout}>
-          <LogOut className="h-4 w-4 mr-2" />
-          Logout
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Button 
+      variant="outline" 
+      size="sm"
+      onClick={handleLogout}
+      className="flex items-center"
+    >
+      <LogOut className="h-4 w-4 mr-2" />
+      Logout
+    </Button>
   );
 };
 

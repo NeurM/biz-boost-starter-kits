@@ -87,7 +87,7 @@ const Navbar = ({
               forceTemplateName={true} // Always force template name
             />
             
-            {/* UserMenu is already here */}
+            {/* UserMenu */}
             <UserMenu />
           </div>
 

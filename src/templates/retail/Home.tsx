@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,6 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Testimonial from '@/components/Testimonial';
 import { ArrowRight, ShoppingBag, Truck, CreditCard, Star } from 'lucide-react';
-import UserMenu from '@/components/UserMenu';
 
 const RetailHome = () => {
   const navItems = [
