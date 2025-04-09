@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { AboutPage } from '../../routes';
 
 const ServiceAbout = () => {
   const serviceProData = {
@@ -22,15 +21,10 @@ const ServiceAbout = () => {
   };
 
   return (
-    <AboutPage
-      template="ServicePro"
-      title="About ServicePro"
-      description={serviceProData.description}
-      logo={serviceProData.logo}
-      basePath={serviceProData.basePath}
-      navItems={serviceProData.navItems}
-      contactInfo={serviceProData.contactInfo}
-    />
+    <div className="min-h-screen bg-gray-50">
+      <h1>About ServicePro</h1>
+      <p>{serviceProData.description}</p>
+    </div>
   );
 };
 

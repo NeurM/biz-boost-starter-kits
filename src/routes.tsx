@@ -12,6 +12,47 @@ const RetailHome = lazy(() => import("./templates/retail/Home"));
 const ServiceHome = lazy(() => import("./templates/service/Home"));
 const ExpertHome = lazy(() => import("./templates/expert/Home"));
 
+// Import or lazy load the remaining pages
+const TradecraftContact = lazy(() => import("./templates/tradecraft/Contact"));
+const TradecraftAuth = lazy(() => import("./templates/tradecraft/Auth"));
+
+// Generic components for page templates
+const AboutPageComponent = ({ template, title, description, logo, basePath, navItems, contactInfo }) => {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <h1>{title}</h1>
+      <p>About page for {template} template</p>
+    </div>
+  );
+};
+
+const ServicesPageComponent = ({ template, title, serviceType, description, logo, basePath, navItems, contactInfo }) => {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <h1>{title}</h1>
+      <p>{serviceType} page for {template} template</p>
+    </div>
+  );
+};
+
+const BlogPageComponent = ({ template, title, description, logo, basePath, navItems, contactInfo }) => {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <h1>{title}</h1>
+      <p>Blog page for {template} template</p>
+    </div>
+  );
+};
+
+const ContactPageGenericComponent = ({ template, title, description, logo, basePath, navItems, contactInfo }) => {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <h1>{title}</h1>
+      <p>Contact page for {template} template</p>
+    </div>
+  );
+};
+
 const tradecraftData = {
   logo: "Trade<span class='text-blue-600'>Craft</span>",
   description: "Your trusted partner for professional trade services.",
@@ -85,7 +126,7 @@ const serviceProData = {
 };
 
 const TradecraftAbout = () => (
-  <AboutPage
+  <AboutPageComponent
     template="TradeCraft"
     title="About TradeCraft"
     description={tradecraftData.description}
@@ -97,7 +138,7 @@ const TradecraftAbout = () => (
 );
 
 const TradecraftServices = () => (
-  <ServicesPage
+  <ServicesPageComponent
     template="TradeCraft"
     title="Our Services"
     serviceType="Services"
@@ -110,7 +151,7 @@ const TradecraftServices = () => (
 );
 
 const TradecraftBlog = () => (
-  <BlogPage
+  <BlogPageComponent
     template="TradeCraft"
     title="TradeCraft Blog"
     description={tradecraftData.description}
@@ -122,7 +163,7 @@ const TradecraftBlog = () => (
 );
 
 const RetailAbout = () => (
-  <AboutPage
+  <AboutPageComponent
     template="RetailReady"
     title="About RetailReady"
     description={retailData.description}
@@ -134,7 +175,7 @@ const RetailAbout = () => (
 );
 
 const RetailProducts = () => (
-  <ServicesPage
+  <ServicesPageComponent
     template="RetailReady"
     title="Our Products"
     serviceType="Products"
@@ -147,7 +188,7 @@ const RetailProducts = () => (
 );
 
 const RetailBlog = () => (
-  <BlogPage
+  <BlogPageComponent
     template="RetailReady"
     title="RetailReady Blog"
     description={retailData.description}
@@ -159,7 +200,7 @@ const RetailBlog = () => (
 );
 
 const RetailContact = () => (
-  <ContactPageGeneric
+  <ContactPageGenericComponent
     template="RetailReady"
     title="Contact RetailReady"
     description={retailData.description}
@@ -171,7 +212,7 @@ const RetailContact = () => (
 );
 
 const ExpertAbout = () => (
-  <AboutPage
+  <AboutPageComponent
     template="LocalExpert"
     title="About LocalExpert"
     description={expertData.description}
@@ -183,7 +224,7 @@ const ExpertAbout = () => (
 );
 
 const ExpertServices = () => (
-  <ServicesPage
+  <ServicesPageComponent
     template="LocalExpert"
     title="Our Services"
     serviceType="Services"
@@ -196,7 +237,7 @@ const ExpertServices = () => (
 );
 
 const ExpertBlog = () => (
-  <BlogPage
+  <BlogPageComponent
     template="LocalExpert"
     title="LocalExpert Blog"
     description={expertData.description}
@@ -208,7 +249,7 @@ const ExpertBlog = () => (
 );
 
 const ExpertContact = () => (
-  <ContactPageGeneric
+  <ContactPageGenericComponent
     template="LocalExpert"
     title="Contact LocalExpert"
     description={expertData.description}
@@ -220,7 +261,7 @@ const ExpertContact = () => (
 );
 
 const ServiceProAbout = () => (
-  <AboutPage
+  <AboutPageComponent
     template="ServicePro"
     title="About ServicePro"
     description={serviceProData.description}
@@ -232,7 +273,7 @@ const ServiceProAbout = () => (
 );
 
 const ServiceProServices = () => (
-  <ServicesPage
+  <ServicesPageComponent
     template="ServicePro"
     title="Our Services"
     serviceType="Services"
@@ -245,7 +286,7 @@ const ServiceProServices = () => (
 );
 
 const ServiceProBlog = () => (
-  <BlogPage
+  <BlogPageComponent
     template="ServicePro"
     title="ServicePro Blog"
     description={serviceProData.description}
@@ -257,7 +298,7 @@ const ServiceProBlog = () => (
 );
 
 const ServiceProContact = () => (
-  <ContactPageGeneric
+  <ContactPageGenericComponent
     template="ServicePro"
     title="Contact ServicePro"
     description={serviceProData.description}
@@ -307,11 +348,19 @@ export const routes = [
   },
   {
     path: "/tradecraft/contact",
-    element: <TradecraftContact />,
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <TradecraftContact />
+      </Suspense>
+    ),
   },
   {
     path: "/tradecraft/auth",
-    element: <TradecraftAuth />,
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <TradecraftAuth />
+      </Suspense>
+    ),
   },
   {
     path: "/retail",
