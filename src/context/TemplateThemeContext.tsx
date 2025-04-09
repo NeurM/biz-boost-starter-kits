@@ -5,6 +5,8 @@ import { useLocation } from 'react-router-dom';
 interface TemplateThemeContextProps {
   templateColor: string;
   setTemplateColor: (color: string) => void;
+  previousTemplateColor: string | null;
+  undoTemplateColorChange: () => void;
   templateType: string;
   colorClasses: {
     bg: string;
@@ -15,11 +17,15 @@ interface TemplateThemeContextProps {
   };
   homeColor: string;
   setHomeColor: (color: string) => void;
+  previousHomeColor: string | null;
+  undoHomeColorChange: () => void;
 }
 
 const TemplateThemeContext = createContext<TemplateThemeContextProps>({
   templateColor: 'blue',
   setTemplateColor: () => {},
+  previousTemplateColor: null,
+  undoTemplateColorChange: () => {},
   templateType: '',
   colorClasses: {
     bg: 'bg-blue-600',
@@ -30,6 +36,8 @@ const TemplateThemeContext = createContext<TemplateThemeContextProps>({
   },
   homeColor: 'blue',
   setHomeColor: () => {},
+  previousHomeColor: null,
+  undoHomeColorChange: () => {},
 });
 
 export const useTemplateTheme = () => useContext(TemplateThemeContext);
@@ -64,18 +72,56 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     const savedColor = localStorage.getItem(`${templateType}-theme-color`);
     return savedColor || getDefaultColor(templateType);
   });
+
+  const [previousTemplateColor, setPreviousTemplateColor] = useState<string | null>(null);
   
   const [homeColor, setHomeColor] = useState<string>(() => {
     // Try to get from localStorage first
     const savedColor = localStorage.getItem('home-theme-color');
     return savedColor || 'blue';
   });
+
+  const [previousHomeColor, setPreviousHomeColor] = useState<string | null>(null);
+  
+  // Update template color with history tracking
+  const updateTemplateColor = (color: string) => {
+    setPreviousTemplateColor(templateColor);
+    setTemplateColor(color);
+    localStorage.setItem(`${templateType}-theme-color`, color);
+  };
+
+  // Undo the template color change
+  const undoTemplateColorChange = () => {
+    if (previousTemplateColor) {
+      setTemplateColor(previousTemplateColor);
+      localStorage.setItem(`${templateType}-theme-color`, previousTemplateColor);
+      setPreviousTemplateColor(null);
+    }
+  };
+
+  // Update home color with history tracking
+  const updateHomeColor = (color: string) => {
+    setPreviousHomeColor(homeColor);
+    setHomeColor(color);
+    localStorage.setItem('home-theme-color', color);
+  };
+
+  // Undo the home color change
+  const undoHomeColorChange = () => {
+    if (previousHomeColor) {
+      setHomeColor(previousHomeColor);
+      localStorage.setItem('home-theme-color', previousHomeColor);
+      setPreviousHomeColor(null);
+    }
+  };
   
   // Update color when template changes
   useEffect(() => {
     if (templateType) {
       const savedColor = localStorage.getItem(`${templateType}-theme-color`);
       setTemplateColor(savedColor || getDefaultColor(templateType));
+      // Reset previous color when changing templates
+      setPreviousTemplateColor(null);
     }
   }, [templateType]);
   
@@ -96,11 +142,15 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     <TemplateThemeContext.Provider 
       value={{ 
         templateColor, 
-        setTemplateColor, 
+        setTemplateColor: updateTemplateColor,
+        previousTemplateColor,
+        undoTemplateColorChange, 
         templateType,
         colorClasses,
         homeColor,
-        setHomeColor
+        setHomeColor: updateHomeColor,
+        previousHomeColor,
+        undoHomeColorChange
       }}
     >
       {children}

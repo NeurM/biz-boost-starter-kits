@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Palette } from "lucide-react";
+import { Palette, Undo2 } from "lucide-react";
 import { 
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useTemplateTheme } from '@/context/TemplateThemeContext';
 
 interface HomeColorSwitcherProps {
   onColorChange?: (color: string) => void;
@@ -20,6 +21,8 @@ type ColorOption = {
 };
 
 const HomeColorSwitcher: React.FC<HomeColorSwitcherProps> = ({ onColorChange }) => {
+  const { homeColor, setHomeColor, previousHomeColor, undoHomeColorChange } = useTemplateTheme();
+  
   const colorOptions: ColorOption[] = [
     { name: 'Blue', value: 'blue', bgClass: 'bg-blue-600', textClass: 'text-blue-600' },
     { name: 'Purple', value: 'purple', bgClass: 'bg-purple-600', textClass: 'text-purple-600' },
@@ -28,12 +31,6 @@ const HomeColorSwitcher: React.FC<HomeColorSwitcherProps> = ({ onColorChange }) 
     { name: 'Amber', value: 'amber', bgClass: 'bg-amber-600', textClass: 'text-amber-600' },
     { name: 'Teal', value: 'teal', bgClass: 'bg-teal-600', textClass: 'text-teal-600' },
   ];
-
-  const [selectedColor, setSelectedColor] = useState<string>(() => {
-    // Try to get from localStorage first
-    const savedColor = localStorage.getItem('home-theme-color');
-    return savedColor || 'blue';
-  });
 
   useEffect(() => {
     // Apply the selected color to the root element
@@ -45,14 +42,14 @@ const HomeColorSwitcher: React.FC<HomeColorSwitcherProps> = ({ onColorChange }) 
     });
     
     // Add the new color class
-    rootElement.classList.add(`home-theme-${selectedColor}`);
+    rootElement.classList.add(`home-theme-${homeColor}`);
     
     // Update CSS variables for the primary color
-    document.documentElement.style.setProperty('--primary', getHSLValue(selectedColor));
+    document.documentElement.style.setProperty('--primary', getHSLValue(homeColor));
     
     // Store the selected color in localStorage for persistence
-    localStorage.setItem('home-theme-color', selectedColor);
-  }, [selectedColor]);
+    localStorage.setItem('home-theme-color', homeColor);
+  }, [homeColor]);
 
   const getHSLValue = (color: string) => {
     switch (color) {
@@ -67,7 +64,7 @@ const HomeColorSwitcher: React.FC<HomeColorSwitcherProps> = ({ onColorChange }) 
   };
 
   const handleColorChange = (color: string) => {
-    setSelectedColor(color);
+    setHomeColor(color);
     
     // Call the onColorChange callback if provided
     if (onColorChange) {
@@ -76,32 +73,47 @@ const HomeColorSwitcher: React.FC<HomeColorSwitcherProps> = ({ onColorChange }) 
   };
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline" size="icon" className="h-9 w-9">
-          <Palette className="h-5 w-5" />
-          <span className="sr-only">Change website color</span>
+    <div className="flex items-center gap-2">
+      {previousHomeColor && (
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="h-9 w-9"
+          onClick={undoHomeColorChange} 
+          title="Undo color change"
+        >
+          <Undo2 className="h-5 w-5" />
+          <span className="sr-only">Undo color change</span>
         </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-64" align="end">
-        <div className="space-y-2">
-          <h3 className="font-medium text-sm">Color Theme</h3>
-          <div className="grid grid-cols-2 gap-2">
-            {colorOptions.map((option) => (
-              <Button
-                key={option.value}
-                variant={selectedColor === option.value ? "default" : "outline"}
-                className="justify-start gap-2"
-                onClick={() => handleColorChange(option.value)}
-              >
-                <div className={`h-4 w-4 rounded-full ${option.bgClass}`} />
-                <span>{option.name}</span>
-              </Button>
-            ))}
+      )}
+      
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" size="icon" className="h-9 w-9">
+            <Palette className="h-5 w-5" />
+            <span className="sr-only">Change website color</span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64" align="end">
+          <div className="space-y-2">
+            <h3 className="font-medium text-sm">Color Theme</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {colorOptions.map((option) => (
+                <Button
+                  key={option.value}
+                  variant={homeColor === option.value ? "default" : "outline"}
+                  className="justify-start gap-2"
+                  onClick={() => handleColorChange(option.value)}
+                >
+                  <div className={`h-4 w-4 rounded-full ${option.bgClass}`} />
+                  <span>{option.name}</span>
+                </Button>
+              ))}
+            </div>
           </div>
-        </div>
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 };
 

@@ -1,12 +1,13 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Palette } from "lucide-react";
+import { Palette, Undo2 } from "lucide-react";
 import { 
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useTemplateTheme } from '@/context/TemplateThemeContext';
 
 interface ThemeColorSwitcherProps {
   templateType?: string;
@@ -25,6 +26,13 @@ const ThemeColorSwitcher: React.FC<ThemeColorSwitcherProps> = ({
   templateType = 'retail', 
   onColorChange 
 }) => {
+  const { 
+    templateColor,
+    setTemplateColor, 
+    previousTemplateColor, 
+    undoTemplateColorChange 
+  } = useTemplateTheme();
+  
   // Color options for different templates
   const colorOptions: Record<string, ColorOption[]> = {
     tradecraft: [
@@ -54,18 +62,9 @@ const ThemeColorSwitcher: React.FC<ThemeColorSwitcherProps> = ({
   };
 
   const options = colorOptions[templateType] || colorOptions.retail;
-  const [selectedColor, setSelectedColor] = useState<string>(options[0].value);
-
-  useEffect(() => {
-    // Set default color when template changes
-    setSelectedColor(options[0].value);
-  }, [templateType]);
 
   const handleColorChange = (color: string) => {
-    setSelectedColor(color);
-    
-    // Store the selected color in localStorage for persistence
-    localStorage.setItem(`${templateType}-theme-color`, color);
+    setTemplateColor(color);
     
     // Call the onColorChange callback if provided
     if (onColorChange) {
@@ -74,32 +73,47 @@ const ThemeColorSwitcher: React.FC<ThemeColorSwitcherProps> = ({
   };
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline" size="icon" className="h-9 w-9">
-          <Palette className="h-5 w-5" />
-          <span className="sr-only">Change template color</span>
+    <div className="flex items-center gap-2">
+      {previousTemplateColor && (
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="h-9 w-9"
+          onClick={undoTemplateColorChange} 
+          title="Undo color change"
+        >
+          <Undo2 className="h-5 w-5" />
+          <span className="sr-only">Undo color change</span>
         </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-64" align="end">
-        <div className="space-y-2">
-          <h3 className="font-medium text-sm">Color Theme</h3>
-          <div className="grid grid-cols-2 gap-2">
-            {options.map((option) => (
-              <Button
-                key={option.value}
-                variant={selectedColor === option.value ? "default" : "outline"}
-                className="justify-start gap-2"
-                onClick={() => handleColorChange(option.value)}
-              >
-                <div className={`h-4 w-4 rounded-full ${option.bgClass}`} />
-                <span>{option.name}</span>
-              </Button>
-            ))}
+      )}
+      
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" size="icon" className="h-9 w-9">
+            <Palette className="h-5 w-5" />
+            <span className="sr-only">Change template color</span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64" align="end">
+          <div className="space-y-2">
+            <h3 className="font-medium text-sm">Color Theme</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {options.map((option) => (
+                <Button
+                  key={option.value}
+                  variant={templateColor === option.value ? "default" : "outline"}
+                  className="justify-start gap-2"
+                  onClick={() => handleColorChange(option.value)}
+                >
+                  <div className={`h-4 w-4 rounded-full ${option.bgClass}`} />
+                  <span>{option.name}</span>
+                </Button>
+              ))}
+            </div>
           </div>
-        </div>
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 };
 
