@@ -43,6 +43,9 @@ export const CompanyDataProvider = ({ children }: CompanyDataProviderProps) => {
         // Store in session storage for persistence
         sessionStorage.setItem('companyData', JSON.stringify(newData));
       }
+    } else {
+      // If neither session storage nor location state has data, reset to null
+      setCompanyData(null);
     }
   }, [location]);
 

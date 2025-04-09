@@ -119,6 +119,11 @@ const Index = () => {
     }});
   };
 
+  const handleViewTemplate = (templateId: string) => {
+    // Clear any existing company data from session storage to view the default template
+    sessionStorage.removeItem('companyData');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <header className="py-12 bg-white shadow-md">
@@ -192,7 +197,12 @@ const Index = () => {
                 >
                   Create Website
                 </Button>
-                <Button asChild variant="outline" className="w-full">
+                <Button 
+                  asChild 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => handleViewTemplate(template.id)}
+                >
                   <Link to={`/${template.id}`}>
                     View Template
                   </Link>
