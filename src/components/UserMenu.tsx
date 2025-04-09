@@ -19,8 +19,13 @@ const UserMenu = () => {
   
   useEffect(() => {
     const checkUser = async () => {
-      const { data } = await getCurrentUser();
-      setUser(data.user);
+      try {
+        const { data } = await getCurrentUser();
+        setUser(data.user);
+      } catch (error) {
+        console.error('Error checking user:', error);
+        setUser(null);
+      }
     };
     
     checkUser();

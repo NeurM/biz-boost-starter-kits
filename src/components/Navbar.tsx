@@ -106,7 +106,7 @@ const Navbar = ({
               forceTemplateName={forceTemplateName}
             />
             
-            {/* Add user menu to desktop nav */}
+            {/* UserMenu is already here */}
             <UserMenu />
           </div>
 
