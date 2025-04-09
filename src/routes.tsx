@@ -1,5 +1,5 @@
 
-import { lazy, Suspense, ReactElement } from "react";
+import React, { lazy, Suspense, ReactElement } from "react";
 import { RouteConfig } from "./types/template";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
