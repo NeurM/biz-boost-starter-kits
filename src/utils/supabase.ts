@@ -25,6 +25,68 @@ export const getCurrentUser = async () => {
   return await supabase.auth.getUser();
 };
 
+// Website configuration functions
+export const saveWebsiteConfig = async (config: {
+  template_id: string;
+  company_name: string;
+  domain_name: string;
+  logo: string;
+}) => {
+  const { data: user } = await supabase.auth.getUser();
+  
+  if (!user.user) {
+    throw new Error("User must be logged in to save website configurations");
+  }
+  
+  const { data, error } = await supabase
+    .from('website_configs')
+    .insert({
+      user_id: user.user.id,
+      template_id: config.template_id,
+      company_name: config.company_name,
+      domain_name: config.domain_name,
+      logo: config.logo
+    })
+    .select()
+    .single();
+    
+  return { data, error };
+};
+
+export const getWebsiteConfig = async (templateId: string) => {
+  const { data: user } = await supabase.auth.getUser();
+  
+  if (!user.user) {
+    return { data: null, error: null };
+  }
+  
+  const { data, error } = await supabase
+    .from('website_configs')
+    .select()
+    .eq('user_id', user.user.id)
+    .eq('template_id', templateId)
+    .order('created_at', { ascending: false })
+    .maybeSingle();
+    
+  return { data, error };
+};
+
+export const getAllWebsiteConfigs = async () => {
+  const { data: user } = await supabase.auth.getUser();
+  
+  if (!user.user) {
+    return { data: null, error: null };
+  }
+  
+  const { data, error } = await supabase
+    .from('website_configs')
+    .select()
+    .eq('user_id', user.user.id)
+    .order('created_at', { ascending: false });
+    
+  return { data, error };
+};
+
 // Database functions for empty database
 // We'll use type assertions and a more flexible approach to handle the empty schema
 export const fetchData = async <T>(tableName: string): Promise<{ data: T[] | null; error: PostgrestError | null }> => {

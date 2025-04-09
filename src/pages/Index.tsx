@@ -1,15 +1,26 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { saveWebsiteConfig, getAllWebsiteConfigs } from '@/utils/supabase';
+import { supabase } from "@/integrations/supabase/client";
+
+interface WebsiteConfig {
+  id: string;
+  template_id: string;
+  company_name: string;
+  domain_name: string;
+  logo: string;
+}
 
 const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [savedConfigs, setSavedConfigs] = useState<WebsiteConfig[]>([]);
   
   const [formData, setFormData] = useState({
     cleanslate: {
@@ -82,6 +93,44 @@ const Index = () => {
     }
   ];
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getUser();
+      setIsAuthenticated(!!data.user);
+      
+      if (data.user) {
+        loadSavedConfigs();
+      }
+    };
+    
+    checkAuth();
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event) => {
+        if (event === 'SIGNED_IN') {
+          setIsAuthenticated(true);
+          loadSavedConfigs();
+        } else if (event === 'SIGNED_OUT') {
+          setIsAuthenticated(false);
+          setSavedConfigs([]);
+        }
+      }
+    );
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const loadSavedConfigs = async () => {
+    const { data, error } = await getAllWebsiteConfigs();
+    if (data && !error) {
+      setSavedConfigs(data as WebsiteConfig[]);
+    } else if (error) {
+      console.error("Error loading website configs:", error);
+    }
+  };
+
   const handleInputChange = (templateId: string, field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -92,7 +141,7 @@ const Index = () => {
     }));
   };
 
-  const handleCreateWebsite = (templateId: string) => {
+  const handleCreateWebsite = async (templateId: string) => {
     const { companyName, domainName, logo } = formData[templateId];
     
     if (!companyName.trim() || !domainName.trim() || !logo.trim()) {
@@ -104,14 +153,46 @@ const Index = () => {
       return;
     }
 
-    // Store the data in session storage to be accessed by the template
     sessionStorage.setItem('companyData', JSON.stringify({
       companyName,
       domainName,
       logo
     }));
+    
+    if (isAuthenticated) {
+      try {
+        const { data, error } = await saveWebsiteConfig({
+          template_id: templateId,
+          company_name: companyName,
+          domain_name: domainName,
+          logo
+        });
+        
+        if (error) {
+          console.error("Error saving website config:", error);
+          toast({
+            title: "Error",
+            description: "There was an error saving your website configuration",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Success",
+            description: "Your website configuration has been saved",
+          });
+          
+          loadSavedConfigs();
+        }
+      } catch (error) {
+        console.error("Error in website creation:", error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred",
+          variant: "destructive"
+        });
+      }
+    }
 
-    // Navigate to the selected template
     navigate(`/${templateId}`, { state: { 
       companyName, 
       domainName, 
@@ -120,8 +201,21 @@ const Index = () => {
   };
 
   const handleViewTemplate = (templateId: string) => {
-    // Clear any existing company data from session storage to view the default template
     sessionStorage.removeItem('companyData');
+  };
+
+  const handleLoadSavedConfig = (config: WebsiteConfig) => {
+    sessionStorage.setItem('companyData', JSON.stringify({
+      companyName: config.company_name,
+      domainName: config.domain_name,
+      logo: config.logo
+    }));
+    
+    navigate(`/${config.template_id}`, { state: { 
+      companyName: config.company_name, 
+      domainName: config.domain_name, 
+      logo: config.logo 
+    }});
   };
 
   return (
@@ -133,8 +227,44 @@ const Index = () => {
             Five professional templates designed specifically for small businesses with 1-20 employees.
             Each template is fully responsive and includes Supabase backend integration.
           </p>
+          
+          {!isAuthenticated && (
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600 mb-2">Sign in to save your website configurations permanently</p>
+              <Link to="/auth" className="text-primary hover:underline">
+                Sign In / Register
+              </Link>
+            </div>
+          )}
         </div>
       </header>
+      
+      {isAuthenticated && savedConfigs.length > 0 && (
+        <section className="container py-8">
+          <h2 className="text-2xl font-bold mb-4">Your Saved Websites</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {savedConfigs.map((config) => (
+              <Card key={config.id} className="hover:shadow-md transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">{config.company_name}</CardTitle>
+                </CardHeader>
+                <CardContent className="pb-2">
+                  <p className="text-sm text-gray-600">Template: {templates.find(t => t.id === config.template_id)?.name || config.template_id}</p>
+                  <p className="text-sm text-gray-600">Domain: {config.domain_name}</p>
+                </CardContent>
+                <CardFooter>
+                  <Button 
+                    onClick={() => handleLoadSavedConfig(config)} 
+                    className="w-full"
+                  >
+                    Load Website
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </section>
+      )}
       
       <main className="container py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

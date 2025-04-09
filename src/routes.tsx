@@ -18,6 +18,7 @@ import Footer from "./components/Footer";
 import { Card, CardContent } from "./components/ui/card";
 import { Button } from "./components/ui/button";
 import { ChevronRight, FileText, Info, MapPin, MessageSquare, Users } from "lucide-react";
+import AuthPage from "./pages/Auth";
 
 export const TemplatePage = ({ 
   title, 
@@ -880,6 +881,10 @@ export const routes: RouteObject[] = [
   {
     path: "/",
     element: <Index />,
+  },
+  {
+    path: "/auth",
+    element: <AuthPage />,
   },
   {
     path: "*",
