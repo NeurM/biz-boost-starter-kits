@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import ServiceCard from '@/components/ServiceCard';
 import Testimonial from '@/components/Testimonial';
 import { Award, Calendar, Check, Star } from 'lucide-react';
+import UserMenu from '@/components/UserMenu';
 
 const ExpertHome = () => {
   const navItems = [
@@ -33,6 +34,11 @@ const ExpertHome = () => {
         ctaText="Book Appointment" 
         ctaLink="/expert/contact"
       />
+      
+      {/* User Menu */}
+      <div className="absolute top-4 right-20 z-50">
+        <UserMenu />
+      </div>
       
       {/* Hero Section */}
       <section className="relative overflow-hidden">

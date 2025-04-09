@@ -23,13 +23,19 @@ const UserMenu = () => {
                          location.pathname !== "/auth" && 
                          location.pathname !== "/saved-websites";
   
-  // Check if we're on the Service Pro template
+  // Check which template we're on
   const isServiceTemplate = location.pathname.startsWith("/service");
+  const isTradeTemplate = location.pathname.startsWith("/tradecraft");
+  const isRetailTemplate = location.pathname.startsWith("/retail");
+  const isExpertTemplate = location.pathname.startsWith("/expert");
+  
+  // Templates that should show login/logout
+  const showAuthTemplates = isServiceTemplate || isTradeTemplate || isRetailTemplate || isExpertTemplate;
   
   useEffect(() => {
-    // Only check for user if not on a template page except Service Pro
+    // Only check for user if not on a template page except specific templates
     // or if we're on the saved websites page
-    if ((!isTemplatePage || isServiceTemplate || location.pathname === "/saved-websites")) {
+    if (!isTemplatePage || showAuthTemplates || location.pathname === "/saved-websites") {
       const checkUser = async () => {
         try {
           const { data } = await getCurrentUser();
@@ -45,7 +51,7 @@ const UserMenu = () => {
       // For other template pages, don't use the authenticated user
       setUser(null);
     }
-  }, [location.pathname, isTemplatePage, isServiceTemplate]);
+  }, [location.pathname, isTemplatePage, showAuthTemplates]);
   
   const handleLogout = async () => {
     try {
@@ -69,12 +75,12 @@ const UserMenu = () => {
     }
   };
   
-  // If on a template page (except Service Pro), don't show UserMenu
-  if (isTemplatePage && !isServiceTemplate) {
+  // If on a template page (except allowed templates), don't show UserMenu
+  if (isTemplatePage && !showAuthTemplates) {
     return null;
   }
   
-  // For non-template pages or Service Pro, show login or user menu
+  // For non-template pages or allowed templates, show login or user menu
   if (!user) {
     return (
       <Button variant="outline" asChild size="sm">
@@ -86,8 +92,8 @@ const UserMenu = () => {
     );
   }
   
-  // For home page, show a simpler logout button instead of dropdown
-  if (location.pathname === "/" || isServiceTemplate) {
+  // For home page and allowed templates, show a simpler logout button
+  if (location.pathname === "/" || showAuthTemplates) {
     return (
       <Button 
         variant="outline" 

@@ -12,6 +12,7 @@ import ServicesSection from '@/components/sections/ServicesSection';
 import CtaSection from '@/components/sections/CtaSection';
 import TestimonialsSection from '@/components/sections/TestimonialsSection';
 import ProcessSection from '@/components/sections/ProcessSection';
+import UserMenu from '@/components/UserMenu';
 
 const TradecraftHome = () => {
   const navItems = [
@@ -37,6 +38,11 @@ const TradecraftHome = () => {
         ctaText="Book Now" 
         ctaLink="/tradecraft/contact"
       />
+      
+      {/* User Menu */}
+      <div className="absolute top-4 right-20 z-50">
+        <UserMenu />
+      </div>
       
       <HeroSection />
       <ServicesSection />

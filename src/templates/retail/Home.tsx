@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Testimonial from '@/components/Testimonial';
 import { ArrowRight, ShoppingBag, Truck, CreditCard, Star } from 'lucide-react';
+import UserMenu from '@/components/UserMenu';
 
 const RetailHome = () => {
   const navItems = [
@@ -64,6 +65,11 @@ const RetailHome = () => {
         ctaText="Shop Now" 
         ctaLink="/retail/products"
       />
+      
+      {/* User Menu */}
+      <div className="absolute top-4 right-20 z-50">
+        <UserMenu />
+      </div>
       
       {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-purple-700 to-pink-500 text-white">
