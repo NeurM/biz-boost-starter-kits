@@ -38,6 +38,11 @@ const Navbar = ({
     logo?: string;
   } | null>(null);
   
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
+  
   useEffect(() => {
     // Only load company data if not in template preview mode
     if (forceTemplateName) {
@@ -48,7 +53,12 @@ const Navbar = ({
     // Try to get company data from session storage or location state
     const storedData = sessionStorage.getItem('companyData');
     if (storedData) {
-      setCompanyData(JSON.parse(storedData));
+      try {
+        setCompanyData(JSON.parse(storedData));
+      } catch (e) {
+        console.error("Failed to parse company data from session storage", e);
+        setCompanyData(null);
+      }
     } else if (location.state) {
       const { companyName, domainName, logoUrl } = location.state;
       if (companyName || domainName || logoUrl) {
@@ -75,7 +85,7 @@ const Navbar = ({
     <nav className={`bg-white shadow-sm ${className}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex">
+          <div className="flex items-center">
             <NavLogo 
               logo={logo}
               basePath={basePath}

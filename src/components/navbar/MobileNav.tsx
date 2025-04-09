@@ -26,10 +26,11 @@ const MobileNav = ({
   forceTemplateName,
   onNavClick
 }: MobileNavProps) => {
+  // Return null without any wrapper when closed (more efficient)
   if (!isOpen) return null;
   
   return (
-    <div className="md:hidden bg-white shadow-lg">
+    <div className="md:hidden bg-white shadow-lg absolute w-full z-40">
       <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
         {navItems.map((item) => (
           <div key={item.name} className="block">

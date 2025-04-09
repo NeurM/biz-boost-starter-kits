@@ -12,6 +12,7 @@ const MobileMenuButton = ({ isOpen, onClick }: MobileMenuButtonProps) => {
     <button
       onClick={onClick}
       className="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-gray-900 focus:outline-none"
+      aria-expanded={isOpen}
     >
       <span className="sr-only">Open main menu</span>
       {isOpen ? (

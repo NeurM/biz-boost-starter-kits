@@ -18,7 +18,7 @@ const NavLink = ({
   isActive, 
   onClick,
   companyName,
-  forceTemplateName
+  forceTemplateName = false
 }: NavLinkProps) => {
   // Get page title - use template name if in preview mode
   const getPageTitle = (itemName: string) => {
@@ -28,16 +28,18 @@ const NavLink = ({
     return itemName;
   };
 
+  const linkClasses = `px-3 py-2 text-sm font-medium transition-colors ${
+    isActive
+      ? "text-primary border-b-2 border-primary"
+      : "text-gray-600 hover:text-gray-900"
+  }`;
+
   // Handle hash links within the same page
   if (item.path.startsWith('#')) {
     return (
       <a
         href={item.path}
-        className={`px-3 py-2 text-sm font-medium transition-colors ${
-          isActive
-            ? "text-primary border-b-2 border-primary"
-            : "text-gray-600 hover:text-gray-900"
-        }`}
+        className={linkClasses}
         onClick={onClick}
       >
         {getPageTitle(item.name)}
@@ -49,11 +51,7 @@ const NavLink = ({
   return (
     <Link
       to={item.path}
-      className={`px-3 py-2 text-sm font-medium transition-colors ${
-        isActive
-          ? "text-primary border-b-2 border-primary"
-          : "text-gray-600 hover:text-gray-900"
-      }`}
+      className={linkClasses}
       onClick={onClick}
     >
       {getPageTitle(item.name)}
