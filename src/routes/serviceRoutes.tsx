@@ -3,7 +3,6 @@ import { lazy } from "react";
 import { RouteConfig } from "../types/template";
 import { serviceProData } from "../data/serviceProData";
 import { 
-  AboutPageComponent, 
   ServicesPageComponent, 
   BlogPageComponent, 
   ContactPageGenericComponent 
@@ -11,20 +10,8 @@ import {
 
 // Lazy load templates
 const ServiceHome = lazy(() => import("../templates/service/Home"));
+const ServiceAbout = lazy(() => import("../templates/service/About"));
 const ServiceAuth = lazy(() => import("../pages/Auth")); // Reuse main Auth component for now
-
-export const ServiceAbout = () => (
-  <AboutPageComponent
-    template="ServicePro"
-    title="About ServicePro"
-    description={serviceProData.description}
-    logo={serviceProData.logo}
-    basePath={serviceProData.basePath}
-    navItems={serviceProData.navItems}
-    contactInfo={serviceProData.contactInfo}
-    primaryColor="teal"
-  />
-);
 
 export const ServiceServices = () => (
   <ServicesPageComponent
