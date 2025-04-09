@@ -5,6 +5,7 @@ import NavLogo from './navbar/NavLogo';
 import DesktopNav from './navbar/DesktopNav';
 import MobileNav from './navbar/MobileNav';
 import MobileMenuButton from './navbar/MobileMenuButton';
+import UserMenu from './UserMenu';
 
 interface NavItem {
   name: string;
@@ -95,17 +96,23 @@ const Navbar = ({
           </div>
 
           {/* Desktop navigation */}
-          <DesktopNav 
-            navItems={navItems}
-            ctaText={ctaText}
-            ctaLink={ctaLink}
-            isActive={isActive}
-            companyData={companyData}
-            forceTemplateName={forceTemplateName}
-          />
+          <div className="hidden md:flex md:items-center md:space-x-4">
+            <DesktopNav 
+              navItems={navItems}
+              ctaText={ctaText}
+              ctaLink={ctaLink}
+              isActive={isActive}
+              companyData={companyData}
+              forceTemplateName={forceTemplateName}
+            />
+            
+            {/* Add user menu to desktop nav */}
+            <UserMenu />
+          </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
+          {/* Mobile menu button and user menu */}
+          <div className="md:hidden flex items-center space-x-2">
+            <UserMenu />
             <MobileMenuButton 
               isOpen={isOpen}
               onClick={toggleMenu}

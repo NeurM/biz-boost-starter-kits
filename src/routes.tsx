@@ -1,5 +1,5 @@
 
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, ReactElement } from "react";
 import { RouteConfig } from "./types/template";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -25,7 +25,7 @@ export {
 } from "./components/generic/GenericTemplatePages";
 
 // Create a wrapper component for Suspense boundaries
-const SuspenseWrapper = ({ children }) => (
+const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
   <Suspense fallback={<div className="w-full h-screen flex items-center justify-center">Loading...</div>}>
     {children}
   </Suspense>
@@ -62,10 +62,16 @@ const baseRoutes: RouteConfig[] = [
 // Process template routes to add Suspense boundaries
 const processRoutes = (routes: RouteConfig[]): RouteConfig[] => {
   return routes.map(route => {
-    // If element already has Suspense boundary, leave it alone
-    if (route.element.type === SuspenseWrapper || 
-        (typeof route.element.type === 'function' && 
-         route.element.type.name !== 'lazy')) {
+    // Skip if element is not a valid React element (string, number, etc.)
+    if (!React.isValidElement(route.element)) {
+      return route;
+    }
+    
+    // If element already has Suspense boundary or is not a lazy component, leave it alone
+    const elementType = route.element.type;
+    if (elementType === SuspenseWrapper || 
+        (typeof elementType === 'function' && 
+         elementType.name !== 'lazy')) {
       return route;
     }
     
