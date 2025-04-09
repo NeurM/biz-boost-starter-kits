@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { saveWebsiteConfig, getAllWebsiteConfigs } from '@/utils/supabase';
 import { supabase } from "@/integrations/supabase/client";
+import { Globe } from "lucide-react";
 
 interface WebsiteConfig {
   id: string;
@@ -236,14 +237,28 @@ const Index = () => {
               </Link>
             </div>
           )}
+
+          {isAuthenticated && (
+            <div className="mt-6 text-center">
+              <Link to="/saved-websites" className="inline-flex items-center text-primary hover:underline">
+                <Globe className="mr-1 h-4 w-4" />
+                View All Saved Websites
+              </Link>
+            </div>
+          )}
         </div>
       </header>
       
       {isAuthenticated && savedConfigs.length > 0 && (
         <section className="container py-8">
-          <h2 className="text-2xl font-bold mb-4">Your Saved Websites</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold">Recent Websites</h2>
+            <Link to="/saved-websites" className="text-primary hover:underline text-sm">
+              View All
+            </Link>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {savedConfigs.map((config) => (
+            {savedConfigs.slice(0, 3).map((config) => (
               <Card key={config.id} className="hover:shadow-md transition-shadow">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg">{config.company_name}</CardTitle>
