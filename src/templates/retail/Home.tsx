@@ -64,10 +64,7 @@ const RetailHome = () => {
         ctaLink="/retail/products"
       />
       
-      {/* User Menu */}
-      <div className="absolute top-4 right-20 z-50">
-        <UserMenu />
-      </div>
+      {/* Remove the UserMenu reference that was causing the error */}
       
       {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-purple-700 to-pink-500 text-white">
