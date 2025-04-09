@@ -56,6 +56,7 @@ export const CompanyDataProvider = ({ children }: CompanyDataProviderProps) => {
         }
         
         // If no session data and no location state, try loading from Supabase
+        // This will get the configuration for the current template and user
         const { data, error } = await getWebsiteConfig(templateId);
         if (data && !error) {
           const newData = {

@@ -88,49 +88,39 @@ export const getAllWebsiteConfigs = async () => {
 };
 
 // Generic database functions for flexible table access
-// We need to fix the TypeScript errors by correctly typing the return values
+// Using 'any' to solve TypeScript issue with dynamic table names
 type TableNames = 'website_configs' | string; // Add other table names as needed
 
 interface TableRow {
   [key: string]: any;
 }
 
-export const fetchData = async <T extends TableRow>(tableName: TableNames) => {
-  // Using type assertion with 'as any' to bypass TypeScript's type checking
-  // for the dynamic table name, and letting the function infer the return type
-  const result = await supabase
+export const fetchData = async (tableName: TableNames) => {
+  return await supabase
     .from(tableName as any)
     .select('*');
-  
-  return result;
 };
 
 export const insertData = async <T extends TableRow>(tableName: TableNames, data: T) => {
-  const result = await supabase
+  return await supabase
     .from(tableName as any)
     .insert(data)
     .select()
     .maybeSingle();
-  
-  return result;
 };
 
 export const updateData = async <T extends TableRow>(tableName: TableNames, id: string, data: Partial<T>) => {
-  const result = await supabase
+  return await supabase
     .from(tableName as any)
     .update(data)
     .eq('id', id)
     .select()
     .maybeSingle();
-  
-  return result;
 };
 
 export const deleteData = async (tableName: TableNames, id: string) => {
-  const result = await supabase
+  return await supabase
     .from(tableName as any)
     .delete()
     .eq('id', id);
-  
-  return result;
 };
