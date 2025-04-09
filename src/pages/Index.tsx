@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { saveWebsiteConfig, getAllWebsiteConfigs } from '@/utils/supabase';
 import { supabase } from "@/integrations/supabase/client";
-import { Globe } from "lucide-react";
+import { Globe, LogOut, User } from "lucide-react";
+import { signOut } from '@/utils/supabase';
 
 interface WebsiteConfig {
   id: string;
@@ -22,6 +23,7 @@ const Index = () => {
   const { toast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [savedConfigs, setSavedConfigs] = useState<WebsiteConfig[]>([]);
+  const [user, setUser] = useState<any>(null);
   
   const [formData, setFormData] = useState({
     cleanslate: {
@@ -98,6 +100,7 @@ const Index = () => {
     const checkAuth = async () => {
       const { data } = await supabase.auth.getUser();
       setIsAuthenticated(!!data.user);
+      setUser(data.user);
       
       if (data.user) {
         loadSavedConfigs();
@@ -110,9 +113,11 @@ const Index = () => {
       (event) => {
         if (event === 'SIGNED_IN') {
           setIsAuthenticated(true);
+          checkAuth(); // Refresh user data
           loadSavedConfigs();
         } else if (event === 'SIGNED_OUT') {
           setIsAuthenticated(false);
+          setUser(null);
           setSavedConfigs([]);
         }
       }
@@ -220,6 +225,28 @@ const Index = () => {
     }});
   };
 
+  const handleLogout = async () => {
+    try {
+      const { error } = await signOut();
+      if (error) throw error;
+      
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account.",
+      });
+      
+      setIsAuthenticated(false);
+      setUser(null);
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      toast({
+        title: "Logout Failed",
+        description: error.message || "There was a problem logging out",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <header className="py-12 bg-white shadow-md">
@@ -230,23 +257,36 @@ const Index = () => {
             Each template is fully responsive and includes Supabase backend integration.
           </p>
           
-          {!isAuthenticated && (
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600 mb-2">Sign in to save your website configurations permanently</p>
-              <Link to="/auth" className="text-primary hover:underline">
+          <div className="mt-6 flex justify-center">
+            {!isAuthenticated ? (
+              <Link to="/auth" className="text-primary hover:underline flex items-center">
+                <User className="mr-1 h-4 w-4" />
                 Sign In / Register
               </Link>
-            </div>
-          )}
-
-          {isAuthenticated && (
-            <div className="mt-6 text-center">
-              <Link to="/saved-websites" className="inline-flex items-center text-primary hover:underline">
-                <Globe className="mr-1 h-4 w-4" />
-                View All Saved Websites
-              </Link>
-            </div>
-          )}
+            ) : (
+              <div className="flex flex-col items-center space-y-2">
+                <p className="text-sm text-gray-600">Signed in as: {user?.email}</p>
+                <div className="flex space-x-4">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleLogout}
+                    className="flex items-center"
+                  >
+                    <LogOut className="mr-1 h-4 w-4" />
+                    Logout
+                  </Button>
+                  
+                  {savedConfigs.length > 0 && (
+                    <Link to="/saved-websites" className="flex items-center text-primary hover:underline">
+                      <Globe className="mr-1 h-4 w-4" />
+                      View Saved Websites
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </header>
       
