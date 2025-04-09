@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { serviceProData } from '../../data/serviceProData';
 import { TemplatePage } from '../../components/generic/GenericTemplatePages';
@@ -25,9 +24,9 @@ const ServiceHome = () => {
       contactInfo={serviceProData.contactInfo}
       headerBgColor="bg-teal-700"
     >
-      {/* User Menu */}
+      {/* Template-specific User Menu */}
       <div className="absolute top-4 right-4 z-50">
-        <UserMenu />
+        <UserMenu isTemplate={true} templatePath="service" />
       </div>
       
       {/* Hero Section */}

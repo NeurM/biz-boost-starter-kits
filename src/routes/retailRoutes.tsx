@@ -11,6 +11,7 @@ import {
 
 // Lazy load templates
 const RetailHome = lazy(() => import("../templates/retail/Home"));
+const RetailAuth = lazy(() => import("../pages/Auth")); // Reuse main Auth component for now
 
 export const RetailAbout = () => (
   <AboutPageComponent
@@ -81,5 +82,9 @@ export const retailRoutes: RouteConfig[] = [
   {
     path: "/retail/contact",
     element: <RetailContact />,
+  },
+  {
+    path: "/retail/auth",
+    element: <RetailAuth />,
   },
 ];

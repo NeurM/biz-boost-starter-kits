@@ -8,6 +8,7 @@ const ServiceAbout = lazy(() => import("../templates/service/About"));
 const ServiceBlog = lazy(() => import("../templates/service/Blog"));
 const ServiceContact = lazy(() => import("../templates/service/Contact"));
 const ServiceServices = lazy(() => import("../templates/service/Services"));
+const ServiceAuth = lazy(() => import("../pages/Auth")); // Reuse main Auth component for now
 
 export const serviceRoutes: RouteConfig[] = [
   {
@@ -29,5 +30,9 @@ export const serviceRoutes: RouteConfig[] = [
   {
     path: "/service/contact",
     element: <ServiceContact />,
+  },
+  {
+    path: "/service/auth",
+    element: <ServiceAuth />,
   },
 ];

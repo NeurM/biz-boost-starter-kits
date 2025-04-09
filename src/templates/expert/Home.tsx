@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -35,9 +34,9 @@ const ExpertHome = () => {
         ctaLink="/expert/contact"
       />
       
-      {/* User Menu */}
+      {/* Template-specific User Menu */}
       <div className="absolute top-4 right-20 z-50">
-        <UserMenu />
+        <UserMenu isTemplate={true} templatePath="expert" />
       </div>
       
       {/* Hero Section */}

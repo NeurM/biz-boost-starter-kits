@@ -11,6 +11,7 @@ import {
 
 // Lazy load templates
 const ExpertHome = lazy(() => import("../templates/expert/Home"));
+const ExpertAuth = lazy(() => import("../pages/Auth")); // Reuse main Auth component for now
 
 export const ExpertAbout = () => (
   <AboutPageComponent
@@ -81,5 +82,9 @@ export const expertRoutes: RouteConfig[] = [
   {
     path: "/expert/contact",
     element: <ExpertContact />,
+  },
+  {
+    path: "/expert/auth",
+    element: <ExpertAuth />,
   },
 ];

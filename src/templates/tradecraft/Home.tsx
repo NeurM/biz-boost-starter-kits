@@ -39,9 +39,9 @@ const TradecraftHome = () => {
         ctaLink="/tradecraft/contact"
       />
       
-      {/* User Menu */}
+      {/* Template-specific User Menu */}
       <div className="absolute top-4 right-20 z-50">
-        <UserMenu />
+        <UserMenu isTemplate={true} templatePath="tradecraft" />
       </div>
       
       <HeroSection />

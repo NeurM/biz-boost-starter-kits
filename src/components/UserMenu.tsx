@@ -12,7 +12,7 @@ import { User, LogOut } from 'lucide-react';
 import { signOut, getCurrentUser } from '@/utils/supabase';
 import { useToast } from '@/hooks/use-toast';
 
-const UserMenu = () => {
+const UserMenu = ({ isTemplate = false, templatePath = '' }) => {
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -28,11 +28,13 @@ const UserMenu = () => {
   // Check if we're on the main home page
   const isMainHomePage = location.pathname === "/";
   
-  // Check if we're on a template that has its own auth-related UI
-  const isTemplateWithSpecialUI = isTemplatePage;
+  // If this is the main UserMenu (not template-specific) and we're on a template page, don't show it
+  if (!isTemplate && isTemplatePage && !isMainHomePage) {
+    return null;
+  }
   
-  // If on a template page with its own auth UI, don't show this UserMenu
-  if (isTemplateWithSpecialUI && !isMainHomePage) {
+  // If this is a template-specific UserMenu but we're not on the corresponding template page, don't show it
+  if (isTemplate && templatePath && !location.pathname.startsWith(`/${templatePath}`)) {
     return null;
   }
   
@@ -79,11 +81,13 @@ const UserMenu = () => {
     }
   };
   
-  // For non-template pages or main home page, show login or user menu
+  // Determine auth link based on whether this is a template or main menu
+  const authLink = isTemplate ? `/${templatePath}/auth` : "/auth";
+  
   if (!user) {
     return (
-      <Button variant="outline" asChild size="sm">
-        <Link to="/auth">
+      <Button variant="outline" asChild size="sm" className="template-login-btn">
+        <Link to={authLink}>
           <User className="h-4 w-4 mr-2" />
           Login
         </Link>
@@ -91,13 +95,12 @@ const UserMenu = () => {
     );
   }
   
-  // For all pages when logged in, show a simple logout button
   return (
     <Button 
       variant="outline" 
       size="sm"
       onClick={handleLogout}
-      className="flex items-center"
+      className="flex items-center template-logout-btn"
     >
       <LogOut className="h-4 w-4 mr-2" />
       Logout

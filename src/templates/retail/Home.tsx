@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Testimonial from '@/components/Testimonial';
 import { ArrowRight, ShoppingBag, Truck, CreditCard, Star } from 'lucide-react';
+import UserMenu from '@/components/UserMenu';
 
 const RetailHome = () => {
   const navItems = [
@@ -64,7 +65,10 @@ const RetailHome = () => {
         ctaLink="/retail/products"
       />
       
-      {/* Remove the UserMenu reference that was causing the error */}
+      {/* Template-specific User Menu */}
+      <div className="absolute top-4 right-20 z-50">
+        <UserMenu isTemplate={true} templatePath="retail" />
+      </div>
       
       {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-purple-700 to-pink-500 text-white">

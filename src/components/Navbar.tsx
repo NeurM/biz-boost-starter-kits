@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation } from "react-router-dom";
 import NavLogo from './navbar/NavLogo';
@@ -37,6 +38,9 @@ const Navbar = ({
     domainName?: string;
     logo?: string;
   } | null>(null);
+  
+  // Determine if this is a template navbar
+  const isTemplate = basePath && ["expert", "tradecraft", "retail", "service"].includes(basePath);
   
   // Close mobile menu on route change
   useEffect(() => {
@@ -87,13 +91,14 @@ const Navbar = ({
               forceTemplateName={true} // Always force template name
             />
             
-            {/* UserMenu */}
-            <UserMenu />
+            {/* Only show main UserMenu in main navbar (not in templates) */}
+            {!isTemplate && <UserMenu />}
           </div>
 
           {/* Mobile menu button and user menu */}
           <div className="md:hidden flex items-center space-x-2">
-            <UserMenu />
+            {/* Only show main UserMenu in main navbar (not in templates) */}
+            {!isTemplate && <UserMenu />}
             <MobileMenuButton 
               isOpen={isOpen}
               onClick={toggleMenu}
