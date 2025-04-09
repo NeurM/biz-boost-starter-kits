@@ -65,19 +65,31 @@ export const CompanyDataProvider = ({ children }: CompanyDataProviderProps) => {
             logo: data.logo
           };
           setCompanyData(newData);
+          // Store in session storage for quick access in future
+          sessionStorage.setItem('companyData', JSON.stringify(newData));
         } else if (error) {
           console.error("Error loading website config:", error);
+          toast({
+            title: "Error",
+            description: "Could not load website configuration",
+            variant: "destructive",
+          });
         } else {
           // If neither session storage nor location state nor database has data, reset to null
           setCompanyData(null);
         }
       } catch (error) {
         console.error("Error in CompanyDataProvider:", error);
+        toast({
+          title: "Error",
+          description: "Something went wrong loading website data",
+          variant: "destructive",
+        });
       }
     };
     
     loadCompanyData();
-  }, [location]);
+  }, [location, toast]);
 
   return (
     <CompanyDataContext.Provider value={{ companyData, setCompanyData }}>

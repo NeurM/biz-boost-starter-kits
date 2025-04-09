@@ -88,7 +88,6 @@ export const getAllWebsiteConfigs = async () => {
 };
 
 // Generic database functions for flexible table access
-// Using 'any' to solve TypeScript issue with dynamic table names
 type TableNames = 'website_configs' | string; // Add other table names as needed
 
 interface TableRow {
