@@ -16,16 +16,16 @@ const TemplatesNavigation = () => {
   ];
 
   return (
-    <div className="bg-white border-b border-gray-200">
+    <div className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-12">
-          <div className="flex space-x-4 overflow-x-auto">
+        <div className="flex items-center justify-between h-14">
+          <div className="flex space-x-6 overflow-x-auto w-full py-2">
             <Link 
               to="/" 
               className={cn(
                 "px-3 py-2 text-sm font-medium transition-colors",
                 currentPath === "/" 
-                  ? "text-primary border-b-2 border-primary" 
+                  ? "text-primary border-b-2 border-primary font-bold" 
                   : "text-gray-600 hover:text-gray-900"
               )}
             >
@@ -38,7 +38,7 @@ const TemplatesNavigation = () => {
                 className={cn(
                   "px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap",
                   currentPath.startsWith(`/${template.id}`)
-                    ? "text-primary border-b-2 border-primary"
+                    ? "text-primary border-b-2 border-primary font-bold"
                     : "text-gray-600 hover:text-gray-900"
                 )}
               >

@@ -13,8 +13,12 @@ function App() {
   return (
     <BrowserRouter>
       <AppProviders>
-        <TemplatesNavigation />
-        <Router />
+        <div className="flex flex-col min-h-screen">
+          <TemplatesNavigation />
+          <main className="flex-1">
+            <Router />
+          </main>
+        </div>
       </AppProviders>
     </BrowserRouter>
   );
