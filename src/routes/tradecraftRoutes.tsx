@@ -1,5 +1,5 @@
 
-import { lazy } from "react";
+import { lazy, Suspense } from "react";
 import { RouteConfig } from "../types/template";
 import { tradecraftData } from "../data/tradecraftData";
 import { 
@@ -12,6 +12,13 @@ import {
 const TradeHome = lazy(() => import("../templates/tradecraft/Home"));
 const TradecraftContact = lazy(() => import("../templates/tradecraft/Contact"));
 const TradecraftAuth = lazy(() => import("../templates/tradecraft/Auth"));
+
+// Create component wrapper for consistent rendering
+const createSuspenseWrapper = (Component) => (
+  <Suspense fallback={<div className="w-full h-64 flex items-center justify-center">Loading...</div>}>
+    <Component />
+  </Suspense>
+);
 
 export const TradecraftAbout = () => (
   <AboutPageComponent
@@ -53,7 +60,7 @@ export const TradecraftBlog = () => (
 export const tradecraftRoutes: RouteConfig[] = [
   {
     path: "/tradecraft",
-    element: <TradeHome />,
+    element: createSuspenseWrapper(TradeHome),
   },
   {
     path: "/tradecraft/about",
@@ -69,10 +76,10 @@ export const tradecraftRoutes: RouteConfig[] = [
   },
   {
     path: "/tradecraft/contact",
-    element: <TradecraftContact />,
+    element: createSuspenseWrapper(TradecraftContact),
   },
   {
     path: "/tradecraft/auth",
-    element: <TradecraftAuth />,
+    element: createSuspenseWrapper(TradecraftAuth),
   },
 ];

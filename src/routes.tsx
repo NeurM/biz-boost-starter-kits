@@ -24,6 +24,13 @@ export {
   ContactPageGenericComponent 
 } from "./components/generic/GenericTemplatePages";
 
+// Create a wrapper component for Suspense boundaries
+const SuspenseWrapper = ({ children }) => (
+  <Suspense fallback={<div className="w-full h-screen flex items-center justify-center">Loading...</div>}>
+    {children}
+  </Suspense>
+);
+
 // Base routes
 const baseRoutes: RouteConfig[] = [
   {
@@ -41,9 +48,9 @@ const baseRoutes: RouteConfig[] = [
   {
     path: "/cleanslate",
     element: (
-      <Suspense fallback={<div>Loading...</div>}>
+      <SuspenseWrapper>
         <CleanSlate />
-      </Suspense>
+      </SuspenseWrapper>
     ),
   },
   {
@@ -52,11 +59,29 @@ const baseRoutes: RouteConfig[] = [
   },
 ];
 
-// Combine all routes
+// Process template routes to add Suspense boundaries
+const processRoutes = (routes: RouteConfig[]): RouteConfig[] => {
+  return routes.map(route => {
+    // If element already has Suspense boundary, leave it alone
+    if (route.element.type === SuspenseWrapper || 
+        (typeof route.element.type === 'function' && 
+         route.element.type.name !== 'lazy')) {
+      return route;
+    }
+    
+    // Add Suspense boundary to lazy-loaded components
+    return {
+      ...route,
+      element: <SuspenseWrapper>{route.element}</SuspenseWrapper>
+    };
+  });
+};
+
+// Combine all routes with proper Suspense boundaries
 export const routes: RouteConfig[] = [
   ...baseRoutes,
-  ...tradecraftRoutes,
-  ...retailRoutes,
-  ...expertRoutes,
-  ...serviceRoutes,
+  ...processRoutes(tradecraftRoutes),
+  ...processRoutes(retailRoutes),
+  ...processRoutes(expertRoutes),
+  ...processRoutes(serviceRoutes),
 ];

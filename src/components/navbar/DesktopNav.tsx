@@ -25,14 +25,14 @@ const DesktopNav = ({
   return (
     <div className="hidden md:flex md:items-center md:space-x-8">
       {navItems.map((item) => (
-        <React.Fragment key={item.name}>
+        <div key={item.name}>
           <NavLink 
             item={item} 
             isActive={isActive(item.path)} 
             companyName={companyData?.companyName}
             forceTemplateName={forceTemplateName}
           />
-        </React.Fragment>
+        </div>
       ))}
       
       {ctaText && ctaLink && (
