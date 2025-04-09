@@ -87,17 +87,24 @@ export const getAllWebsiteConfigs = async () => {
   return { data, error };
 };
 
-// Database functions for empty database
-// We'll use type assertions and a more flexible approach to handle the empty schema
-export const fetchData = async <T>(tableName: string): Promise<{ data: T[] | null; error: PostgrestError | null }> => {
-  // Use type assertion to bypass TypeScript's type checking for table names
-  const result = await (supabase.from as any)(tableName).select('*');
+// Generic database functions for flexible table access
+interface TableRow {
+  [key: string]: any;
+}
+
+export const fetchData = async <T extends TableRow>(tableName: string): Promise<{ data: T[] | null; error: PostgrestError | null }> => {
+  // Type assertion used because we're dynamically selecting a table
+  const result = await (supabase
+    .from(tableName) as any)
+    .select('*');
+  
   return result;
 };
 
-export const insertData = async <T>(tableName: string, data: T): Promise<{ data: T | null; error: PostgrestError | null }> => {
-  // Use type assertion to bypass TypeScript's type checking
-  const result = await (supabase.from as any)(tableName)
+export const insertData = async <T extends TableRow>(tableName: string, data: T): Promise<{ data: T | null; error: PostgrestError | null }> => {
+  // Type assertion used because we're dynamically selecting a table
+  const result = await (supabase
+    .from(tableName) as any)
     .insert(data)
     .select()
     .maybeSingle();
@@ -105,9 +112,10 @@ export const insertData = async <T>(tableName: string, data: T): Promise<{ data:
   return result;
 };
 
-export const updateData = async <T>(tableName: string, id: string, data: Partial<T>): Promise<{ data: T | null; error: PostgrestError | null }> => {
-  // Use type assertion to bypass TypeScript's type checking
-  const result = await (supabase.from as any)(tableName)
+export const updateData = async <T extends TableRow>(tableName: string, id: string, data: Partial<T>): Promise<{ data: T | null; error: PostgrestError | null }> => {
+  // Type assertion used because we're dynamically selecting a table
+  const result = await (supabase
+    .from(tableName) as any)
     .update(data)
     .eq('id', id)
     .select()
@@ -117,8 +125,9 @@ export const updateData = async <T>(tableName: string, id: string, data: Partial
 };
 
 export const deleteData = async (tableName: string, id: string): Promise<{ error: PostgrestError | null }> => {
-  // Use type assertion to bypass TypeScript's type checking
-  const result = await (supabase.from as any)(tableName)
+  // Type assertion used because we're dynamically selecting a table
+  const result = await (supabase
+    .from(tableName) as any)
     .delete()
     .eq('id', id);
   
