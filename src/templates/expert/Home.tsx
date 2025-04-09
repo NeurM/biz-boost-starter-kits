@@ -34,8 +34,8 @@ const ExpertHome = () => {
         ctaLink="/expert/contact"
       />
       
-      {/* Template-specific User Menu */}
-      <div className="absolute top-4 right-20 z-50">
+      {/* Template-specific User Menu - Position adjusted for better visibility */}
+      <div className="absolute top-4 right-6 z-50">
         <UserMenu isTemplate={true} templatePath="expert" />
       </div>
       

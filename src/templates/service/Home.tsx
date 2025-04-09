@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { serviceProData } from '../../data/serviceProData';
 import { TemplatePage } from '../../components/generic/GenericTemplatePages';
@@ -24,8 +25,8 @@ const ServiceHome = () => {
       contactInfo={serviceProData.contactInfo}
       headerBgColor="bg-teal-700"
     >
-      {/* Template-specific User Menu */}
-      <div className="absolute top-4 right-4 z-50">
+      {/* Template-specific User Menu - Position adjusted for better visibility */}
+      <div className="absolute top-4 right-8 z-50">
         <UserMenu isTemplate={true} templatePath="service" />
       </div>
       

@@ -84,27 +84,27 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }) => {
   // Determine auth link based on whether this is a template or main menu
   const authLink = isTemplate ? `/${templatePath}/auth` : "/auth";
   
-  if (!user) {
-    return (
-      <Button variant="outline" asChild size="sm" className={isTemplate ? "template-login-btn" : ""}>
-        <Link to={authLink}>
-          <User className="h-4 w-4 mr-2" />
-          Login
-        </Link>
-      </Button>
-    );
-  }
-  
   return (
-    <Button 
-      variant="outline" 
-      size="sm"
-      onClick={handleLogout}
-      className={`flex items-center ${isTemplate ? "template-logout-btn" : ""}`}
-    >
-      <LogOut className="h-4 w-4 mr-2" />
-      Logout
-    </Button>
+    <div className="z-50">
+      {!user ? (
+        <Button variant="outline" asChild size="sm" className={isTemplate ? "template-login-btn" : ""}>
+          <Link to={authLink}>
+            <User className="h-4 w-4 mr-2" />
+            Login
+          </Link>
+        </Button>
+      ) : (
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={handleLogout}
+          className={`flex items-center ${isTemplate ? "template-logout-btn" : ""}`}
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Logout
+        </Button>
+      )}
+    </div>
   );
 };
 
