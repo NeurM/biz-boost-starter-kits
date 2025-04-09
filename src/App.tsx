@@ -1,6 +1,6 @@
 
-import { BrowserRouter, useRoutes } from "react-router-dom";
-import AppProviders from "./components/AppProviders";
+import { useRoutes } from "react-router-dom";
+import { AppProviders } from "./components/AppProviders";
 import { routes } from "./routes";
 import TemplatesNavigation from "./components/TemplatesNavigation";
 import { useTransition } from "react";
@@ -26,16 +26,14 @@ const Router = () => {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AppProviders>
-        <div className="flex flex-col min-h-screen">
-          <TemplatesNavigation />
-          <main className="flex-1">
-            <Router />
-          </main>
-        </div>
-      </AppProviders>
-    </BrowserRouter>
+    <AppProviders>
+      <div className="flex flex-col min-h-screen">
+        <TemplatesNavigation />
+        <main className="flex-1">
+          <Router />
+        </main>
+      </div>
+    </AppProviders>
   );
 }
 
