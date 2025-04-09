@@ -88,15 +88,16 @@ export const getAllWebsiteConfigs = async () => {
 };
 
 // Generic database functions for flexible table access
-// Modified to work with TypeScript's type checking for Supabase
+// We need to fix the TypeScript errors by correctly typing the return values
 type TableNames = 'website_configs' | string; // Add other table names as needed
 
 interface TableRow {
   [key: string]: any;
 }
 
-export const fetchData = async <T extends TableRow>(tableName: TableNames): Promise<{ data: T[] | null; error: PostgrestError | null }> => {
-  // Using type assertion with 'as const' to help TypeScript understand this is a valid table name
+export const fetchData = async <T extends TableRow>(tableName: TableNames) => {
+  // Using type assertion with 'as any' to bypass TypeScript's type checking
+  // for the dynamic table name, and letting the function infer the return type
   const result = await supabase
     .from(tableName as any)
     .select('*');
@@ -104,7 +105,7 @@ export const fetchData = async <T extends TableRow>(tableName: TableNames): Prom
   return result;
 };
 
-export const insertData = async <T extends TableRow>(tableName: TableNames, data: T): Promise<{ data: T | null; error: PostgrestError | null }> => {
+export const insertData = async <T extends TableRow>(tableName: TableNames, data: T) => {
   const result = await supabase
     .from(tableName as any)
     .insert(data)
@@ -114,7 +115,7 @@ export const insertData = async <T extends TableRow>(tableName: TableNames, data
   return result;
 };
 
-export const updateData = async <T extends TableRow>(tableName: TableNames, id: string, data: Partial<T>): Promise<{ data: T | null; error: PostgrestError | null }> => {
+export const updateData = async <T extends TableRow>(tableName: TableNames, id: string, data: Partial<T>) => {
   const result = await supabase
     .from(tableName as any)
     .update(data)
@@ -125,7 +126,7 @@ export const updateData = async <T extends TableRow>(tableName: TableNames, id: 
   return result;
 };
 
-export const deleteData = async (tableName: TableNames, id: string): Promise<{ error: PostgrestError | null }> => {
+export const deleteData = async (tableName: TableNames, id: string) => {
   const result = await supabase
     .from(tableName as any)
     .delete()
