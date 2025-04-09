@@ -5,7 +5,8 @@ import { tradecraftData } from "../data/tradecraftData";
 import { 
   AboutPageComponent, 
   ServicesPageComponent, 
-  BlogPageComponent 
+  BlogPageComponent,
+  ContactPageGenericComponent
 } from "../components/generic/GenericTemplatePages";
 
 // Lazy load templates
@@ -29,6 +30,7 @@ export const TradecraftAbout = () => (
     basePath={tradecraftData.basePath}
     navItems={tradecraftData.navItems}
     contactInfo={tradecraftData.contactInfo}
+    primaryColor="blue"
   />
 );
 
@@ -42,6 +44,7 @@ export const TradecraftServices = () => (
     basePath={tradecraftData.basePath}
     navItems={tradecraftData.navItems}
     contactInfo={tradecraftData.contactInfo}
+    primaryColor="blue"
   />
 );
 
@@ -54,6 +57,7 @@ export const TradecraftBlog = () => (
     basePath={tradecraftData.basePath}
     navItems={tradecraftData.navItems}
     contactInfo={tradecraftData.contactInfo}
+    primaryColor="blue"
   />
 );
 

@@ -22,6 +22,7 @@ export const RetailAbout = () => (
     basePath={retailData.basePath}
     navItems={retailData.navItems}
     contactInfo={retailData.contactInfo}
+    primaryColor="purple"
   />
 );
 
@@ -35,6 +36,7 @@ export const RetailProducts = () => (
     basePath={retailData.basePath}
     navItems={retailData.navItems}
     contactInfo={retailData.contactInfo}
+    primaryColor="purple"
   />
 );
 
@@ -47,6 +49,7 @@ export const RetailBlog = () => (
     basePath={retailData.basePath}
     navItems={retailData.navItems}
     contactInfo={retailData.contactInfo}
+    primaryColor="purple"
   />
 );
 
@@ -59,6 +62,7 @@ export const RetailContact = () => (
     basePath={retailData.basePath}
     navItems={retailData.navItems}
     contactInfo={retailData.contactInfo}
+    primaryColor="purple"
   />
 );
 

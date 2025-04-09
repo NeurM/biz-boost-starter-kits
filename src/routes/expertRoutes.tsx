@@ -22,6 +22,7 @@ export const ExpertAbout = () => (
     basePath={expertData.basePath}
     navItems={expertData.navItems}
     contactInfo={expertData.contactInfo}
+    primaryColor="amber"
   />
 );
 
@@ -35,6 +36,7 @@ export const ExpertServices = () => (
     basePath={expertData.basePath}
     navItems={expertData.navItems}
     contactInfo={expertData.contactInfo}
+    primaryColor="amber"
   />
 );
 
@@ -47,6 +49,7 @@ export const ExpertBlog = () => (
     basePath={expertData.basePath}
     navItems={expertData.navItems}
     contactInfo={expertData.contactInfo}
+    primaryColor="amber"
   />
 );
 
@@ -59,6 +62,7 @@ export const ExpertContact = () => (
     basePath={expertData.basePath}
     navItems={expertData.navItems}
     contactInfo={expertData.contactInfo}
+    primaryColor="amber"
   />
 );
 
