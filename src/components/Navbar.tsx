@@ -16,6 +16,7 @@ interface NavbarProps {
   ctaText?: string;
   ctaLink?: string;
   className?: string;
+  forceTemplateName?: boolean;
 }
 
 const Navbar = ({
@@ -25,6 +26,7 @@ const Navbar = ({
   ctaText,
   ctaLink,
   className = "",
+  forceTemplateName = false,
 }: NavbarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
@@ -35,6 +37,12 @@ const Navbar = ({
   } | null>(null);
   
   useEffect(() => {
+    // Only load company data if not in template preview mode
+    if (forceTemplateName) {
+      setCompanyData(null);
+      return;
+    }
+    
     // Try to get company data from session storage or location state
     const storedData = sessionStorage.getItem('companyData');
     if (storedData) {
@@ -45,16 +53,21 @@ const Navbar = ({
         setCompanyData({ companyName, domainName, logo: logoUrl });
       }
     }
-  }, [location]);
+  }, [location, forceTemplateName]);
   
   const isActive = (path: string) => {
+    // For hash links
+    if (path.startsWith('#')) {
+      return location.hash === path;
+    }
+    // For regular links
     return location.pathname === path || 
       (path !== `/${basePath}` && location.pathname.startsWith(path));
   };
 
   const renderLogo = () => {
-    // If we have company data with a logo, use that
-    if (companyData?.logo) {
+    // If we have company data with a logo and we're not in template preview mode
+    if (companyData?.logo && !forceTemplateName) {
       // Check if it looks like a URL
       if (companyData.logo.startsWith('http') && (companyData.logo.includes('.jpg') || 
           companyData.logo.includes('.png') || companyData.logo.includes('.svg') || 
@@ -73,12 +86,71 @@ const Navbar = ({
     return logo;
   };
   
-  // Use company name in titles if available
+  // Get page title - use template name if in preview mode
   const getPageTitle = (itemName: string) => {
-    if (companyData?.companyName && itemName === "Home") {
+    if (companyData?.companyName && itemName === "Home" && !forceTemplateName) {
       return companyData.companyName;
     }
     return itemName;
+  };
+
+  // Handle link rendering based on whether it's a hash link or regular path
+  const renderLink = (item: NavItem) => {
+    // For hash links within the same page
+    if (item.path.startsWith('#')) {
+      return (
+        <a
+          href={item.path}
+          className={`px-3 py-2 text-sm font-medium transition-colors ${
+            isActive(item.path)
+              ? "text-primary border-b-2 border-primary"
+              : "text-gray-600 hover:text-gray-900"
+          }`}
+          onClick={() => setIsOpen(false)}
+        >
+          {getPageTitle(item.name)}
+        </a>
+      );
+    }
+    
+    // For regular page links
+    return (
+      <Link
+        to={item.path}
+        className={`px-3 py-2 text-sm font-medium transition-colors ${
+          isActive(item.path)
+            ? "text-primary border-b-2 border-primary"
+            : "text-gray-600 hover:text-gray-900"
+        }`}
+        onClick={() => setIsOpen(false)}
+      >
+        {getPageTitle(item.name)}
+      </Link>
+    );
+  };
+
+  // Handle CTA link based on whether it's a hash link or regular path
+  const renderCtaLink = () => {
+    if (ctaText && ctaLink) {
+      if (ctaLink.startsWith('#')) {
+        return (
+          <Button asChild>
+            <a href={ctaLink} onClick={() => setIsOpen(false)}>
+              {ctaText}
+            </a>
+          </Button>
+        );
+      }
+      
+      return (
+        <Button asChild>
+          <Link to={ctaLink} onClick={() => setIsOpen(false)}>
+            {ctaText}
+          </Link>
+        </Button>
+      );
+    }
+    return null;
   };
 
   return (
@@ -94,26 +166,12 @@ const Navbar = ({
           {/* Desktop navigation */}
           <div className="hidden md:flex md:items-center md:space-x-8">
             {navItems.map((item) => (
-              <Link
-                key={item.name}
-                to={item.path}
-                className={`px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive(item.path)
-                    ? "text-primary border-b-2 border-primary"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                {getPageTitle(item.name)}
-              </Link>
+              <React.Fragment key={item.name}>
+                {renderLink(item)}
+              </React.Fragment>
             ))}
             
-            {ctaText && ctaLink && (
-              <Button asChild>
-                <Link to={ctaLink}>
-                  {ctaText}
-                </Link>
-              </Button>
-            )}
+            {renderCtaLink()}
           </div>
 
           {/* Mobile menu button */}
@@ -138,28 +196,55 @@ const Navbar = ({
         <div className="md:hidden bg-white shadow-lg">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {navItems.map((item) => (
-              <Link
-                key={item.name}
-                to={item.path}
-                className={`block px-3 py-2 text-base font-medium ${
-                  isActive(item.path)
-                    ? "text-primary bg-gray-50"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                }`}
-                onClick={() => setIsOpen(false)}
-              >
-                {getPageTitle(item.name)}
-              </Link>
+              <div key={item.name} className="block">
+                {item.path.startsWith('#') ? (
+                  <a
+                    href={item.path}
+                    className={`block px-3 py-2 text-base font-medium ${
+                      isActive(item.path)
+                        ? "text-primary bg-gray-50"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    }`}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {getPageTitle(item.name)}
+                  </a>
+                ) : (
+                  <Link
+                    to={item.path}
+                    className={`block px-3 py-2 text-base font-medium ${
+                      isActive(item.path)
+                        ? "text-primary bg-gray-50"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    }`}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {getPageTitle(item.name)}
+                  </Link>
+                )}
+              </div>
             ))}
             
             {ctaText && ctaLink && (
-              <Link 
-                to={ctaLink}
-                className="block w-full px-3 py-2 mt-4 text-center bg-primary text-white rounded-md"
-                onClick={() => setIsOpen(false)}
-              >
-                {ctaText}
-              </Link>
+              <div className="block w-full px-3 py-2 mt-4">
+                {ctaLink.startsWith('#') ? (
+                  <a 
+                    href={ctaLink}
+                    className="block w-full py-2 text-center bg-primary text-white rounded-md"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {ctaText}
+                  </a>
+                ) : (
+                  <Link 
+                    to={ctaLink}
+                    className="block w-full py-2 text-center bg-primary text-white rounded-md"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {ctaText}
+                  </Link>
+                )}
+              </div>
             )}
           </div>
         </div>

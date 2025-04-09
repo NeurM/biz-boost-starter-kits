@@ -203,6 +203,7 @@ const Index = () => {
 
   const handleViewTemplate = (templateId: string) => {
     sessionStorage.removeItem('companyData');
+    navigate(`/${templateId}`);
   };
 
   const handleLoadSavedConfig = (config: WebsiteConfig) => {

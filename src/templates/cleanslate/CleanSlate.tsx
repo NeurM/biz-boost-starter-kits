@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "react-router-dom";
@@ -15,7 +15,7 @@ const CleanSlate = () => {
   const servicesRef = useRef<HTMLElement>(null);
   const contactRef = useRef<HTMLElement>(null);
 
-  // Navigation items
+  // Navigation items with hash links that will work for scrolling
   const navItems = [
     { name: "Home", path: "#home" },
     { name: "About", path: "#about" },
@@ -23,11 +23,34 @@ const CleanSlate = () => {
     { name: "Contact", path: "#contact" },
   ];
 
-  // Handle smooth scroll
-  const scrollToSection = (ref: React.RefObject<HTMLElement>) => {
-    if (ref.current) {
-      ref.current.scrollIntoView({ behavior: 'smooth' });
-    }
+  // Handle navigation with hash links
+  useEffect(() => {
+    // Function to handle hash navigation
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash === "#about" && aboutRef.current) {
+        aboutRef.current.scrollIntoView({ behavior: 'smooth' });
+      } else if (hash === "#services" && servicesRef.current) {
+        servicesRef.current.scrollIntoView({ behavior: 'smooth' });
+      } else if (hash === "#contact" && contactRef.current) {
+        contactRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    };
+
+    // Initial check on mount
+    handleHashChange();
+    
+    // Add listener for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
+
+  // Check if we're in template preview mode (no company data)
+  const isTemplatePreview = () => {
+    // If there's no data in session storage or URL state, it's a template preview
+    return !sessionStorage.getItem('companyData');
   };
 
   // Services data
@@ -65,6 +88,13 @@ const CleanSlate = () => {
     },
   ];
 
+  // Handle smooth scroll for button clicks
+  const scrollToSection = (ref: React.RefObject<HTMLElement>) => {
+    if (ref.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
       {/* Navbar using the reusable component */}
@@ -74,6 +104,8 @@ const CleanSlate = () => {
         navItems={navItems}
         ctaText="Get Started"
         ctaLink="#contact"
+        className="sticky top-0 z-50"
+        forceTemplateName={isTemplatePreview()}
       />
 
       {/* Main content */}
