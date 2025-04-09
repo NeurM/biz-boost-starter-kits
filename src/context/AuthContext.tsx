@@ -32,7 +32,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (data?.user) {
           setUser(data.user);
-          setSession(data.session);
+          // Fix: Only access session if available in the return data
+          // TypeScript error was happening because session wasn't defined in the return type
+          if ('session' in data) {
+            setSession(data.session as Session);
+          } else {
+            setSession(null);
+          }
         } else {
           setUser(null);
           setSession(null);
