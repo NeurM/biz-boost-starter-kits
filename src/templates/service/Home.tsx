@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { serviceProData } from '../../data/serviceProData';
-import { TemplatePage } from '../../components/generic/GenericTemplatePages';
-import { Button } from "@/components/ui/button";
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import {
   MessageSquare,
   Shield,
@@ -12,19 +12,20 @@ import {
   ChevronRight,
   Star
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import UserMenu from '@/components/UserMenu';
 
 const ServiceHome = () => {
   return (
-    <TemplatePage 
-      title="Service Pro"
-      description={serviceProData.description}
-      logo={serviceProData.logo}
-      basePath={serviceProData.basePath}
-      navItems={serviceProData.navItems}
-      contactInfo={serviceProData.contactInfo}
-      headerBgColor="bg-teal-700"
-    >
+    <div className="min-h-screen bg-gray-50">
+      <Navbar 
+        logo={serviceProData.logo}
+        basePath={serviceProData.basePath}
+        navItems={serviceProData.navItems}
+        ctaText="Contact" 
+        ctaLink={`/${serviceProData.basePath}/contact`}
+      />
+      
       {/* Template-specific User Menu - Position adjusted for better visibility */}
       <div className="absolute top-4 right-8 z-50">
         <UserMenu isTemplate={true} templatePath="service" />
@@ -184,7 +185,15 @@ const ServiceHome = () => {
           </div>
         </div>
       </div>
-    </TemplatePage>
+      
+      <Footer 
+        logo="ServicePro"
+        description={serviceProData.description}
+        basePath={serviceProData.basePath}
+        navItems={serviceProData.navItems}
+        contactInfo={serviceProData.contactInfo}
+      />
+    </div>
   );
 };
 

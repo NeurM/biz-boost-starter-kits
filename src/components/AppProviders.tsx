@@ -1,24 +1,24 @@
-
-import { ReactNode } from "react";
+import React from 'react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "./ui/toaster";
-import CompanyDataProvider from "./CompanyDataProvider";
+import { BrowserRouter } from "react-router-dom";
+import { AuthProvider } from '../context/AuthContext';
+import { CompanyDataProvider } from '../context/CompanyDataContext';
+import { TemplateThemeProvider } from '../context/TemplateThemeContext';
 
 const queryClient = new QueryClient();
 
-interface AppProvidersProps {
-  children: ReactNode;
-}
-
-const AppProviders = ({ children }: AppProvidersProps) => {
+export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <CompanyDataProvider>
-        {children}
-        <Toaster />
-      </CompanyDataProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <CompanyDataProvider>
+            <TemplateThemeProvider>
+              {children}
+            </TemplateThemeProvider>
+          </CompanyDataProvider>
+        </AuthProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
-};
-
-export default AppProviders;
+}

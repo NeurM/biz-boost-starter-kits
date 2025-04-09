@@ -1,23 +1,27 @@
 
 import React from 'react';
 import { serviceProData } from '../../data/serviceProData';
-import { TemplatePage } from '../../components/generic/GenericTemplatePages';
+import { Button } from "@/components/ui/button";
 import UserMenu from '@/components/UserMenu';
+import ThemeColorSwitcher from '@/components/ThemeColorSwitcher';
+import { useTemplateTheme } from '@/context/TemplateThemeContext';
 
 const ServiceAbout = () => {
+  const { templateType, setTemplateColor, colorClasses } = useTemplateTheme();
+
   return (
-    <TemplatePage
-      title="About ServicePro"
-      description={serviceProData.description}
-      logo={serviceProData.logo}
-      basePath={serviceProData.basePath}
-      navItems={serviceProData.navItems}
-      contactInfo={serviceProData.contactInfo}
-      headerBgColor="bg-teal-700"
-    >
-      {/* Template-specific User Menu */}
+    <div className="min-h-screen bg-gray-50">
+      {/* Navigation is automatically included in the Navbar component */}
       <div className="absolute top-4 right-8 z-50">
         <UserMenu isTemplate={true} templatePath="service" />
+      </div>
+      
+      {/* Theme Color Switcher */}
+      <div className="absolute top-4 right-20 z-50">
+        <ThemeColorSwitcher 
+          templateType={templateType} 
+          onColorChange={(color) => setTemplateColor(color)} 
+        />
       </div>
       
       <div className="container mx-auto px-6 py-16">
@@ -59,7 +63,7 @@ const ServiceAbout = () => {
                 <div key={member} className="text-center">
                   <div className="w-32 h-32 bg-gray-200 rounded-full mx-auto mb-4"></div>
                   <h3 className="font-semibold text-lg">Team Member {member}</h3>
-                  <p className="text-teal-600">Position Title</p>
+                  <p className={colorClasses.text}>Position Title</p>
                   <p className="text-gray-500 mt-2">
                     Brief description of team member's experience and expertise.
                   </p>
@@ -69,7 +73,7 @@ const ServiceAbout = () => {
           </div>
         </div>
       </div>
-    </TemplatePage>
+    </div>
   );
 };
 

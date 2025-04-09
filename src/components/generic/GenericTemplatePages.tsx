@@ -9,17 +9,25 @@ import { Card, CardContent } from "@/components/ui/card";
 import UserMenu from '@/components/UserMenu';
 import { MessageSquare, Building, Clock, Mail, MapPin, Phone } from 'lucide-react';
 import ContactForm from '@/components/ContactForm';
+import { useTemplateTheme } from '@/context/TemplateThemeContext';
+import ThemeColorSwitcher from '@/components/ThemeColorSwitcher';
+
+// Helper component for theme color controls
+const ThemeControls = ({ templateType }: { templateType: string }) => {
+  const { setTemplateColor } = useTemplateTheme();
+  
+  return (
+    <div className="absolute top-4 right-20 z-50">
+      <ThemeColorSwitcher 
+        templateType={templateType} 
+        onColorChange={(color) => setTemplateColor(color)} 
+      />
+    </div>
+  );
+};
 
 export const AboutPageComponent = ({ template, title, description, logo, basePath, navItems, contactInfo, primaryColor = "purple" }: TemplateData & { template: string, title: string, primaryColor?: string }) => {
-  // Color mappings for various template styles
-  const colorMap: Record<string, { bg: string, text: string, muted: string }> = {
-    blue: { bg: "bg-blue-600", text: "text-blue-600", muted: "text-blue-500" },
-    purple: { bg: "bg-purple-600", text: "text-purple-600", muted: "text-purple-500" },
-    amber: { bg: "bg-amber-600", text: "text-amber-600", muted: "text-amber-500" },
-    teal: { bg: "bg-teal-600", text: "text-teal-600", muted: "text-teal-500" }
-  };
-  
-  const colors = colorMap[primaryColor] || colorMap.purple;
+  const { colorClasses, templateType } = useTemplateTheme();
   
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -36,8 +44,11 @@ export const AboutPageComponent = ({ template, title, description, logo, basePat
         <UserMenu isTemplate={true} templatePath={basePath} />
       </div>
       
+      {/* Theme Color Switcher */}
+      <ThemeControls templateType={templateType} />
+      
       {/* About Hero Section */}
-      <section className={`${colors.bg} text-white py-16`}>
+      <section className={`${colorClasses.bg} text-white py-16`}>
         <div className="container mx-auto px-6">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">{title}</h1>
           <p className="text-xl max-w-2xl">{description}</p>
@@ -92,7 +103,7 @@ export const AboutPageComponent = ({ template, title, description, logo, basePat
                   <Building className="h-12 w-12 text-gray-400" />
                 </div>
                 <h3 className="text-lg font-semibold mb-1">{member.name}</h3>
-                <p className={`${colors.muted}`}>{member.title}</p>
+                <p className={`${colorClasses.muted}`}>{member.title}</p>
               </div>
             ))}
           </div>
@@ -112,7 +123,7 @@ export const AboutPageComponent = ({ template, title, description, logo, basePat
             ].map((value, index) => (
               <Card key={index} className="overflow-hidden">
                 <CardContent className="p-6">
-                  <h3 className={`text-xl font-semibold mb-3 ${colors.text}`}>{value.title}</h3>
+                  <h3 className={`text-xl font-semibold mb-3 ${colorClasses.text}`}>{value.title}</h3>
                   <p className="text-gray-600">{value.description}</p>
                 </CardContent>
               </Card>
@@ -133,15 +144,7 @@ export const AboutPageComponent = ({ template, title, description, logo, basePat
 };
 
 export const ServicesPageComponent = ({ template, title, serviceType, description, logo, basePath, navItems, contactInfo, primaryColor = "purple" }: TemplateData & { template: string, title: string, serviceType: string, primaryColor?: string }) => {
-  // Color mappings for various template styles
-  const colorMap: Record<string, { bg: string, text: string, hover: string }> = {
-    blue: { bg: "bg-blue-600", text: "text-blue-600", hover: "hover:bg-blue-700" },
-    purple: { bg: "bg-purple-600", text: "text-purple-600", hover: "hover:bg-purple-700" },
-    amber: { bg: "bg-amber-600", text: "text-amber-600", hover: "hover:bg-amber-700" },
-    teal: { bg: "bg-teal-600", text: "text-teal-600", hover: "hover:bg-teal-700" }
-  };
-  
-  const colors = colorMap[primaryColor] || colorMap.purple;
+  const { colorClasses, templateType } = useTemplateTheme();
   const isProducts = serviceType.toLowerCase().includes("product");
   
   return (
@@ -159,8 +162,11 @@ export const ServicesPageComponent = ({ template, title, serviceType, descriptio
         <UserMenu isTemplate={true} templatePath={basePath} />
       </div>
       
+      {/* Theme Color Switcher */}
+      <ThemeControls templateType={templateType} />
+      
       {/* Services/Products Hero Section */}
-      <section className={`${colors.bg} text-white py-16`}>
+      <section className={`${colorClasses.bg} text-white py-16`}>
         <div className="container mx-auto px-6">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">{title}</h1>
           <p className="text-xl max-w-2xl">
@@ -187,8 +193,8 @@ export const ServicesPageComponent = ({ template, title, serviceType, descriptio
                         <h3 className="text-xl font-semibold mb-2">{`${serviceType} ${index + 1}`}</h3>
                         <p className="text-gray-600 mb-4">High-quality product designed to meet your specific needs with premium features.</p>
                         <div className="flex justify-between items-center">
-                          <span className={`font-semibold ${colors.text}`}>$99.99</span>
-                          <Button className={`${colors.bg} ${colors.hover}`}>Add to Cart</Button>
+                          <span className={`font-semibold ${colorClasses.text}`}>$99.99</span>
+                          <Button className={`${colorClasses.bg} ${colorClasses.hover}`}>Add to Cart</Button>
                         </div>
                       </div>
                     </>
@@ -196,7 +202,7 @@ export const ServicesPageComponent = ({ template, title, serviceType, descriptio
                     <div className="p-6">
                       <h3 className="text-xl font-semibold mb-2">{`${serviceType} ${index + 1}`}</h3>
                       <p className="text-gray-600 mb-4">Professional service tailored to meet your business needs and help you achieve your goals.</p>
-                      <Button className={`${colors.bg} ${colors.hover}`}>Learn More</Button>
+                      <Button className={`${colorClasses.bg} ${colorClasses.hover}`}>Learn More</Button>
                     </div>
                   )}
                 </CardContent>
@@ -223,7 +229,7 @@ export const ServicesPageComponent = ({ template, title, serviceType, descriptio
                   "Extended Warranty Coverage"
                 ].map((benefit, index) => (
                   <div key={index} className="flex items-start">
-                    <div className={`rounded-full p-2 ${colors.bg} text-white mr-4 flex-shrink-0`}>
+                    <div className={`rounded-full p-2 ${colorClasses.bg} text-white mr-4 flex-shrink-0`}>
                       <Clock className="h-5 w-5" />
                     </div>
                     <div>
@@ -242,7 +248,7 @@ export const ServicesPageComponent = ({ template, title, serviceType, descriptio
                   { title: "Review & Refinement", description: "Regular check-ins ensure we're meeting expectations and making adjustments as needed." }
                 ].map((step, index) => (
                   <div key={index} className="flex">
-                    <div className={`rounded-full h-10 w-10 ${colors.bg} text-white flex items-center justify-center mr-4 flex-shrink-0`}>
+                    <div className={`rounded-full h-10 w-10 ${colorClasses.bg} text-white flex items-center justify-center mr-4 flex-shrink-0`}>
                       {index + 1}
                     </div>
                     <div>
@@ -258,7 +264,7 @@ export const ServicesPageComponent = ({ template, title, serviceType, descriptio
       </section>
       
       {/* CTA Section */}
-      <section className={`${colors.bg} text-white py-12`}>
+      <section className={`${colorClasses.bg} text-white py-12`}>
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-2xl font-bold mb-4">Ready to Get Started?</h2>
           <p className="text-xl mb-8">
@@ -286,15 +292,7 @@ export const ServicesPageComponent = ({ template, title, serviceType, descriptio
 };
 
 export const BlogPageComponent = ({ template, title, description, logo, basePath, navItems, contactInfo, primaryColor = "purple" }: TemplateData & { template: string, title: string, primaryColor?: string }) => {
-  // Color mappings for various template styles
-  const colorMap: Record<string, { bg: string, text: string }> = {
-    blue: { bg: "bg-blue-600", text: "text-blue-600" },
-    purple: { bg: "bg-purple-600", text: "text-purple-600" },
-    amber: { bg: "bg-amber-600", text: "text-amber-600" },
-    teal: { bg: "bg-teal-600", text: "text-teal-600" }
-  };
-  
-  const colors = colorMap[primaryColor] || colorMap.purple;
+  const { colorClasses, templateType } = useTemplateTheme();
   
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -311,8 +309,11 @@ export const BlogPageComponent = ({ template, title, description, logo, basePath
         <UserMenu isTemplate={true} templatePath={basePath} />
       </div>
       
+      {/* Theme Color Switcher */}
+      <ThemeControls templateType={templateType} />
+      
       {/* Blog Hero Section */}
-      <section className={`${colors.bg} text-white py-16`}>
+      <section className={`${colorClasses.bg} text-white py-16`}>
         <div className="container mx-auto px-6">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">{title}</h1>
           <p className="text-xl max-w-2xl">Stay updated with the latest news, insights, and industry trends.</p>
@@ -327,7 +328,7 @@ export const BlogPageComponent = ({ template, title, description, logo, basePath
               <span className="text-gray-500">Featured Article Image</span>
             </div>
             <div className="md:w-1/2">
-              <span className={`${colors.text} font-medium`}>Featured</span>
+              <span className={`${colorClasses.text} font-medium`}>Featured</span>
               <h2 className="text-2xl font-bold mt-2 mb-4">10 Ways to Improve Your Business Efficiency</h2>
               <p className="text-gray-600 mb-4">
                 In today's competitive landscape, business efficiency is more important than ever. 
@@ -338,7 +339,7 @@ export const BlogPageComponent = ({ template, title, description, logo, basePath
                 <span className="mx-2">•</span>
                 <span>5 min read</span>
               </div>
-              <Button className={`${colors.bg}`}>Read Article</Button>
+              <Button className={`${colorClasses.bg} ${colorClasses.hover}`}>Read Article</Button>
             </div>
           </div>
         </div>
@@ -364,7 +365,7 @@ export const BlogPageComponent = ({ template, title, description, logo, basePath
                     </div>
                     <h3 className="text-xl font-semibold mb-2">Article Title {index + 1}</h3>
                     <p className="text-gray-600 mb-4">A brief overview of the article content, providing readers with a glimpse into what they can expect.</p>
-                    <Link to="#" className={`${colors.text} font-medium flex items-center`}>
+                    <Link to="#" className={`${colorClasses.text} font-medium flex items-center`}>
                       Read More <Clock className="ml-2 h-4 w-4" />
                     </Link>
                   </div>
@@ -391,7 +392,7 @@ export const BlogPageComponent = ({ template, title, description, logo, basePath
       </section>
       
       {/* Newsletter */}
-      <section className={`${colors.bg} text-white py-12`}>
+      <section className={`${colorClasses.bg} text-white py-12`}>
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-2xl font-bold mb-4">Subscribe to Our Newsletter</h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto">
@@ -422,15 +423,7 @@ export const BlogPageComponent = ({ template, title, description, logo, basePath
 };
 
 export const ContactPageGenericComponent = ({ template, title, description, logo, basePath, navItems, contactInfo, primaryColor = "purple" }: TemplateData & { template: string, title: string, primaryColor?: string }) => {
-  // Color mappings for various template styles
-  const colorMap: Record<string, { bg: string, text: string }> = {
-    blue: { bg: "bg-blue-600", text: "text-blue-600" },
-    purple: { bg: "bg-purple-600", text: "text-purple-600" },
-    amber: { bg: "bg-amber-600", text: "text-amber-600" },
-    teal: { bg: "bg-teal-600", text: "text-teal-600" }
-  };
-  
-  const colors = colorMap[primaryColor] || colorMap.purple;
+  const { colorClasses, templateType } = useTemplateTheme();
   
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -447,8 +440,11 @@ export const ContactPageGenericComponent = ({ template, title, description, logo
         <UserMenu isTemplate={true} templatePath={basePath} />
       </div>
       
+      {/* Theme Color Switcher */}
+      <ThemeControls templateType={templateType} />
+      
       {/* Contact Hero Section */}
-      <section className={`${colors.bg} text-white py-16`}>
+      <section className={`${colorClasses.bg} text-white py-16`}>
         <div className="container mx-auto px-6">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">{title}</h1>
           <p className="text-xl max-w-2xl">We'd love to hear from you. Reach out with any questions or inquiries.</p>
@@ -469,7 +465,7 @@ export const ContactPageGenericComponent = ({ template, title, description, logo
               <div className="bg-gray-50 p-6 rounded-lg">
                 <div className="space-y-6">
                   <div className="flex items-start">
-                    <MapPin className={`${colors.text} h-6 w-6 mr-3 flex-shrink-0`} />
+                    <MapPin className={`${colorClasses.text} h-6 w-6 mr-3 flex-shrink-0`} />
                     <div>
                       <h3 className="font-semibold mb-1">Address</h3>
                       <p className="text-gray-600">{contactInfo.address}</p>
@@ -477,7 +473,7 @@ export const ContactPageGenericComponent = ({ template, title, description, logo
                   </div>
                   
                   <div className="flex items-start">
-                    <Phone className={`${colors.text} h-6 w-6 mr-3 flex-shrink-0`} />
+                    <Phone className={`${colorClasses.text} h-6 w-6 mr-3 flex-shrink-0`} />
                     <div>
                       <h3 className="font-semibold mb-1">Phone</h3>
                       <p className="text-gray-600">{contactInfo.phone}</p>
@@ -485,7 +481,7 @@ export const ContactPageGenericComponent = ({ template, title, description, logo
                   </div>
                   
                   <div className="flex items-start">
-                    <Mail className={`${colors.text} h-6 w-6 mr-3 flex-shrink-0`} />
+                    <Mail className={`${colorClasses.text} h-6 w-6 mr-3 flex-shrink-0`} />
                     <div>
                       <h3 className="font-semibold mb-1">Email</h3>
                       <p className="text-gray-600">{contactInfo.email}</p>
@@ -564,10 +560,24 @@ export const TemplatePage: React.FC<{
   navItems: { name: string; path: string }[];
   contactInfo: { address: string; phone: string; email: string };
   headerBgColor?: string;
-}> = ({ children, ...props }) => {
+}> = ({ children, title, description, logo, basePath, navItems, contactInfo, headerBgColor }) => {
   return (
     <div className="min-h-screen">
+      <Navbar 
+        logo={logo} 
+        basePath={basePath}
+        navItems={navItems}
+        ctaText="Contact" 
+        ctaLink={`/${basePath}/contact`}
+      />
       {children}
+      <Footer 
+        logo={basePath.charAt(0).toUpperCase() + basePath.slice(1)}
+        description={description}
+        basePath={basePath}
+        navItems={navItems}
+        contactInfo={contactInfo}
+      />
     </div>
   );
 };
