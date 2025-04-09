@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { serviceProData } from '../../data/serviceProData';
 import { TemplatePage } from '../../components/generic/GenericTemplatePages';
@@ -11,6 +12,7 @@ import {
   ChevronRight,
   Star
 } from "lucide-react";
+import UserMenu from '@/components/UserMenu';
 
 const ServiceHome = () => {
   return (
@@ -23,6 +25,11 @@ const ServiceHome = () => {
       contactInfo={serviceProData.contactInfo}
       headerBgColor="bg-teal-700"
     >
+      {/* User Menu */}
+      <div className="absolute top-4 right-4 z-50">
+        <UserMenu />
+      </div>
+      
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-teal-700 to-teal-500 text-white">
         <div className="container mx-auto px-4 py-16 md:py-24">

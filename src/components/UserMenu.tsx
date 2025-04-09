@@ -23,10 +23,13 @@ const UserMenu = () => {
                          location.pathname !== "/auth" && 
                          location.pathname !== "/saved-websites";
   
+  // Check if we're on the Service Pro template
+  const isServiceTemplate = location.pathname.startsWith("/service");
+  
   useEffect(() => {
-    // Only check for user if not on a template page
+    // Only check for user if not on a template page except Service Pro
     // or if we're on the saved websites page
-    if (!isTemplatePage || location.pathname === "/saved-websites") {
+    if ((!isTemplatePage || isServiceTemplate || location.pathname === "/saved-websites")) {
       const checkUser = async () => {
         try {
           const { data } = await getCurrentUser();
@@ -39,10 +42,10 @@ const UserMenu = () => {
       
       checkUser();
     } else {
-      // For template pages, don't use the authenticated user
+      // For other template pages, don't use the authenticated user
       setUser(null);
     }
-  }, [location.pathname, isTemplatePage]);
+  }, [location.pathname, isTemplatePage, isServiceTemplate]);
   
   const handleLogout = async () => {
     try {
@@ -66,19 +69,12 @@ const UserMenu = () => {
     }
   };
   
-  // If on template page, always show Login button
-  if (isTemplatePage) {
-    return (
-      <Button variant="outline" asChild size="sm">
-        <Link to="/auth">
-          <User className="h-4 w-4 mr-2" />
-          Login
-        </Link>
-      </Button>
-    );
+  // If on a template page (except Service Pro), don't show UserMenu
+  if (isTemplatePage && !isServiceTemplate) {
+    return null;
   }
   
-  // For non-template pages, show login or user menu
+  // For non-template pages or Service Pro, show login or user menu
   if (!user) {
     return (
       <Button variant="outline" asChild size="sm">
@@ -91,7 +87,7 @@ const UserMenu = () => {
   }
   
   // For home page, show a simpler logout button instead of dropdown
-  if (location.pathname === "/") {
+  if (location.pathname === "/" || isServiceTemplate) {
     return (
       <Button 
         variant="outline" 

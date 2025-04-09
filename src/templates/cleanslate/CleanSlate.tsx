@@ -97,7 +97,7 @@ const CleanSlate = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      {/* Navbar using the reusable component */}
+      {/* Navbar using the reusable component - removed UserMenu */}
       <Navbar 
         logo="Clean Slate"
         basePath="cleanslate"
