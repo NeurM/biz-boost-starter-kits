@@ -3,11 +3,10 @@ import React from 'react';
 import { serviceProData } from '../../data/serviceProData';
 import { Button } from "@/components/ui/button";
 import UserMenu from '@/components/UserMenu';
-import ThemeColorSwitcher from '@/components/ThemeColorSwitcher';
 import { useTemplateTheme } from '@/context/TemplateThemeContext';
 
 const ServiceAbout = () => {
-  const { templateType, setTemplateColor, colorClasses } = useTemplateTheme();
+  const { templateType, colorClasses } = useTemplateTheme();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -16,13 +15,7 @@ const ServiceAbout = () => {
         <UserMenu isTemplate={true} templatePath="service" />
       </div>
       
-      {/* Theme Color Switcher */}
-      <div className="absolute top-4 right-20 z-50">
-        <ThemeColorSwitcher 
-          templateType={templateType} 
-          onColorChange={(color) => setTemplateColor(color)} 
-        />
-      </div>
+      {/* Theme Color Switcher has been removed */}
       
       <div className="container mx-auto px-6 py-16">
         <div className="max-w-4xl mx-auto">

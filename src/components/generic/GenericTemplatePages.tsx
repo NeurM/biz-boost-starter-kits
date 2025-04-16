@@ -10,16 +10,11 @@ import { MessageSquare, Building, Clock, Mail, MapPin, Phone } from 'lucide-reac
 import ContactForm from '@/components/ContactForm';
 import { useTemplateTheme } from '@/context/TemplateThemeContext';
 
-// Helper component for theme color controls
+// Helper component for theme color controls - simplified to just display user menu
 const ThemeControls = ({ templateType }: { templateType: string }) => {
-  const { setTemplateColor } = useTemplateTheme();
-  
   return (
     <div className="absolute top-4 right-20 z-50">
-      <ThemeColorSwitcher 
-        templateType={templateType} 
-        onColorChange={(color) => setTemplateColor(color)} 
-      />
+      {/* Theme color switching functionality has been removed */}
     </div>
   );
 };
