@@ -1,6 +1,6 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { getWebsiteConfig, saveWebsiteConfig } from '@/utils/supabase';
 
 interface TemplateThemeContextProps {
   templateColor: string;
@@ -45,7 +45,6 @@ export const useTemplateTheme = () => useContext(TemplateThemeContext);
 export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   
-  // Detect template type from current path
   const getTemplateTypeFromPath = (path: string) => {
     if (path.startsWith('/tradecraft')) return 'tradecraft';
     if (path.startsWith('/retail')) return 'retail';
@@ -56,9 +55,9 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   
   const templateType = getTemplateTypeFromPath(location.pathname);
   
-  // Set default colors based on template
   const getDefaultColor = (template: string) => {
     switch (template) {
+      case 'cleanslate': return 'black';
       case 'tradecraft': return 'blue';
       case 'retail': return 'purple';
       case 'service': return 'teal';
@@ -68,64 +67,91 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   };
   
   const [templateColor, setTemplateColor] = useState<string>(() => {
-    // Try to get from localStorage first
-    const savedColor = localStorage.getItem(`${templateType}-theme-color`);
-    return savedColor || getDefaultColor(templateType);
+    const defaultColor = getDefaultColor(templateType);
+    return defaultColor;
   });
 
   const [previousTemplateColor, setPreviousTemplateColor] = useState<string | null>(null);
   
   const [homeColor, setHomeColor] = useState<string>(() => {
-    // Try to get from localStorage first
     const savedColor = localStorage.getItem('home-theme-color');
     return savedColor || 'blue';
   });
 
   const [previousHomeColor, setPreviousHomeColor] = useState<string | null>(null);
   
-  // Update template color with history tracking
-  const updateTemplateColor = (color: string) => {
+  const updateTemplateColor = async (color: string) => {
     setPreviousTemplateColor(templateColor);
     setTemplateColor(color);
-    localStorage.setItem(`${templateType}-theme-color`, color);
-  };
-
-  // Undo the template color change
-  const undoTemplateColorChange = () => {
-    if (previousTemplateColor) {
-      setTemplateColor(previousTemplateColor);
-      localStorage.setItem(`${templateType}-theme-color`, previousTemplateColor);
-      setPreviousTemplateColor(null);
+    
+    try {
+      const { data: config } = await getWebsiteConfig(templateType);
+      if (config) {
+        await saveWebsiteConfig({
+          ...config,
+          color_scheme: color
+        });
+      }
+    } catch (error) {
+      console.error('Error saving color scheme:', error);
     }
   };
 
-  // Update home color with history tracking
+  const undoTemplateColorChange = async () => {
+    if (previousTemplateColor) {
+      const defaultColor = getDefaultColor(templateType);
+      setTemplateColor(defaultColor);
+      setPreviousTemplateColor(null);
+      
+      try {
+        const { data: config } = await getWebsiteConfig(templateType);
+        if (config) {
+          await saveWebsiteConfig({
+            ...config,
+            color_scheme: defaultColor
+          });
+        }
+      } catch (error) {
+        console.error('Error resetting color scheme:', error);
+      }
+    }
+  };
+
   const updateHomeColor = (color: string) => {
     setPreviousHomeColor(homeColor);
     setHomeColor(color);
     localStorage.setItem('home-theme-color', color);
   };
 
-  // Undo the home color change
   const undoHomeColorChange = () => {
     if (previousHomeColor) {
-      setHomeColor(previousHomeColor);
-      localStorage.setItem('home-theme-color', previousHomeColor);
+      setHomeColor('blue');
+      localStorage.setItem('home-theme-color', 'blue');
       setPreviousHomeColor(null);
     }
   };
   
-  // Update color when template changes
   useEffect(() => {
-    if (templateType) {
-      const savedColor = localStorage.getItem(`${templateType}-theme-color`);
-      setTemplateColor(savedColor || getDefaultColor(templateType));
-      // Reset previous color when changing templates
-      setPreviousTemplateColor(null);
-    }
+    const loadSavedColor = async () => {
+      if (templateType) {
+        try {
+          const { data: config } = await getWebsiteConfig(templateType);
+          if (config?.color_scheme) {
+            setTemplateColor(config.color_scheme);
+          } else {
+            setTemplateColor(getDefaultColor(templateType));
+          }
+          setPreviousTemplateColor(null);
+        } catch (error) {
+          console.error('Error loading saved color:', error);
+          setTemplateColor(getDefaultColor(templateType));
+        }
+      }
+    };
+    
+    loadSavedColor();
   }, [templateType]);
   
-  // Generate CSS classes based on current color
   const getColorClasses = (color: string) => {
     return {
       bg: `bg-${color}-600`,

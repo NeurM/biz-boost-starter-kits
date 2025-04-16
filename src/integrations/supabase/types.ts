@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       website_configs: {
         Row: {
+          color_scheme: string | null
           company_name: string
           created_at: string
           domain_name: string
@@ -21,6 +22,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          color_scheme?: string | null
           company_name: string
           created_at?: string
           domain_name: string
@@ -31,6 +33,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          color_scheme?: string | null
           company_name?: string
           created_at?: string
           domain_name?: string

@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { PostgrestError } from '@supabase/supabase-js';
 
@@ -31,6 +30,7 @@ export const saveWebsiteConfig = async (config: {
   company_name: string;
   domain_name: string;
   logo: string;
+  color_scheme?: string;
 }) => {
   const { data: user } = await supabase.auth.getUser();
   
@@ -40,12 +40,13 @@ export const saveWebsiteConfig = async (config: {
   
   const { data, error } = await supabase
     .from('website_configs')
-    .insert({
+    .upsert({
       user_id: user.user.id,
       template_id: config.template_id,
       company_name: config.company_name,
       domain_name: config.domain_name,
-      logo: config.logo
+      logo: config.logo,
+      color_scheme: config.color_scheme
     })
     .select()
     .single();
