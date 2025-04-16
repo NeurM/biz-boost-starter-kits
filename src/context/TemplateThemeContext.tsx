@@ -23,19 +23,19 @@ interface TemplateThemeContextProps {
 }
 
 const TemplateThemeContext = createContext<TemplateThemeContextProps>({
-  templateColor: 'black',
+  templateColor: 'blue',
   setTemplateColor: () => {},
   previousTemplateColor: null,
   undoTemplateColorChange: () => {},
   templateType: '',
   colorClasses: {
-    bg: 'bg-black',
-    text: 'text-black',
-    hover: 'hover:bg-gray-900',
-    muted: 'text-gray-600',
-    border: 'border-black',
+    bg: 'bg-blue-600',
+    text: 'text-blue-600',
+    hover: 'hover:bg-blue-700',
+    muted: 'text-blue-500',
+    border: 'border-blue-600',
   },
-  homeColor: 'black',
+  homeColor: 'blue',
   setHomeColor: () => {},
   previousHomeColor: null,
   undoHomeColorChange: () => {},
@@ -56,20 +56,35 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   };
   
   const getDefaultColor = (template: string) => {
-    return 'black'; // Default to black & white theme
+    switch (template) {
+      case 'cleanslate': return 'black';
+      case 'tradecraft': return 'blue';
+      case 'retail': return 'purple';
+      case 'service': return 'teal';
+      case 'expert': return 'amber';
+      default: return 'blue';
+    }
   };
   
   const templateType = getTemplateTypeFromPath(location.pathname);
   
-  const [templateColor, setTemplateColor] = useState<string>('black');
+  const [templateColor, setTemplateColor] = useState<string>(() => {
+    const defaultColor = getDefaultColor(templateType);
+    return defaultColor;
+  });
+  
   const [previousTemplateColor, setPreviousTemplateColor] = useState<string | null>(null);
-  const [homeColor, setHomeColor] = useState<string>('black');
+  
+  const [homeColor, setHomeColor] = useState<string>(() => {
+    const savedColor = localStorage.getItem('home-theme-color');
+    return savedColor || 'blue';
+  });
+  
   const [previousHomeColor, setPreviousHomeColor] = useState<string | null>(null);
   
   const updateTemplateColor = async (color: string) => {
     setPreviousTemplateColor(templateColor);
     setTemplateColor(color);
-    setHomeColor(color); // Update home color as well for consistency
     
     try {
       const { data: config } = await getWebsiteConfig(templateType);
@@ -86,11 +101,9 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const undoTemplateColorChange = async () => {
     if (previousTemplateColor) {
-      const defaultColor = 'black';
+      const defaultColor = getDefaultColor(templateType);
       setTemplateColor(defaultColor);
-      setHomeColor(defaultColor);
       setPreviousTemplateColor(null);
-      setPreviousHomeColor(null);
       
       try {
         const { data: config } = await getWebsiteConfig(templateType);
@@ -109,18 +122,14 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   const updateHomeColor = (color: string) => {
     setPreviousHomeColor(homeColor);
     setHomeColor(color);
-    setTemplateColor(color); // Update template color as well for consistency
     localStorage.setItem('home-theme-color', color);
   };
 
   const undoHomeColorChange = () => {
     if (previousHomeColor) {
-      const defaultColor = 'black';
-      setHomeColor(defaultColor);
-      setTemplateColor(defaultColor);
-      localStorage.setItem('home-theme-color', defaultColor);
+      setHomeColor('blue');
+      localStorage.setItem('home-theme-color', 'blue');
       setPreviousHomeColor(null);
-      setPreviousTemplateColor(null);
     }
   };
   
@@ -131,18 +140,13 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
           const { data: config } = await getWebsiteConfig(templateType);
           if (config?.color_scheme) {
             setTemplateColor(config.color_scheme);
-            setHomeColor(config.color_scheme);
           } else {
-            const defaultColor = 'black';
-            setTemplateColor(defaultColor);
-            setHomeColor(defaultColor);
+            setTemplateColor(getDefaultColor(templateType));
           }
           setPreviousTemplateColor(null);
-          setPreviousHomeColor(null);
         } catch (error) {
           console.error('Error loading saved color:', error);
-          setTemplateColor('black');
-          setHomeColor('black');
+          setTemplateColor(getDefaultColor(templateType));
         }
       }
     };
