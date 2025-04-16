@@ -15,10 +15,6 @@ interface TemplateThemeContextProps {
     muted: string;
     border: string;
   };
-  homeColor: string;
-  setHomeColor: (color: string) => void;
-  previousHomeColor: string | null;
-  undoHomeColorChange: () => void;
 }
 
 const TemplateThemeContext = createContext<TemplateThemeContextProps>({
@@ -34,10 +30,6 @@ const TemplateThemeContext = createContext<TemplateThemeContextProps>({
     muted: 'text-blue-500',
     border: 'border-blue-600',
   },
-  homeColor: 'blue',
-  setHomeColor: () => {},
-  previousHomeColor: null,
-  undoHomeColorChange: () => {},
 });
 
 export const useTemplateTheme = () => useContext(TemplateThemeContext);
@@ -74,13 +66,6 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   
   const [previousTemplateColor, setPreviousTemplateColor] = useState<string | null>(null);
   
-  const [homeColor, setHomeColor] = useState<string>(() => {
-    const savedColor = localStorage.getItem('home-theme-color');
-    return savedColor || 'blue';
-  });
-  
-  const [previousHomeColor, setPreviousHomeColor] = useState<string | null>(null);
-  
   const updateTemplateColor = async (color: string) => {
     setPreviousTemplateColor(templateColor);
     setTemplateColor(color);
@@ -91,14 +76,6 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
         if (config) {
           await saveWebsiteConfig({
             ...config,
-            color_scheme: color
-          });
-        } else {
-          await saveWebsiteConfig({
-            template_id: templateType,
-            company_name: 'My Company',
-            domain_name: 'mycompany.com',
-            logo: 'Company Logo',
             color_scheme: color
           });
         }
@@ -127,20 +104,6 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
           console.error('Error resetting color scheme:', error);
         }
       }
-    }
-  };
-
-  const updateHomeColor = (color: string) => {
-    setPreviousHomeColor(homeColor);
-    setHomeColor(color);
-    localStorage.setItem('home-theme-color', color);
-  };
-
-  const undoHomeColorChange = () => {
-    if (previousHomeColor) {
-      setHomeColor('blue');
-      localStorage.setItem('home-theme-color', 'blue');
-      setPreviousHomeColor(null);
     }
   };
   
@@ -183,13 +146,9 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
         templateColor, 
         setTemplateColor: updateTemplateColor,
         previousTemplateColor,
-        undoTemplateColorChange, 
+        undoTemplateColorChange,
         templateType,
         colorClasses,
-        homeColor,
-        setHomeColor: updateHomeColor,
-        previousHomeColor,
-        undoHomeColorChange
       }}
     >
       {children}
