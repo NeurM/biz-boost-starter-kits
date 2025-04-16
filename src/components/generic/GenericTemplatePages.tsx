@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { TemplateData } from '../../types/template';
@@ -10,7 +9,6 @@ import UserMenu from '@/components/UserMenu';
 import { MessageSquare, Building, Clock, Mail, MapPin, Phone } from 'lucide-react';
 import ContactForm from '@/components/ContactForm';
 import { useTemplateTheme } from '@/context/TemplateThemeContext';
-import ThemeColorSwitcher from '@/components/ThemeColorSwitcher';
 
 // Helper component for theme color controls
 const ThemeControls = ({ templateType }: { templateType: string }) => {
