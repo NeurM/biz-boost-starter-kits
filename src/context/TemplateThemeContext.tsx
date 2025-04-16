@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getWebsiteConfig, saveWebsiteConfig } from '@/utils/supabase';
@@ -86,16 +85,26 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     setPreviousTemplateColor(templateColor);
     setTemplateColor(color);
     
-    try {
-      const { data: config } = await getWebsiteConfig(templateType);
-      if (config) {
-        await saveWebsiteConfig({
-          ...config,
-          color_scheme: color
-        });
+    if (templateType) {
+      try {
+        const { data: config } = await getWebsiteConfig(templateType);
+        if (config) {
+          await saveWebsiteConfig({
+            ...config,
+            color_scheme: color
+          });
+        } else {
+          await saveWebsiteConfig({
+            template_id: templateType,
+            company_name: 'My Company',
+            domain_name: 'mycompany.com',
+            logo: 'Company Logo',
+            color_scheme: color
+          });
+        }
+      } catch (error) {
+        console.error('Error saving color scheme:', error);
       }
-    } catch (error) {
-      console.error('Error saving color scheme:', error);
     }
   };
 
@@ -105,16 +114,18 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
       setTemplateColor(defaultColor);
       setPreviousTemplateColor(null);
       
-      try {
-        const { data: config } = await getWebsiteConfig(templateType);
-        if (config) {
-          await saveWebsiteConfig({
-            ...config,
-            color_scheme: defaultColor
-          });
+      if (templateType) {
+        try {
+          const { data: config } = await getWebsiteConfig(templateType);
+          if (config) {
+            await saveWebsiteConfig({
+              ...config,
+              color_scheme: defaultColor
+            });
+          }
+        } catch (error) {
+          console.error('Error resetting color scheme:', error);
         }
-      } catch (error) {
-        console.error('Error resetting color scheme:', error);
       }
     }
   };
