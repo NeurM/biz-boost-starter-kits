@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getWebsiteConfig, saveWebsiteConfig } from '@/utils/supabase';
@@ -22,19 +23,19 @@ interface TemplateThemeContextProps {
 }
 
 const TemplateThemeContext = createContext<TemplateThemeContextProps>({
-  templateColor: 'blue',
+  templateColor: 'black',
   setTemplateColor: () => {},
   previousTemplateColor: null,
   undoTemplateColorChange: () => {},
   templateType: '',
   colorClasses: {
-    bg: 'bg-blue-600',
-    text: 'text-blue-600',
-    hover: 'hover:bg-blue-700',
-    muted: 'text-blue-500',
-    border: 'border-blue-600',
+    bg: 'bg-black',
+    text: 'text-black',
+    hover: 'hover:bg-gray-900',
+    muted: 'text-gray-600',
+    border: 'border-black',
   },
-  homeColor: 'blue',
+  homeColor: 'black',
   setHomeColor: () => {},
   previousHomeColor: null,
   undoHomeColorChange: () => {},
@@ -50,39 +51,25 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     if (path.startsWith('/retail')) return 'retail';
     if (path.startsWith('/service')) return 'service';
     if (path.startsWith('/expert')) return 'expert';
+    if (path.startsWith('/cleanslate')) return 'cleanslate';
     return '';
+  };
+  
+  const getDefaultColor = (template: string) => {
+    return 'black'; // Default to black & white theme
   };
   
   const templateType = getTemplateTypeFromPath(location.pathname);
   
-  const getDefaultColor = (template: string) => {
-    switch (template) {
-      case 'cleanslate': return 'black';
-      case 'tradecraft': return 'blue';
-      case 'retail': return 'purple';
-      case 'service': return 'teal';
-      case 'expert': return 'amber';
-      default: return 'blue';
-    }
-  };
-  
-  const [templateColor, setTemplateColor] = useState<string>(() => {
-    const defaultColor = getDefaultColor(templateType);
-    return defaultColor;
-  });
-
+  const [templateColor, setTemplateColor] = useState<string>('black');
   const [previousTemplateColor, setPreviousTemplateColor] = useState<string | null>(null);
-  
-  const [homeColor, setHomeColor] = useState<string>(() => {
-    const savedColor = localStorage.getItem('home-theme-color');
-    return savedColor || 'blue';
-  });
-
+  const [homeColor, setHomeColor] = useState<string>('black');
   const [previousHomeColor, setPreviousHomeColor] = useState<string | null>(null);
   
   const updateTemplateColor = async (color: string) => {
     setPreviousTemplateColor(templateColor);
     setTemplateColor(color);
+    setHomeColor(color); // Update home color as well for consistency
     
     try {
       const { data: config } = await getWebsiteConfig(templateType);
@@ -99,9 +86,11 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const undoTemplateColorChange = async () => {
     if (previousTemplateColor) {
-      const defaultColor = getDefaultColor(templateType);
+      const defaultColor = 'black';
       setTemplateColor(defaultColor);
+      setHomeColor(defaultColor);
       setPreviousTemplateColor(null);
+      setPreviousHomeColor(null);
       
       try {
         const { data: config } = await getWebsiteConfig(templateType);
@@ -120,14 +109,18 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   const updateHomeColor = (color: string) => {
     setPreviousHomeColor(homeColor);
     setHomeColor(color);
+    setTemplateColor(color); // Update template color as well for consistency
     localStorage.setItem('home-theme-color', color);
   };
 
   const undoHomeColorChange = () => {
     if (previousHomeColor) {
-      setHomeColor('blue');
-      localStorage.setItem('home-theme-color', 'blue');
+      const defaultColor = 'black';
+      setHomeColor(defaultColor);
+      setTemplateColor(defaultColor);
+      localStorage.setItem('home-theme-color', defaultColor);
       setPreviousHomeColor(null);
+      setPreviousTemplateColor(null);
     }
   };
   
@@ -138,13 +131,18 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
           const { data: config } = await getWebsiteConfig(templateType);
           if (config?.color_scheme) {
             setTemplateColor(config.color_scheme);
+            setHomeColor(config.color_scheme);
           } else {
-            setTemplateColor(getDefaultColor(templateType));
+            const defaultColor = 'black';
+            setTemplateColor(defaultColor);
+            setHomeColor(defaultColor);
           }
           setPreviousTemplateColor(null);
+          setPreviousHomeColor(null);
         } catch (error) {
           console.error('Error loading saved color:', error);
-          setTemplateColor(getDefaultColor(templateType));
+          setTemplateColor('black');
+          setHomeColor('black');
         }
       }
     };
