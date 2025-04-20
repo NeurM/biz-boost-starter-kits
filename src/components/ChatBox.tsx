@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageCircle, Send, X, Minimize2, Maximize2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Message {
   content: string;
@@ -18,6 +19,7 @@ const ChatBox = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -46,15 +48,28 @@ const ChatBox = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error invoking function:', error);
+        throw new Error(error.message || 'Failed to get response from assistant');
+      }
+
+      if (!data || !data.choices || !data.choices[0]) {
+        throw new Error('Invalid response format from assistant');
+      }
 
       const aiMessage = {
         content: data.choices[0].message.content,
         isUser: false
       };
       setMessages(prev => [...prev, aiMessage]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error);
+      toast({
+        title: "Chat Error",
+        description: error.message || "Something went wrong with the chat assistant.",
+        variant: "destructive"
+      });
+      
       setMessages(prev => [...prev, {
         content: "Sorry, I'm having trouble connecting. Please try again.",
         isUser: false
@@ -77,7 +92,8 @@ const ChatBox = () => {
     return (
       <Button
         onClick={toggleChat}
-        className="fixed bottom-4 right-4 rounded-full w-12 h-12 p-0 bg-primary hover:bg-primary/90"
+        className="fixed bottom-4 right-4 rounded-full w-12 h-12 p-0 bg-primary hover:bg-primary/90 shadow-lg z-50"
+        aria-label="Open chat assistant"
       >
         <MessageCircle className="h-6 w-6" />
       </Button>
@@ -85,7 +101,7 @@ const ChatBox = () => {
   }
 
   return (
-    <Card className={`fixed bottom-4 right-4 shadow-lg transition-all duration-300 ${
+    <Card className={`fixed bottom-4 right-4 shadow-lg transition-all duration-300 z-50 ${
       isMinimized ? 'w-72' : 'w-full max-w-md'
     }`}>
       <CardHeader className="pb-3">
@@ -100,6 +116,7 @@ const ChatBox = () => {
               size="sm"
               className="p-0 w-8 h-8"
               onClick={toggleMinimize}
+              aria-label={isMinimized ? "Maximize chat" : "Minimize chat"}
             >
               {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
             </Button>
@@ -108,6 +125,7 @@ const ChatBox = () => {
               size="sm"
               className="p-0 w-8 h-8"
               onClick={toggleChat}
+              aria-label="Close chat"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -116,7 +134,7 @@ const ChatBox = () => {
       </CardHeader>
       {!isMinimized && (
         <CardContent>
-          <div className="h-[300px] overflow-y-auto mb-4 space-y-4 p-4">
+          <div className="h-[300px] overflow-y-auto mb-4 space-y-4 p-4 border rounded-md bg-background">
             {messages.length === 0 && (
               <div className="text-center text-gray-500">
                 <p>👋 Hi! I can help you with:</p>
@@ -146,8 +164,10 @@ const ChatBox = () => {
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-muted text-foreground p-3 rounded-lg">
-                  Thinking...
+                <div className="bg-muted text-foreground p-3 rounded-lg flex items-center space-x-2">
+                  <span className="animate-pulse">•</span>
+                  <span className="animate-pulse delay-75">•</span>
+                  <span className="animate-pulse delay-150">•</span>
                 </div>
               </div>
             )}
@@ -161,7 +181,11 @@ const ChatBox = () => {
               className="flex-1"
               disabled={isLoading}
             />
-            <Button type="submit" disabled={isLoading}>
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+              variant="cta"
+            >
               <Send className="h-4 w-4" />
             </Button>
           </form>
