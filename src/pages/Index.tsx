@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,7 @@ import { saveWebsiteConfig, getAllWebsiteConfigs } from '@/utils/supabase';
 import { supabase } from "@/integrations/supabase/client";
 import { Globe, LogOut, User } from "lucide-react";
 import { signOut } from '@/utils/supabase';
-import ChatBox from '@/components/ChatBox';
+import HuggingFaceChatAssistant from '@/components/HuggingFaceChatAssistant';
 
 interface WebsiteConfig {
   id: string;
@@ -366,7 +365,7 @@ const Index = () => {
         </div>
       </main>
       
-      <ChatBox />
+      <HuggingFaceChatAssistant />
       
       <footer className="py-8 bg-gray-900 text-white">
         <div className="container text-center">
