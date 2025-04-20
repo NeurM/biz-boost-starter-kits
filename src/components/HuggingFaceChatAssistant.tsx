@@ -19,23 +19,34 @@ const HuggingFaceChatAssistant = () => {
   const [isMinimized, setIsMinimized] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [chatModel, setChatModel] = useState<any>(null);
+  const [modelError, setModelError] = useState<string | null>(null);
 
   useEffect(() => {
     const initModel = async () => {
       try {
+        // Using text-generation instead of conversational
         const model = await pipeline(
-          'conversational', 
-          'microsoft/DialoGPT-medium',
-          { device: 'webgpu' }
+          'text-generation', 
+          'distilgpt2',
+          { device: 'cpu' } // Using CPU as fallback if webGPU isn't available
         );
         setChatModel(model);
+        setModelError(null);
       } catch (error) {
         console.error('Failed to load chat model:', error);
+        setModelError("Failed to load the AI model. Please check your browser compatibility.");
       }
     };
 
     initModel();
   }, []);
+
+  useEffect(() => {
+    // Scroll to bottom when messages update
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,20 +58,35 @@ const HuggingFaceChatAssistant = () => {
     setIsLoading(true);
 
     try {
+      // Text generation request
       const response = await chatModel(input, { 
-        max_length: 200,
-        temperature: 0.7 
+        max_length: 100,
+        do_sample: true,
+        top_k: 50,
+        top_p: 0.95,
+        temperature: 0.7,
+        num_return_sequences: 1
       });
 
+      // Extract the generated text from the response
+      let generatedText = '';
+      if (Array.isArray(response) && response.length > 0) {
+        generatedText = response[0]?.generated_text || '';
+        // Remove the input prompt from the response
+        if (generatedText.startsWith(input)) {
+          generatedText = generatedText.substring(input.length).trim();
+        }
+      }
+
       const aiMessage = {
-        content: response.generated_text,
+        content: generatedText || "I'm not sure how to respond to that.",
         isUser: false
       };
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
       console.error('Chat error:', error);
       setMessages(prev => [...prev, {
-        content: "Sorry, I'm having trouble generating a response.",
+        content: "Sorry, I had trouble generating a response. Please try again.",
         isUser: false
       }]);
     } finally {
@@ -120,14 +146,20 @@ const HuggingFaceChatAssistant = () => {
       {!isMinimized && (
         <CardContent>
           <div className="h-[300px] overflow-y-auto mb-4 space-y-4 p-4 border rounded-md bg-background">
-            {messages.length === 0 && (
+            {messages.length === 0 && !modelError && (
               <div className="text-center text-gray-500">
                 <p>👋 Hi! I'm a Hugging Face AI assistant</p>
                 <ul className="mt-2 space-y-1">
                   <li>• Chat with me about anything</li>
                   <li>• Powered by open-source AI</li>
-                  <li>• Completely free to use</li>
+                  <li>• Running completely in your browser</li>
                 </ul>
+              </div>
+            )}
+            {modelError && (
+              <div className="text-center text-red-500">
+                <p>{modelError}</p>
+                <p className="mt-2 text-sm">Try using a different browser or device.</p>
               </div>
             )}
             {messages.map((msg, idx) => (
@@ -163,11 +195,11 @@ const HuggingFaceChatAssistant = () => {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type your message..."
               className="flex-1"
-              disabled={isLoading || !chatModel}
+              disabled={isLoading || !chatModel || !!modelError}
             />
             <Button 
               type="submit" 
-              disabled={isLoading || !chatModel}
+              disabled={isLoading || !chatModel || !!modelError}
             >
               <Send className="h-4 w-4" />
             </Button>
