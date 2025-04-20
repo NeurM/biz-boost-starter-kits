@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -348,7 +349,7 @@ const Index = () => {
               <CardFooter className="flex flex-col space-y-3">
                 <Button 
                   onClick={() => handleCreateWebsite(template.id)}
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium shadow-lg py-2"
+                  className="w-full font-medium shadow-lg py-2"
                 >
                   Create Website
                 </Button>
