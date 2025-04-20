@@ -53,8 +53,15 @@ const ChatBox = () => {
         throw new Error(error.message || 'Failed to get response from assistant');
       }
 
-      if (!data || !data.choices || !data.choices[0]) {
-        throw new Error('Invalid response format from assistant');
+      // Handle the case where data contains an error message from OpenAI
+      if (data.error) {
+        console.error('OpenAI API error:', data.error);
+        throw new Error(data.error || 'OpenAI API error');
+      }
+
+      if (!data || !data.choices || !data.choices[0]?.message) {
+        console.error('Invalid response format:', data);
+        throw new Error('Invalid response from assistant');
       }
 
       const aiMessage = {
@@ -71,7 +78,7 @@ const ChatBox = () => {
       });
       
       setMessages(prev => [...prev, {
-        content: "Sorry, I'm having trouble connecting. Please try again.",
+        content: "Sorry, I'm having trouble connecting. This might be due to API limits or connection issues. Please try again later.",
         isUser: false
       }]);
     } finally {

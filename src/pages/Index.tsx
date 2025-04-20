@@ -348,19 +348,16 @@ const Index = () => {
               <CardFooter className="flex flex-col space-y-3">
                 <Button 
                   onClick={() => handleCreateWebsite(template.id)}
-                  className="w-full bg-primary hover:bg-primary/80"
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium shadow-lg py-2"
                 >
                   Create Website
                 </Button>
                 <Button 
-                  asChild 
                   variant="outline" 
-                  className="w-full"
+                  className="w-full border-2 hover:bg-gray-100"
                   onClick={() => handleViewTemplate(template.id)}
                 >
-                  <Link to={`/${template.id}`}>
-                    View Template
-                  </Link>
+                  View Template
                 </Button>
               </CardFooter>
             </Card>
