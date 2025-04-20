@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
@@ -10,15 +9,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-[#1A1F2C] text-white hover:bg-[#2A2F3C]", // Dark background with hover state
-        destructive:
-          "bg-red-500 text-white hover:bg-red-600",
-        outline:
-          "border border-[#2A2F3C] bg-transparent text-white hover:bg-[#2A2F3C]",
-        secondary:
-          "bg-[#2A2F3C] text-white hover:bg-[#3A3F4C]",
-        ghost: "hover:bg-[#2A2F3C] text-white",
-        link: "text-white underline-offset-4 hover:underline",
+        default: "bg-[#1A1F2C] text-white hover:bg-[#2A2F3C]",
+        destructive: "bg-red-500 text-white hover:bg-red-600",
+        outline: "border border-[#1A1F2C] bg-transparent hover:bg-[#1A1F2C] hover:text-white text-[#1A1F2C]",
+        secondary: "bg-[#2A2F3C] text-white hover:bg-[#3A3F4C]",
+        ghost: "hover:bg-[#2A2F3C] hover:text-white",
+        link: "text-[#1A1F2C] underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -44,7 +40,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
     
-    // Apply template colors if no specific class is provided
     const buttonClass = className?.includes("bg-") 
       ? className 
       : cn(buttonVariants({ variant, size }), className);

@@ -4,13 +4,29 @@ import { serviceProData } from '../../data/serviceProData';
 import { Button } from "@/components/ui/button";
 import UserMenu from '@/components/UserMenu';
 import { useTemplateTheme } from '@/context/TemplateThemeContext';
+import Navbar from '@/components/Navbar';
 
 const ServiceAbout = () => {
   const { templateType, colorClasses } = useTemplateTheme();
+  const navItems = [
+    { name: "Home", path: "/service" },
+    { name: "About", path: "/service/about" },
+    { name: "Services", path: "/service/services" },
+    { name: "Blog", path: "/service/blog" },
+    { name: "Contact", path: "/service/contact" },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation is automatically included in the Navbar component */}
+      {/* Add Navbar component */}
+      <Navbar 
+        logo="Service<span class='text-teal-600'>Pro</span>"
+        basePath="service"
+        navItems={navItems}
+        ctaText="Get Started"
+        ctaLink="/service/contact"
+      />
+
       <div className="absolute top-4 right-8 z-50">
         <UserMenu isTemplate={true} templatePath="service" />
       </div>

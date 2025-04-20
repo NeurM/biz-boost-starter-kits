@@ -9,6 +9,7 @@ import { saveWebsiteConfig, getAllWebsiteConfigs } from '@/utils/supabase';
 import { supabase } from "@/integrations/supabase/client";
 import { Globe, LogOut, User } from "lucide-react";
 import { signOut } from '@/utils/supabase';
+import ChatBox from '@/components/ChatBox';
 
 interface WebsiteConfig {
   id: string;
@@ -290,38 +291,6 @@ const Index = () => {
         </div>
       </header>
       
-      {isAuthenticated && savedConfigs.length > 0 && (
-        <section className="container py-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold">Recent Websites</h2>
-            <Link to="/saved-websites" className="text-primary hover:underline text-sm">
-              View All
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {savedConfigs.slice(0, 3).map((config) => (
-              <Card key={config.id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">{config.company_name}</CardTitle>
-                </CardHeader>
-                <CardContent className="pb-2">
-                  <p className="text-sm text-gray-600">Template: {templates.find(t => t.id === config.template_id)?.name || config.template_id}</p>
-                  <p className="text-sm text-gray-600">Domain: {config.domain_name}</p>
-                </CardContent>
-                <CardFooter>
-                  <Button 
-                    onClick={() => handleLoadSavedConfig(config)} 
-                    className="w-full"
-                  >
-                    Load Website
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </section>
-      )}
-      
       <main className="container py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {templates.map((template) => (
@@ -398,6 +367,8 @@ const Index = () => {
           ))}
         </div>
       </main>
+      
+      <ChatBox />
       
       <footer className="py-8 bg-gray-900 text-white">
         <div className="container text-center">
