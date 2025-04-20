@@ -16,10 +16,10 @@ const HeroSection = () => {
               Expert electricians, plumbers, and handymen delivering high-quality services for your home and business.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Button asChild size="lg" className="bg-orange-500 hover:bg-orange-600 text-white">
+              <Button variant="cta" size="lg" asChild>
                 <Link to="/tradecraft/services">Our Services</Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-700">
+              <Button variant="cta-outline" size="lg" asChild className="border-white text-white hover:bg-white hover:text-blue-700">
                 <Link to="/tradecraft/contact">
                   <Calendar className="mr-2 h-5 w-5" /> Schedule Service
                 </Link>

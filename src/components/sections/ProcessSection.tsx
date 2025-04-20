@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -35,7 +34,7 @@ const ProcessSection = () => {
         </div>
         
         <div className="text-center mt-10">
-          <Button asChild className="bg-orange-500 hover:bg-orange-600">
+          <Button variant="cta" size="lg" asChild>
             <Link to="/tradecraft/contact">Schedule Now</Link>
           </Button>
         </div>

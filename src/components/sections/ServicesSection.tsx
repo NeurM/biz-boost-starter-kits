@@ -38,7 +38,7 @@ const ServicesSection = () => {
         </div>
         
         <div className="text-center mt-10">
-          <Button asChild variant="outline">
+          <Button variant="cta" size="lg" asChild>
             <Link to="/tradecraft/services">View All Services</Link>
           </Button>
         </div>

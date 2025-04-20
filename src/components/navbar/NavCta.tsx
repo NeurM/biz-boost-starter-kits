@@ -19,13 +19,13 @@ const NavCta = ({ ctaText, ctaLink, isMobile, onClick }: NavCtaProps) => {
     return isMobile ? (
       <a 
         href={ctaLink}
-        className={`block w-full py-2 text-center ${colorClasses.bg} text-white rounded-md`}
+        className="block w-full py-2 text-center bg-orange-500 hover:bg-orange-600 text-white rounded-md shadow-lg transition-colors font-medium"
         onClick={onClick}
       >
         {ctaText}
       </a>
     ) : (
-      <Button asChild className={colorClasses.bg}>
+      <Button variant="cta" size="lg">
         <a href={ctaLink} onClick={onClick}>
           {ctaText}
         </a>
@@ -37,13 +37,13 @@ const NavCta = ({ ctaText, ctaLink, isMobile, onClick }: NavCtaProps) => {
   return isMobile ? (
     <Link 
       to={ctaLink}
-      className={`block w-full py-2 text-center ${colorClasses.bg} text-white rounded-md`}
+      className="block w-full py-2 text-center bg-orange-500 hover:bg-orange-600 text-white rounded-md shadow-lg transition-colors font-medium"
       onClick={onClick}
     >
       {ctaText}
     </Link>
   ) : (
-    <Button asChild className={colorClasses.bg}>
+    <Button variant="cta" size="lg" asChild>
       <Link to={ctaLink} onClick={onClick}>
         {ctaText}
       </Link>
