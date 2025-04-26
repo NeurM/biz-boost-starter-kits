@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +19,6 @@ const GeminiChatAssistant = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
-  // Replace with your Gemini API key
   const apiKey = "AIzaSyAUQZFNXyvEfsiaFTawgiyNq7aJyV8KzgE";
 
   useEffect(() => {
@@ -38,34 +36,25 @@ const GeminiChatAssistant = () => {
     setInput('');
     setIsLoading(true);
 
-    const systemContext = `You are a website building assistant specialized in helping users create and customize websites. 
-    You understand our available templates:
-    
-    1. Clean Slate - A minimalist black & white single-page template
-    2. Tradecraft - For trade businesses with blue & orange theme
-    3. Retail Ready - For retail stores with purple & pink theme
-    4. Service Pro - For service businesses with teal & green theme
-    5. Local Expert - For local professionals with amber & gold theme
-    
-    Each template includes:
-    - Responsive design
-    - Built with React and Tailwind CSS
-    - SEO optimization
-    - Authentication integration
-    - Contact forms
-    - Customizable colors and content
-    
-    Help users with:
-    - Template selection based on their business needs
-    - Customization options
-    - Color scheme recommendations
-    - Content organization
-    - Best practices for their industry
-    `;
+    const systemContext = `You are a website creation assistant for an agency, specialized in helping create websites using our template system. Your goal is to help users build websites based on our available templates:
+
+1. Clean Slate - A minimalist black & white single-page template
+2. Tradecraft - For trade businesses with blue & orange theme
+3. Retail Ready - For retail stores with purple & pink theme
+4. Service Pro - For service businesses with teal & green theme
+5. Local Expert - For local professionals with amber & gold theme
+
+Guide users through:
+- Template selection based on their business type
+- Customization options and recommendations
+- Content suggestions for their industry
+- Best practices for website structure
+- Color scheme and branding advice
+
+Always provide agency-focused guidance, not end-user website visitor support. You're helping the agency build websites for their clients.`;
 
     try {
-      // Updated to use the latest Gemini API version
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -105,7 +94,7 @@ const GeminiChatAssistant = () => {
       }
 
       const aiMessage = {
-        content: generatedText || "I'm here to help you create and customize your website. What would you like to know about our templates or website building features?",
+        content: generatedText || "I'm here to help you create and customize your website using our templates. What type of business website would you like to build?",
         isUser: false
       };
       setMessages(prev => [...prev, aiMessage]);
