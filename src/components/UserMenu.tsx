@@ -6,9 +6,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, Home, Settings } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/LanguageContext';
@@ -66,6 +68,28 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }: UserMenuProps) => {
       });
     }
   };
+
+  // Navigation buttons for template pages
+  const renderTemplateNavigation = () => {
+    if (!isTemplate) return null;
+
+    return (
+      <div className="flex items-center mr-4 space-x-2">
+        <Button variant="outline" size="sm" asChild className="template-home-btn">
+          <Link to="/">
+            <Home className="h-4 w-4 mr-2" />
+            {t('nav.mainHome') || "Main Home"}
+          </Link>
+        </Button>
+        <Button variant="outline" size="sm" asChild className="template-templates-btn">
+          <Link to="/templates">
+            <Settings className="h-4 w-4 mr-2" />
+            {t('nav.templates') || "Templates"}
+          </Link>
+        </Button>
+      </div>
+    );
+  };
   
   // Determine auth link based on whether this is a template or main menu
   const authLink = isTemplate ? `/${templatePath}/auth` : "/auth";
@@ -74,7 +98,9 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }: UserMenuProps) => {
   const logoutText = t('auth.logout') || "Logout";
   
   return (
-    <div className="z-50">
+    <div className="z-50 flex items-center">
+      {renderTemplateNavigation()}
+      
       {!user ? (
         <Button variant="outline" asChild size="sm" className={isTemplate ? "template-login-btn" : ""}>
           <Link to={authLink}>
@@ -95,6 +121,20 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }: UserMenuProps) => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
+            <DropdownMenuLabel>{t('nav.userMenu') || "Navigation"}</DropdownMenuLabel>
+            <DropdownMenuItem asChild>
+              <Link to="/">{t('nav.home') || "Home"}</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/templates">{t('nav.templates') || "Templates"}</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/dashboard">{t('nav.dashboard') || "Dashboard"}</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/saved-websites">{t('nav.savedwebsites') || "Saved Websites"}</Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="h-4 w-4 mr-2" />
               {logoutText}

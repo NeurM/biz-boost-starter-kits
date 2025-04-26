@@ -1,17 +1,10 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { RouterProvider, createBrowserRouter, useRoutes } from 'react-router-dom';
+import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { routes } from './routes';
 import './index.css';
 import { AppProviders } from './components/AppProviders';
-import App from './App';
-
-// Create a Router component that uses useRoutes
-const Router = () => {
-  const routeElements = useRoutes(routes);
-  return routeElements;
-};
 
 // Create browser router from routes array
 const router = createBrowserRouter(routes);

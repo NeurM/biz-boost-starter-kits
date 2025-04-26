@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,6 +26,7 @@ const Templates = () => {
   const { setTemplateColor, setSecondaryColor } = useTemplateTheme();
   
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
   const [companyName, setCompanyName] = useState('');
   const [domainName, setDomainName] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
@@ -118,6 +120,22 @@ const Templates = () => {
     trackEvent('Templates', 'Template Click', template.name);
   };
 
+  const handlePreviewTemplate = (template: any) => {
+    // Set template for preview and navigate to the template path
+    setPreviewTemplate(template.path);
+    navigate(template.path, { 
+      state: { 
+        isPreview: true,
+        previewData: {
+          companyName: "Example Company",
+          domainName: "example.com",
+          colorScheme: template.primaryColor,
+          secondaryColorScheme: template.secondaryColor
+        }
+      }
+    });
+  };
+
   const handleCreateWebsite = async (template: any) => {
     if (!companyName || !domainName) {
       toast({
@@ -198,7 +216,7 @@ const Templates = () => {
         logo={t('app.name') || "TemplateBuilder"} 
         basePath=""
         navItems={navItems}
-        ctaText={user ? undefined : 'cta.getstarted'} 
+        ctaText={user ? undefined : t('cta.getstarted')} 
         ctaLink={user ? undefined : "/auth"}
       />
 
@@ -252,7 +270,10 @@ const Templates = () => {
                               <button
                                 key={color}
                                 className={`w-8 h-8 rounded-full bg-${color}-500 hover:ring-2 hover:ring-${color}-300 transition-all ${template.primaryColor === color ? 'ring-2 ring-black' : ''}`}
-                                onClick={() => setTemplateColor(color)}
+                                onClick={() => {
+                                  const updatedTemplate = {...template, primaryColor: color};
+                                  setTemplateColor(color);
+                                }}
                                 title={color}
                                 aria-label={`Select ${color} as primary color`}
                               />
@@ -269,7 +290,10 @@ const Templates = () => {
                               <button
                                 key={color}
                                 className={`w-8 h-8 rounded-full bg-${color}-500 hover:ring-2 hover:ring-${color}-300 transition-all ${template.secondaryColor === color ? 'ring-2 ring-black' : ''}`}
-                                onClick={() => setSecondaryColor(color)}
+                                onClick={() => {
+                                  const updatedTemplate = {...template, secondaryColor: color};
+                                  setSecondaryColor(color);
+                                }}
                                 title={color}
                                 aria-label={`Select ${color} as secondary color`}
                               />
@@ -296,12 +320,21 @@ const Templates = () => {
                         </div>
                       </div>
                     ) : (
-                      <Button 
-                        className="w-full"
-                        onClick={() => handleTemplateClick(template)}
-                      >
-                        {t('buttons.selectTemplate') || "Select Template"}
-                      </Button>
+                      <div className="flex flex-col gap-2">
+                        <Button 
+                          className="w-full mb-2"
+                          onClick={() => handleTemplateClick(template)}
+                        >
+                          {t('buttons.selectTemplate') || "Select Template"}
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => handlePreviewTemplate(template)}
+                        >
+                          {t('buttons.previewTemplate') || "Preview Template"}
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </CardContent>

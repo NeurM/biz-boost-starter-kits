@@ -73,6 +73,10 @@ const baseRoutes: RouteConfig[] = [
 // Process template routes to add Suspense boundaries
 const processRoutes = (routes: RouteConfig[]): RouteConfig[] => {
   return routes.map(route => {
+    // Ensure route has a path
+    if (!route.path) return route;
+    
+    // Ensure route has an element
     if (!React.isValidElement(route.element)) {
       return route;
     }
