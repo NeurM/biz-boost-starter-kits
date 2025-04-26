@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 // Define available languages
@@ -126,6 +125,104 @@ export const translations: Translations = {
     fr: 'Solutions de qualité adaptées à vos besoins',
     ar: 'حلول جودة مصممة حسب احتياجاتك',
     es: 'Soluciones de calidad adaptadas a sus necesidades',
+  },
+  'templates.title': {
+    en: 'Choose Your Template',
+    nl: 'Kies Je Sjabloon',
+    fr: 'Choisissez Votre Modèle',
+    ar: 'اختر قالبك',
+    es: 'Elige Tu Plantilla',
+  },
+  'templates.subtitle': {
+    en: 'Select from our professionally designed templates',
+    nl: 'Kies uit onze professioneel ontworpen sjablonen',
+    fr: 'Sélectionnez parmi nos modèles conçus professionnellement',
+    ar: 'اختر من قوالبنا المصممة احترافياً',
+    es: 'Selecciona entre nuestras plantillas diseñadas profesionalmente',
+  },
+  'templates.tradecraft.desc': {
+    en: 'Perfect for trade businesses like plumbers, electricians, and contractors',
+    nl: 'Perfect voor handelbedrijven zoals loodgieters, elektriciens en aannemers',
+    fr: 'Parfait pour les métiers comme plombiers, électriciens et entrepreneurs',
+    ar: 'مثالي للأعمال التجارية مثل السباكين والكهربائيين والمقاولين',
+    es: 'Perfecto para negocios comerciales como plomeros, electricistas y contratistas',
+  },
+  'templates.retail.desc': {
+    en: 'Ideal for retail stores, shops and e-commerce businesses',
+    nl: 'Ideaal voor winkels en e-commerce bedrijven',
+    fr: 'Idéal pour les magasins de détail et les entreprises e-commerce',
+    ar: 'مثالي للمتاجر ومحلات البيع بالتجزئة والتجارة الإلكترونية',
+    es: 'Ideal para tiendas minoristas y negocios de comercio electrónico',
+  },
+  'form.companyName': {
+    en: 'Company Name',
+    nl: 'Bedrijfsnaam',
+    fr: 'Nom de l\'entreprise',
+    ar: 'اسم الشركة',
+    es: 'Nombre de la empresa',
+  },
+  'form.domainName': {
+    en: 'Domain Name',
+    nl: 'Domeinnaam',
+    fr: 'Nom de domaine',
+    ar: 'اسم النطاق',
+    es: 'Nombre de dominio',
+  },
+  'form.logo': {
+    en: 'Logo URL (optional)',
+    nl: 'Logo URL (optioneel)',
+    fr: 'URL du logo (optionnel)',
+    ar: 'رابط الشعار (اختياري)',
+    es: 'URL del logo (opcional)',
+  },
+  'form.primaryColor': {
+    en: 'Primary Color',
+    nl: 'Primaire Kleur',
+    fr: 'Couleur Principale',
+    ar: 'اللون الأساسي',
+    es: 'Color Primario',
+  },
+  'form.secondaryColor': {
+    en: 'Secondary Color',
+    nl: 'Secundaire Kleur',
+    fr: 'Couleur Secondaire',
+    ar: 'اللون الثانوي',
+    es: 'Color Secundario',
+  },
+  'buttons.createWebsite': {
+    en: 'Create Website',
+    nl: 'Website Maken',
+    fr: 'Créer le Site',
+    ar: 'إنشاء موقع',
+    es: 'Crear Sitio Web',
+  },
+  'buttons.selectTemplate': {
+    en: 'Select Template',
+    nl: 'Selecteer Sjabloon',
+    fr: 'Sélectionner le Modèle',
+    ar: 'اختر القالب',
+    es: 'Seleccionar Plantilla',
+  },
+  'buttons.cancel': {
+    en: 'Cancel',
+    nl: 'Annuleren',
+    fr: 'Annuler',
+    ar: 'إلغاء',
+    es: 'Cancelar',
+  },
+  'errors.missingFields': {
+    en: 'Missing Required Fields',
+    nl: 'Verplichte Velden Ontbreken',
+    fr: 'Champs Obligatoires Manquants',
+    ar: 'حقول مطلوبة مفقودة',
+    es: 'Faltan Campos Requeridos',
+  },
+  'errors.fillRequired': {
+    en: 'Please fill in all required fields',
+    nl: 'Vul alle verplichte velden in',
+    fr: 'Veuillez remplir tous les champs obligatoires',
+    ar: 'يرجى ملء جميع الحقول المطلوبة',
+    es: 'Por favor complete todos los campos requeridos',
   },
 };
 

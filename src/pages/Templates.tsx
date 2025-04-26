@@ -1,13 +1,16 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/hooks/use-toast';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { useTemplateTheme } from '@/context/TemplateThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { tradecraftData } from '@/data/tradecraftData';
 import { retailData } from '@/data/retailData';
 import { serviceProData } from '@/data/serviceProData';
@@ -17,10 +20,17 @@ const Templates = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
+  const { t } = useLanguage();
+  const { setTemplateColor, setSecondaryColor } = useTemplateTheme();
+  
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [companyName, setCompanyName] = useState('');
+  const [domainName, setDomainName] = useState('');
+  const [logoUrl, setLogoUrl] = useState('');
   
   const navItems = [
-    { name: "Home", path: "/" },
-    { name: "Templates", path: "/templates" },
+    { name: t('nav.home'), path: "/" },
+    { name: t('nav.templates'), path: "/templates" },
   ];
   
   const contactInfo = {
@@ -32,48 +42,90 @@ const Templates = () => {
   const templates = [
     { 
       name: "Tradecraft", 
-      desc: "Perfect for trade businesses like plumbers, electricians, and contractors", 
+      desc: t('templates.tradecraft.desc') || "Perfect for trade businesses like plumbers, electricians, and contractors", 
       path: "/tradecraft", 
       bg: "bg-blue-50",
-      data: tradecraftData
+      data: tradecraftData,
+      primaryColor: "blue",
+      secondaryColor: "orange"
     },
     { 
       name: "Retail Ready", 
-      desc: "Ideal for retail stores, shops and e-commerce businesses", 
+      desc: t('templates.retail.desc') || "Ideal for retail stores, shops and e-commerce businesses", 
       path: "/retail", 
       bg: "bg-purple-50",
-      data: retailData
+      data: retailData,
+      primaryColor: "purple",
+      secondaryColor: "pink"
     },
     { 
       name: "Service Pro", 
-      desc: "For service-based businesses like consultants and professionals", 
+      desc: t('templates.service.desc') || "For service-based businesses like consultants and professionals", 
       path: "/service", 
       bg: "bg-teal-50",
-      data: serviceProData
+      data: serviceProData,
+      primaryColor: "teal",
+      secondaryColor: "green"
     },
     { 
       name: "Local Expert", 
-      desc: "Perfect for local experts and specialized service providers", 
+      desc: t('templates.expert.desc') || "Perfect for local experts and specialized service providers", 
       path: "/expert", 
       bg: "bg-yellow-50",
-      data: expertData
+      data: expertData,
+      primaryColor: "amber",
+      secondaryColor: "yellow"
     },
     { 
       name: "Clean Slate", 
-      desc: "Start from scratch with a minimal template", 
+      desc: t('templates.cleanslate.desc') || "Start from scratch with a minimal template", 
       path: "/cleanslate", 
-      bg: "bg-gray-50" 
+      bg: "bg-gray-50",
+      primaryColor: "black",
+      secondaryColor: "gray"
     }
   ];
 
-  const handleTemplateClick = (templateName: string) => {
-    trackEvent('Templates', 'Template Click', templateName);
+  const colors = [
+    'blue', 'purple', 'teal', 'green', 'red', 'pink',
+    'orange', 'amber', 'indigo', 'gray', 'black', 'yellow'
+  ];
+
+  const handleTemplateClick = (template: any) => {
+    setSelectedTemplate(template.path);
+    setTemplateColor(template.primaryColor);
+    setSecondaryColor(template.secondaryColor);
+    trackEvent('Templates', 'Template Click', template.name);
+  };
+
+  const handleCreateWebsite = (template: any) => {
+    if (!companyName || !domainName) {
+      toast({
+        title: t('errors.missingFields'),
+        description: t('errors.fillRequired'),
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Store website data in session storage
+    sessionStorage.setItem('companyData', JSON.stringify({
+      companyName,
+      domainName,
+      logo: logoUrl,
+      template: template.name,
+      colorScheme: template.primaryColor,
+      secondaryColorScheme: template.secondaryColor
+    }));
+
+    // Navigate to the template
+    window.location.href = template.path;
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex flex-col">
       <Navbar 
-        logo="<span class='text-primary font-semibold'>Template</span><span class='text-gray-600'>Builder</span>" 
+        logo={t('app.name') || "TemplateBuilder"} 
         basePath=""
         navItems={navItems}
         ctaText="Get Started" 
@@ -83,8 +135,8 @@ const Templates = () => {
       {/* Hero Section */}
       <section className="pt-12 pb-8 container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Choose Your Template</h1>
-          <p className="text-lg text-gray-600 mb-8">Select from our professionally designed templates to create your perfect website</p>
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">{t('templates.title') || "Choose Your Template"}</h1>
+          <p className="text-lg text-gray-600 mb-8">{t('templates.subtitle') || "Select from our professionally designed templates"}</p>
         </div>
       </section>
 
@@ -93,7 +145,7 @@ const Templates = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {templates.map((template, i) => (
-              <Card key={i} className="overflow-hidden hover:shadow-lg transition-all">
+              <Card key={i} className={`overflow-hidden hover:shadow-lg transition-all ${selectedTemplate === template.path ? 'ring-2 ring-primary' : ''}`}>
                 <CardContent className="p-0">
                   <div className={`${template.bg} aspect-video flex items-center justify-center`}>
                     <span className="font-medium text-xl">{template.name}</span>
@@ -101,13 +153,78 @@ const Templates = () => {
                   <div className="p-6">
                     <h3 className="text-xl font-semibold mb-2">{template.name}</h3>
                     <p className="text-gray-600 mb-4">{template.desc}</p>
-                    <Button 
-                      asChild 
-                      className="w-full" 
-                      onClick={() => handleTemplateClick(template.name)}
-                    >
-                      <Link to={template.path}>View Template</Link>
-                    </Button>
+                    
+                    {selectedTemplate === template.path ? (
+                      <div className="space-y-4">
+                        <Input
+                          placeholder={t('form.companyName') || "Company Name"}
+                          value={companyName}
+                          onChange={(e) => setCompanyName(e.target.value)}
+                        />
+                        <Input
+                          placeholder={t('form.domainName') || "Domain Name"}
+                          value={domainName}
+                          onChange={(e) => setDomainName(e.target.value)}
+                        />
+                        <Input
+                          placeholder={t('form.logo') || "Logo URL (optional)"}
+                          value={logoUrl}
+                          onChange={(e) => setLogoUrl(e.target.value)}
+                        />
+                        
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium">
+                            {t('form.primaryColor') || "Primary Color"}
+                          </label>
+                          <div className="grid grid-cols-6 gap-2">
+                            {colors.map((color) => (
+                              <button
+                                key={color}
+                                className={`w-8 h-8 rounded-full bg-${color}-500 hover:ring-2 hover:ring-${color}-300`}
+                                onClick={() => setTemplateColor(color)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium">
+                            {t('form.secondaryColor') || "Secondary Color"}
+                          </label>
+                          <div className="grid grid-cols-6 gap-2">
+                            {colors.map((color) => (
+                              <button
+                                key={color}
+                                className={`w-8 h-8 rounded-full bg-${color}-500 hover:ring-2 hover:ring-${color}-300`}
+                                onClick={() => setSecondaryColor(color)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button
+                            className="w-full"
+                            onClick={() => handleCreateWebsite(template)}
+                          >
+                            {t('buttons.createWebsite') || "Create Website"}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => setSelectedTemplate(null)}
+                          >
+                            {t('buttons.cancel') || "Cancel"}
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button 
+                        className="w-full"
+                        onClick={() => handleTemplateClick(template)}
+                      >
+                        {t('buttons.selectTemplate') || "Select Template"}
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -116,32 +233,9 @@ const Templates = () => {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl font-bold mb-8 text-center">All Templates Include</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { title: "Responsive Design", desc: "Looks great on all devices from mobile to desktop" },
-              { title: "Customization", desc: "Easy to customize with your branding and content" },
-              { title: "SEO Optimized", desc: "Built with search engine optimization in mind" }
-            ].map((feature, i) => (
-              <div key={i} className="text-center p-6">
-                <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-xl font-bold text-primary">{i + 1}</span>
-                </div>
-                <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <Footer 
         logo="TemplateBuilder"
-        description="Create stunning websites for your clients with our professionally designed templates."
+        description={t('app.description') || "Create stunning websites for your clients"}
         basePath=""
         navItems={navItems}
         contactInfo={contactInfo}
