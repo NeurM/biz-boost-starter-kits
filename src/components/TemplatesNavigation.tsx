@@ -17,7 +17,7 @@ import { useLanguage } from '@/context/LanguageContext';
 const TemplatesNavigation = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { currentLanguage, setLanguage } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleSignOut = async () => {
@@ -56,13 +56,15 @@ const TemplatesNavigation = () => {
           </div>
           <div className="flex items-center space-x-4">
             <select
-              value={currentLanguage}
-              onChange={(e) => setLanguage(e.target.value)}
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as Language)}
               className="border rounded px-2 py-1"
             >
               <option value="en">English</option>
               <option value="es">Español</option>
               <option value="fr">Français</option>
+              <option value="nl">Nederlands</option>
+              <option value="ar">العربية</option>
             </select>
             {user ? (
               <DropdownMenu>
