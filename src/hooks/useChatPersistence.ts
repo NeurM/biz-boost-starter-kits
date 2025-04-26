@@ -51,13 +51,25 @@ export const useChatPersistence = (
       if (!user) return;
       
       try {
+        // Convert websiteStatus to a plain object to satisfy Json type requirement
+        const websiteDataJson = message.isUser ? null : {
+          isCreated: websiteStatus.isCreated,
+          template: websiteStatus.template,
+          path: websiteStatus.path,
+          companyName: websiteStatus.companyName,
+          domainName: websiteStatus.domainName,
+          logo: websiteStatus.logo,
+          colorScheme: websiteStatus.colorScheme,
+          secondaryColorScheme: websiteStatus.secondaryColorScheme
+        };
+        
         const { error } = await supabase
           .from('chat_messages')
           .insert({
             content: message.content,
             is_user: message.isUser,
             user_id: user.id,
-            website_data: message.isUser ? null : websiteStatus
+            website_data: websiteDataJson
           });
           
         if (error) throw error;
