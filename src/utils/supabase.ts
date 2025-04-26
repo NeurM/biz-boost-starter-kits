@@ -53,6 +53,7 @@ export const signIn = async (email: string, password: string) => {
     await logApiCall('/auth/sign-in', 'POST', { email }, response.data, response.error);
     return response;
   } catch (error) {
+    // Fix: Don't try to access 'data' property on error response
     await logApiCall('/auth/sign-in', 'POST', { email }, null, error as Error);
     throw error;
   }
