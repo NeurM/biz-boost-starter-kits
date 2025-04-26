@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { User, LogOut } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/LanguageContext';
 
 interface UserMenuProps {

@@ -149,12 +149,26 @@ export const translations: Translations = {
     ar: 'قوالبنا',
     es: 'Nuestras Plantillas',
   },
+  'templates.tradecraft.name': {
+    en: 'Tradecraft',
+    nl: 'Vakmanschap',
+    fr: 'Métiers',
+    ar: 'الحرف اليدوية',
+    es: 'Oficios',
+  },
   'templates.tradecraft.desc': {
     en: 'Perfect for trade businesses like plumbers, electricians, and contractors',
     nl: 'Perfect voor handelbedrijven zoals loodgieters, elektriciens en aannemers',
     fr: 'Parfait pour les métiers comme plombiers, électriciens et entrepreneurs',
     ar: 'مثالي للأعمال التجارية مثل السباكين والكهربائيين والمقاولين',
     es: 'Perfecto para negocios comerciales como plomeros, electricistas y contratistas',
+  },
+  'templates.retail.name': {
+    en: 'Retail Ready',
+    nl: 'Retail Klaar',
+    fr: 'Prêt Pour La Vente',
+    ar: 'جاهز للبيع بالتجزئة',
+    es: 'Listo Para Minoristas',
   },
   'templates.retail.desc': {
     en: 'Ideal for retail stores, shops and e-commerce businesses',
@@ -163,6 +177,13 @@ export const translations: Translations = {
     ar: 'مثالي للمتاجر ومحلات البيع بالتجزئة والتجارة الإلكترونية',
     es: 'Ideal para tiendas minoristas y negocios de comercio electrónico',
   },
+  'templates.service.name': {
+    en: 'Service Pro',
+    nl: 'Diensten Pro',
+    fr: 'Service Pro',
+    ar: 'خدمات احترافية',
+    es: 'Servicios Pro',
+  },
   'templates.service.desc': {
     en: 'For service-based businesses like consultants and professionals',
     nl: 'Voor dienstverlenende bedrijven zoals consultants en professionals',
@@ -170,12 +191,26 @@ export const translations: Translations = {
     ar: 'للشركات الخدمية مثل المستشارين والمهنيين',
     es: 'Para empresas de servicios como consultores y profesionales',
   },
+  'templates.expert.name': {
+    en: 'Local Expert',
+    nl: 'Lokale Expert',
+    fr: 'Expert Local',
+    ar: 'خبير محلي',
+    es: 'Experto Local',
+  },
   'templates.expert.desc': {
     en: 'Perfect for local experts and specialized service providers',
     nl: 'Perfect voor lokale experts en gespecialiseerde dienstverleners',
     fr: 'Parfait pour les experts locaux et les prestataires de services spécialisés',
     ar: 'مثالي للخبراء المحليين ومقدمي الخدمات المتخصصة',
     es: 'Perfecto para expertos locales y proveedores de servicios especializados',
+  },
+  'templates.cleanslate.name': {
+    en: 'Clean Slate',
+    nl: 'Schone Lei',
+    fr: 'Page Blanche',
+    ar: 'صفحة جديدة',
+    es: 'Borrón y Cuenta Nueva',
   },
   'templates.cleanslate.desc': {
     en: 'Start from scratch with a minimal template',
@@ -227,6 +262,13 @@ export const translations: Translations = {
     fr: 'Créer le Site',
     ar: 'إنشاء موقع',
     es: 'Crear Sitio Web',
+  },
+  'buttons.creating': {
+    en: 'Creating...',
+    nl: 'Maken...',
+    fr: 'Création en cours...',
+    ar: 'جاري الإنشاء...',
+    es: 'Creando...',
   },
   'buttons.selectTemplate': {
     en: 'Select Template',
@@ -307,6 +349,13 @@ export const translations: Translations = {
     es: 'Herramientas simples para adaptarse a su marca y necesidades',
   },
   // Errors
+  'errors.title': {
+    en: 'Error',
+    nl: 'Fout',
+    fr: 'Erreur',
+    ar: 'خطأ',
+    es: 'Error',
+  },
   'errors.missingFields': {
     en: 'Missing Required Fields',
     nl: 'Verplichte Velden Ontbreken',
@@ -320,6 +369,27 @@ export const translations: Translations = {
     fr: 'Veuillez remplir tous les champs obligatoires',
     ar: 'يرجى ملء جميع الحقول المطلوبة',
     es: 'Por favor complete todos los campos requeridos',
+  },
+  'errors.generic': {
+    en: 'Something went wrong',
+    nl: 'Er is iets misgegaan',
+    fr: 'Quelque chose s\'est mal passé',
+    ar: 'حدث خطأ ما',
+    es: 'Algo salió mal',
+  },
+  'errors.loadWebsites': {
+    en: 'Could not load saved websites',
+    nl: 'Kon opgeslagen websites niet laden',
+    fr: 'Impossible de charger les sites web enregistrés',
+    ar: 'تعذر تحميل المواقع المحفوظة',
+    es: 'No se pudieron cargar los sitios web guardados',
+  },
+  'errors.saveWebsite': {
+    en: 'Failed to save website configuration',
+    nl: 'Kon websiteconfiguratie niet opslaan',
+    fr: 'Échec de l\'enregistrement de la configuration du site web',
+    ar: 'فشل في حفظ إعدادات الموقع',
+    es: 'Error al guardar la configuración del sitio web',
   },
   // App general
   'app.name': {
@@ -337,6 +407,13 @@ export const translations: Translations = {
     es: 'Crea sitios web impresionantes para tus clientes',
   },
   // Footer
+  'footer.links': {
+    en: 'Quick Links',
+    nl: 'Snelle Links',
+    fr: 'Liens Rapides',
+    ar: 'روابط سريعة',
+    es: 'Enlaces Rápidos',
+  },
   'footer.rights': {
     en: 'All rights reserved',
     nl: 'Alle rechten voorbehouden',
@@ -351,6 +428,155 @@ export const translations: Translations = {
     ar: 'اتصل بنا',
     es: 'Contáctenos',
   },
+  // Website Management
+  'websites.createNew': {
+    en: 'Create New Website',
+    nl: 'Nieuwe Website Maken',
+    fr: 'Créer un Nouveau Site',
+    ar: 'إنشاء موقع جديد',
+    es: 'Crear Nuevo Sitio Web',
+  },
+  'websites.noWebsites': {
+    en: 'No websites found',
+    nl: 'Geen websites gevonden',
+    fr: 'Aucun site web trouvé',
+    ar: 'لم يتم العثور على مواقع',
+    es: 'No se encontraron sitios web',
+  },
+  'websites.noWebsitesDesc': {
+    en: 'You haven\'t created any websites yet.',
+    nl: 'Je hebt nog geen websites gemaakt.',
+    fr: 'Vous n\'avez pas encore créé de sites web.',
+    ar: 'لم تقم بإنشاء أي مواقع حتى الآن.',
+    es: 'Aún no has creado ningún sitio web.',
+  },
+  'websites.createFirst': {
+    en: 'Create Your First Website',
+    nl: 'Maak Je Eerste Website',
+    fr: 'Créez Votre Premier Site Web',
+    ar: 'أنشئ موقعك الأول',
+    es: 'Crea Tu Primer Sitio Web',
+  },
+  'websites.company': {
+    en: 'Company',
+    nl: 'Bedrijf',
+    fr: 'Entreprise',
+    ar: 'الشركة',
+    es: 'Empresa',
+  },
+  'websites.template': {
+    en: 'Template',
+    nl: 'Sjabloon',
+    fr: 'Modèle',
+    ar: 'قالب',
+    es: 'Plantilla',
+  },
+  'websites.domain': {
+    en: 'Domain',
+    nl: 'Domein',
+    fr: 'Domaine',
+    ar: 'نطاق',
+    es: 'Dominio',
+  },
+  'websites.created': {
+    en: 'Created',
+    nl: 'Gemaakt',
+    fr: 'Créé',
+    ar: 'تم الإنشاء',
+    es: 'Creado',
+  },
+  'websites.actions': {
+    en: 'Actions',
+    nl: 'Acties',
+    fr: 'Actions',
+    ar: 'إجراءات',
+    es: 'Acciones',
+  },
+  'websites.view': {
+    en: 'View Website',
+    nl: 'Bekijk Website',
+    fr: 'Voir le Site Web',
+    ar: 'عرض الموقع',
+    es: 'Ver Sitio Web',
+  },
+  'websites.delete': {
+    en: 'Delete Website',
+    nl: 'Verwijder Website',
+    fr: 'Supprimer le Site Web',
+    ar: 'حذف الموقع',
+    es: 'Eliminar Sitio Web',
+  },
+  'websites.deleted': {
+    en: 'Website Deleted',
+    nl: 'Website Verwijderd',
+    fr: 'Site Web Supprimé',
+    ar: 'تم حذف الموقع',
+    es: 'Sitio Web Eliminado',
+  },
+  'websites.deleteSuccess': {
+    en: 'The website has been successfully deleted.',
+    nl: 'De website is succesvol verwijderd.',
+    fr: 'Le site web a été supprimé avec succès.',
+    ar: 'تم حذف الموقع بنجاح.',
+    es: 'El sitio web ha sido eliminado exitosamente.',
+  },
+  'websites.deleteFailed': {
+    en: 'Failed to delete the website. Please try again.',
+    nl: 'Kan de website niet verwijderen. Probeer het opnieuw.',
+    fr: 'Échec de la suppression du site web. Veuillez réessayer.',
+    ar: 'فشل في حذف الموقع. يرجى المحاولة مرة أخرى.',
+    es: 'Error al eliminar el sitio web. Por favor, inténtelo de nuevo.',
+  },
+  'common.loading': {
+    en: 'Loading...',
+    nl: 'Laden...',
+    fr: 'Chargement...',
+    ar: 'جار التحميل...',
+    es: 'Cargando...',
+  },
+  'dashboard.title': {
+    en: 'Analytics Dashboard',
+    nl: 'Analyse Dashboard',
+    fr: 'Tableau de Bord Analytique',
+    ar: 'لوحة تحليلات البيانات',
+    es: 'Panel de Análisis',
+  },
+  // Auth
+  'auth.login': {
+    en: 'Login',
+    nl: 'Inloggen',
+    fr: 'Connexion',
+    ar: 'تسجيل الدخول',
+    es: 'Iniciar sesión',
+  },
+  'auth.logout': {
+    en: 'Logout',
+    nl: 'Uitloggen',
+    fr: 'Déconnexion',
+    ar: 'تسجيل الخروج',
+    es: 'Cerrar sesión',
+  },
+  'auth.loggedOut': {
+    en: 'Logged out successfully',
+    nl: 'Succesvol uitgelogd',
+    fr: 'Déconnexion réussie',
+    ar: 'تم تسجيل الخروج بنجاح',
+    es: 'Sesión cerrada exitosamente',
+  },
+  'auth.logoutSuccess': {
+    en: 'You have been logged out of your account.',
+    nl: 'Je bent uitgelogd van je account.',
+    fr: 'Vous avez été déconnecté de votre compte.',
+    ar: 'لقد تم تسجيل خروجك من حسابك.',
+    es: 'Has cerrado sesión en tu cuenta.',
+  },
+  'auth.logoutFailed': {
+    en: 'Logout Failed',
+    nl: 'Uitloggen Mislukt',
+    fr: 'Échec de la Déconnexion',
+    ar: 'فشل تسجيل الخروج',
+    es: 'Error al Cerrar Sesión',
+  }
 };
 
 interface LanguageContextProps {

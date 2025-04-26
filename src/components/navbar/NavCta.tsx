@@ -24,6 +24,7 @@ const NavCta = ({ ctaText, ctaLink, isMobile, onClick, useSecondaryColor }: NavC
   const buttonVariant = isCleanSlate ? "default" : useSecondaryColor ? "dynamic-secondary" : "dynamic";
   
   // Check if ctaText is a translation key (starts with "cta.")
+  // Make sure to properly translate CTA text
   const displayText = ctaText.startsWith('cta.') ? t(ctaText) : ctaText;
   
   // For hash links within the same page

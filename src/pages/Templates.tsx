@@ -1,17 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useTemplateTheme } from '@/context/TemplateThemeContext';
 import { useLanguage } from '@/context/LanguageContext';
 import GeminiPersistentChat from '@/components/chatbot/GeminiPersistentChat';
+import { saveWebsiteConfig } from '@/utils/supabase';
 import { tradecraftData } from '@/data/tradecraftData';
 import { retailData } from '@/data/retailData';
 import { serviceProData } from '@/data/serviceProData';
@@ -19,6 +20,7 @@ import { expertData } from '@/data/expertData';
 
 const Templates = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { trackEvent } = useAnalytics();
   const { t, language } = useLanguage();
   const { setTemplateColor, setSecondaryColor } = useTemplateTheme();
@@ -28,6 +30,7 @@ const Templates = () => {
   const [domainName, setDomainName] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [showChat, setShowChat] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
   // Show chat component after a short delay
   useEffect(() => {
@@ -59,7 +62,7 @@ const Templates = () => {
 
   const templates = [
     { 
-      name: "Tradecraft", 
+      name: t('templates.tradecraft.name') || "Tradecraft", 
       desc: t('templates.tradecraft.desc') || "Perfect for trade businesses like plumbers, electricians, and contractors", 
       path: "/tradecraft", 
       bg: "bg-blue-50",
@@ -68,7 +71,7 @@ const Templates = () => {
       secondaryColor: "orange"
     },
     { 
-      name: "Retail Ready", 
+      name: t('templates.retail.name') || "Retail Ready", 
       desc: t('templates.retail.desc') || "Ideal for retail stores, shops and e-commerce businesses", 
       path: "/retail", 
       bg: "bg-purple-50",
@@ -77,7 +80,7 @@ const Templates = () => {
       secondaryColor: "pink"
     },
     { 
-      name: "Service Pro", 
+      name: t('templates.service.name') || "Service Pro", 
       desc: t('templates.service.desc') || "For service-based businesses like consultants and professionals", 
       path: "/service", 
       bg: "bg-teal-50",
@@ -86,7 +89,7 @@ const Templates = () => {
       secondaryColor: "green"
     },
     { 
-      name: "Local Expert", 
+      name: t('templates.expert.name') || "Local Expert", 
       desc: t('templates.expert.desc') || "Perfect for local experts and specialized service providers", 
       path: "/expert", 
       bg: "bg-yellow-50",
@@ -95,7 +98,7 @@ const Templates = () => {
       secondaryColor: "yellow"
     },
     { 
-      name: "Clean Slate", 
+      name: t('templates.cleanslate.name') || "Clean Slate", 
       desc: t('templates.cleanslate.desc') || "Start from scratch with a minimal template", 
       path: "/cleanslate", 
       bg: "bg-gray-50",
@@ -116,28 +119,79 @@ const Templates = () => {
     trackEvent('Templates', 'Template Click', template.name);
   };
 
-  const handleCreateWebsite = (template: any) => {
+  const handleCreateWebsite = async (template: any) => {
     if (!companyName || !domainName) {
       toast({
-        title: t('errors.missingFields'),
-        description: t('errors.fillRequired'),
+        title: t('errors.missingFields') || "Missing Required Fields",
+        description: t('errors.fillRequired') || "Please fill in all required fields",
         variant: "destructive"
       });
       return;
     }
 
-    // Store website data in session storage
-    sessionStorage.setItem('companyData', JSON.stringify({
-      companyName,
-      domainName,
-      logo: logoUrl,
-      template: template.name,
-      colorScheme: template.primaryColor,
-      secondaryColorScheme: template.secondaryColor
-    }));
+    try {
+      setIsSaving(true);
 
-    // Navigate to the template
-    window.location.href = template.path;
+      // If user is logged in, save the website configuration to the database
+      if (user) {
+        const templateId = template.path.replace('/', '');
+        const { error } = await saveWebsiteConfig({
+          user_id: user.id,
+          template_id: templateId,
+          company_name: companyName,
+          domain_name: domainName,
+          logo: logoUrl,
+          color_scheme: template.primaryColor,
+          secondary_color_scheme: template.secondaryColor
+        });
+
+        if (error) {
+          console.error("Error saving website config:", error);
+          toast({
+            title: t('errors.title') || "Error",
+            description: t('errors.saveWebsite') || "Failed to save website configuration",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        toast({
+          title: t('websites.created') || "Website Created",
+          description: t('websites.createdDesc') || "Your website has been successfully created",
+        });
+      }
+
+      // Store website data in session storage for all users (logged in or not)
+      sessionStorage.setItem('companyData', JSON.stringify({
+        companyName,
+        domainName,
+        logo: logoUrl,
+        template: template.name,
+        colorScheme: template.primaryColor,
+        secondaryColorScheme: template.secondaryColor
+      }));
+
+      // Navigate to the template
+      navigate(template.path, { 
+        state: {
+          companyName,
+          domainName,
+          logo: logoUrl,
+          colorScheme: template.primaryColor,
+          secondaryColorScheme: template.secondaryColor
+        }
+      });
+      
+    } catch (error) {
+      console.error("Error creating website:", error);
+      toast({
+        title: t('errors.title') || "Error",
+        description: t('errors.generic') || "Something went wrong",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -146,8 +200,8 @@ const Templates = () => {
         logo={t('app.name') || "TemplateBuilder"} 
         basePath=""
         navItems={navItems}
-        ctaText={t('cta.getstarted')} 
-        ctaLink={user ? "/dashboard" : "/auth"}
+        ctaText={user ? undefined : 'cta.getstarted'} 
+        ctaLink={user ? undefined : "/auth"}
       />
 
       {/* Hero Section */}
@@ -202,6 +256,7 @@ const Templates = () => {
                                 className={`w-8 h-8 rounded-full bg-${color}-500 hover:ring-2 hover:ring-${color}-300 transition-all ${template.primaryColor === color ? 'ring-2 ring-black' : ''}`}
                                 onClick={() => setTemplateColor(color)}
                                 title={color}
+                                aria-label={`Select ${color} as primary color`}
                               />
                             ))}
                           </div>
@@ -218,6 +273,7 @@ const Templates = () => {
                                 className={`w-8 h-8 rounded-full bg-${color}-500 hover:ring-2 hover:ring-${color}-300 transition-all ${template.secondaryColor === color ? 'ring-2 ring-black' : ''}`}
                                 onClick={() => setSecondaryColor(color)}
                                 title={color}
+                                aria-label={`Select ${color} as secondary color`}
                               />
                             ))}
                           </div>
@@ -227,8 +283,11 @@ const Templates = () => {
                           <Button
                             className="w-full"
                             onClick={() => handleCreateWebsite(template)}
+                            disabled={isSaving}
                           >
-                            {t('buttons.createWebsite') || "Create Website"}
+                            {isSaving ? 
+                              (t('buttons.creating') || "Creating...") : 
+                              (t('buttons.createWebsite') || "Create Website")}
                           </Button>
                           <Button
                             variant="outline"

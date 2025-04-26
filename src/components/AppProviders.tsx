@@ -1,35 +1,39 @@
 
 import React from 'react';
-import { TemplateThemeProvider } from '@/context/TemplateThemeContext';
-import { AuthProvider } from '@/context/AuthContext';
-import { CompanyDataProvider } from '@/context/CompanyDataContext';
-import { Toaster } from '@/components/ui/toaster';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ChatProvider } from '@/context/ChatContext';
-import { LanguageProvider } from '@/context/LanguageContext';
+import { BrowserRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AuthProvider } from "@/context/AuthContext";
+import { LanguageProvider } from "@/context/LanguageContext";
+import { TemplateThemeProvider } from "@/context/TemplateThemeContext";
+import { CompanyDataProvider } from "@/context/CompanyDataContext";
+import { Toaster } from "@/components/ui/toaster";
 
-const queryClient = new QueryClient();
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 0,
+      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    },
+  },
+});
 
-interface Props {
-  children: React.ReactNode;
-}
-
-export function AppProviders({ children }: Props) {
+export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        {/* Important: TemplateThemeProvider must come before AuthProvider to avoid circular dependencies */}
-        <TemplateThemeProvider>
-          <ChatProvider>
-            <AuthProvider>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <LanguageProvider>
+          <AuthProvider>
+            <TemplateThemeProvider>
               <CompanyDataProvider>
                 {children}
                 <Toaster />
               </CompanyDataProvider>
-            </AuthProvider>
-          </ChatProvider>
-        </TemplateThemeProvider>
-      </LanguageProvider>
-    </QueryClientProvider>
+            </TemplateThemeProvider>
+          </AuthProvider>
+        </LanguageProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   );
-}
+};
