@@ -1,40 +1,24 @@
 
-import { useRoutes } from "react-router-dom";
-import { AppProviders } from "./components/AppProviders";
-import { routes } from "./routes";
 import { useTransition } from "react";
 import GeminiPersistentChat from "./components/chatbot/GeminiPersistentChat";
 import AnalyticsTracker from "./components/AnalyticsTracker";
 
-// Router component to separate the routes logic
-const Router = () => {
+function App() {
   // Using React's useTransition to prevent suspense during route changes
   const [isPending, startTransition] = useTransition();
   
-  // Wrap routes in startTransition to prevent UI replacement with loading indicator
-  const routeElements = useRoutes(routes);
-  
   return (
-    <AnalyticsTracker>
-      {isPending ? (
-        <div className="w-full h-screen flex items-center justify-center">Loading...</div>
-      ) : (
-        routeElements
-      )}
-    </AnalyticsTracker>
-  );
-};
-
-function App() {
-  return (
-    <AppProviders>
-      <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen">
+      <AnalyticsTracker>
         <main className="flex-1">
-          <Router />
+          {/* The router has been moved to main.tsx, so we don't need to include it here */}
+          {isPending ? (
+            <div className="w-full h-screen flex items-center justify-center">Loading...</div>
+          ) : null}
         </main>
         <GeminiPersistentChat />
-      </div>
-    </AppProviders>
+      </AnalyticsTracker>
+    </div>
   );
 }
 

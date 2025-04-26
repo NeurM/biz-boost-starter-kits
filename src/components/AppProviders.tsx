@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/context/AuthContext";
 import { LanguageProvider } from "@/context/LanguageContext";
@@ -21,19 +20,17 @@ const queryClient = new QueryClient({
 
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <LanguageProvider>
-          <AuthProvider>
-            <TemplateThemeProvider>
-              <CompanyDataProvider>
-                {children}
-                <Toaster />
-              </CompanyDataProvider>
-            </TemplateThemeProvider>
-          </AuthProvider>
-        </LanguageProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <LanguageProvider>
+        <AuthProvider>
+          <TemplateThemeProvider>
+            <CompanyDataProvider>
+              {children}
+              <Toaster />
+            </CompanyDataProvider>
+          </TemplateThemeProvider>
+        </AuthProvider>
+      </LanguageProvider>
+    </QueryClientProvider>
   );
 };
