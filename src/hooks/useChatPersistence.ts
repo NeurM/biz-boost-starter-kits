@@ -3,11 +3,13 @@ import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { Message, WebsiteStatus } from '@/components/chatbot/types';
+import { Json } from '@/integrations/supabase/types';
 
 export const useChatPersistence = (
   messages: Message[],
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
   websiteStatus: WebsiteStatus,
+  setWebsiteStatus: React.Dispatch<React.SetStateAction<WebsiteStatus>>,
   showChatHistory: boolean
 ) => {
   const { user } = useAuth();
@@ -44,7 +46,11 @@ export const useChatPersistence = (
             .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
             
           if (lastMessageWithData && lastMessageWithData.website_data) {
-            websiteStatus = lastMessageWithData.website_data as WebsiteStatus;
+            // Cast to unknown first, then to WebsiteStatus to avoid direct type assignment error
+            const websiteData = lastMessageWithData.website_data as unknown as WebsiteStatus;
+            if (websiteData && typeof websiteData === 'object' && 'isCreated' in websiteData) {
+              setWebsiteStatus(websiteData);
+            }
           }
         } else if (showChatHistory) {
           // If showing history but no messages found, show a message about that
@@ -83,11 +89,16 @@ export const useChatPersistence = (
       const lastMessage = messages[messages.length - 1];
       
       try {
+        // Convert websiteStatus to Json compatible format before saving
+        const websiteData = websiteStatus.isCreated ? 
+          JSON.parse(JSON.stringify(websiteStatus)) as Json : 
+          null;
+          
         await supabase.from('chat_messages').insert({
           user_id: user.id,
           content: lastMessage.content,
           is_user: lastMessage.isUser,
-          website_data: websiteStatus.isCreated ? websiteStatus : null
+          website_data: websiteData
         });
       } catch (err) {
         console.error('Error saving chat message:', err);

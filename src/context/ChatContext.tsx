@@ -50,7 +50,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     secondaryColorScheme: null
   });
 
-  useChatPersistence(messages, setMessages, websiteStatus, showChatHistory);
+  useChatPersistence(messages, setMessages, websiteStatus, setWebsiteStatus, showChatHistory);
 
   const viewCode = () => {
     const devModeToggle = document.querySelector('[data-testid="dev-mode-toggle"]') as HTMLButtonElement;

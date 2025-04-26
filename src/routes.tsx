@@ -1,5 +1,6 @@
 
-import React, { lazy, Suspense, ReactElement } from "react";
+import React, { lazy, Suspense } from "react";
+import { RouteObject } from "react-router-dom";
 import { RouteConfig } from "./types/template";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -84,7 +85,7 @@ const processRoutes = (routes: RouteConfig[]): RouteConfig[] => {
 };
 
 // Combine all routes with proper Suspense boundaries
-export const routes: RouteConfig[] = [
+export const routes: RouteObject[] = [
   ...baseRoutes,
   ...processRoutes(tradecraftRoutes),
   ...processRoutes(retailRoutes),
