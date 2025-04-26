@@ -125,6 +125,164 @@ const Index = () => {
     }
   ];
 
+  const renderTemplateCard = (template) => {
+    return (
+      <Card key={template.id} className="hover:shadow-xl transition-all duration-300">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl">{template.name}</CardTitle>
+        </CardHeader>
+        <CardContent className="pb-4">
+          <p className="text-sm text-gray-600 mb-4">{template.description}</p>
+          <div className="space-y-2">
+            <div>
+              <span className="text-sm font-medium">Industry: </span>
+              <span className="text-sm text-gray-600">{template.industry}</span>
+            </div>
+            <div>
+              <span className="text-sm font-medium">Pages: </span>
+              <span className="text-sm text-gray-600">{template.pages.join(", ")}</span>
+            </div>
+            <div>
+              <span className="text-sm font-medium">Color Scheme: </span>
+              <span className="text-sm text-gray-600">{template.color}</span>
+            </div>
+          </div>
+          
+          <div className="mt-6 space-y-3">
+            <div className="space-y-1">
+              <Label htmlFor={`companyName-${template.id}`}>Company Name</Label>
+              <Input 
+                id={`companyName-${template.id}`}
+                value={formData[template.id].companyName}
+                onChange={(e) => handleInputChange(template.id, 'companyName', e.target.value)}
+                placeholder="Your Company Name"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor={`domainName-${template.id}`}>Domain Name</Label>
+              <Input 
+                id={`domainName-${template.id}`}
+                value={formData[template.id].domainName}
+                onChange={(e) => handleInputChange(template.id, 'domainName', e.target.value)}
+                placeholder="yourdomain.com"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor={`logo-${template.id}`}>Logo (Text or URL)</Label>
+              <Input 
+                id={`logo-${template.id}`}
+                value={formData[template.id].logo}
+                onChange={(e) => handleInputChange(template.id, 'logo', e.target.value)}
+                placeholder="Company Logo or URL"
+              />
+            </div>
+            
+            {isAuthenticated && (
+              <>
+                <div className="space-y-2">
+                  <Label>Primary Color</Label>
+                  <div className="grid grid-cols-6 gap-2">
+                    {availableColors
+                      .filter(color => 
+                        template.id !== 'cleanslate' || color.value === 'black'
+                      )
+                      .map(color => (
+                        <button
+                          key={`primary-${color.value}`}
+                          type="button"
+                          className={`w-full h-8 rounded-md border-2 hover:scale-110 transition-transform ${
+                            formData[template.id].colorScheme === color.value 
+                              ? 'ring-2 ring-offset-2 ring-black' 
+                              : ''
+                          }`}
+                          style={{
+                            backgroundColor: `var(--${color.value}-600, ${
+                              color.value === 'black' ? '#000000' : 
+                              color.value === 'blue' ? '#2563eb' :
+                              color.value === 'purple' ? '#9333ea' :
+                              color.value === 'teal' ? '#0d9488' :
+                              color.value === 'green' ? '#16a34a' :
+                              color.value === 'red' ? '#dc2626' :
+                              color.value === 'pink' ? '#db2777' :
+                              color.value === 'amber' ? '#d97706' :
+                              color.value === 'orange' ? '#ea580c' :
+                              color.value === 'indigo' ? '#4f46e5' :
+                              color.value === 'yellow' ? '#ca8a04' :
+                              color.value === 'gray' ? '#4b5563' :
+                              '#3b82f6'
+                            })`
+                          }}
+                          title={color.name}
+                          onClick={() => handleInputChange(template.id, 'colorScheme', color.value)}
+                          aria-label={`Select ${color.name} color scheme as primary`}
+                        />
+                      ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Secondary Color</Label>
+                  <div className="grid grid-cols-6 gap-2">
+                    {availableColors
+                      .filter(color => 
+                        template.id !== 'cleanslate' || ['gray', 'black'].includes(color.value)
+                      )
+                      .map(color => (
+                        <button
+                          key={`secondary-${color.value}`}
+                          type="button"
+                          className={`w-full h-8 rounded-md border-2 hover:scale-110 transition-transform ${
+                            formData[template.id].secondaryColorScheme === color.value 
+                              ? 'ring-2 ring-offset-2 ring-black' 
+                              : ''
+                          }`}
+                          style={{
+                            backgroundColor: `var(--${color.value}-600, ${
+                              color.value === 'black' ? '#000000' : 
+                              color.value === 'blue' ? '#2563eb' :
+                              color.value === 'purple' ? '#9333ea' :
+                              color.value === 'teal' ? '#0d9488' :
+                              color.value === 'green' ? '#16a34a' :
+                              color.value === 'red' ? '#dc2626' :
+                              color.value === 'pink' ? '#db2777' :
+                              color.value === 'amber' ? '#d97706' :
+                              color.value === 'orange' ? '#ea580c' :
+                              color.value === 'indigo' ? '#4f46e5' :
+                              color.value === 'yellow' ? '#ca8a04' :
+                              color.value === 'gray' ? '#4b5563' :
+                              '#3b82f6'
+                            })`
+                          }}
+                          title={color.name}
+                          onClick={() => handleInputChange(template.id, 'secondaryColorScheme', color.value)}
+                          aria-label={`Select ${color.name} color scheme as secondary`}
+                        />
+                      ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col space-y-3">
+          <Button 
+            onClick={() => handleCreateWebsite(template.id)}
+            className="w-full font-medium shadow-lg py-2"
+          >
+            Create Website
+          </Button>
+          <Button 
+            variant="outline" 
+            className="w-full border-2 hover:bg-gray-100"
+            onClick={() => handleViewTemplate(template.id)}
+          >
+            View Template
+          </Button>
+        </CardFooter>
+      </Card>
+    );
+  };
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data } = await supabase.auth.getUser();
@@ -340,157 +498,7 @@ const Index = () => {
       
       <main className="container py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {templates.map((template) => (
-            <Card key={template.id} className="hover:shadow-xl transition-all duration-300">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl">{template.name}</CardTitle>
-              </CardHeader>
-              <CardContent className="pb-4">
-                <p className="text-sm text-gray-600 mb-4">{template.description}</p>
-                <div className="space-y-2">
-                  <div>
-                    <span className="text-sm font-medium">Industry: </span>
-                    <span className="text-sm text-gray-600">{template.industry}</span>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium">Pages: </span>
-                    <span className="text-sm text-gray-600">{template.pages.join(", ")}</span>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium">Color Scheme: </span>
-                    <span className="text-sm text-gray-600">{template.color}</span>
-                  </div>
-                </div>
-                
-                <div className="mt-6 space-y-3">
-                  <div className="space-y-1">
-                    <Label htmlFor={`companyName-${template.id}`}>Company Name</Label>
-                    <Input 
-                      id={`companyName-${template.id}`}
-                      value={formData[template.id].companyName}
-                      onChange={(e) => handleInputChange(template.id, 'companyName', e.target.value)}
-                      placeholder="Your Company Name"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor={`domainName-${template.id}`}>Domain Name</Label>
-                    <Input 
-                      id={`domainName-${template.id}`}
-                      value={formData[template.id].domainName}
-                      onChange={(e) => handleInputChange(template.id, 'domainName', e.target.value)}
-                      placeholder="yourdomain.com"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor={`logo-${template.id}`}>Logo (Text or URL)</Label>
-                    <Input 
-                      id={`logo-${template.id}`}
-                      value={formData[template.id].logo}
-                      onChange={(e) => handleInputChange(template.id, 'logo', e.target.value)}
-                      placeholder="Company Logo or URL"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Primary Color</Label>
-                    <div className="grid grid-cols-6 gap-2">
-                      {availableColors
-                        .filter(color => 
-                          template.id !== 'cleanslate' || color.value === 'black'
-                        )
-                        .map(color => (
-                          <button
-                            key={`primary-${color.value}`}
-                            type="button"
-                            className={`w-full h-8 rounded-md border-2 hover:scale-110 transition-transform ${
-                              formData[template.id].colorScheme === color.value 
-                                ? 'ring-2 ring-offset-2 ring-black' 
-                                : ''
-                            }`}
-                            style={{
-                              backgroundColor: `var(--${color.value}-600, ${
-                                color.value === 'black' ? '#000000' : 
-                                color.value === 'blue' ? '#2563eb' :
-                                color.value === 'purple' ? '#9333ea' :
-                                color.value === 'teal' ? '#0d9488' :
-                                color.value === 'green' ? '#16a34a' :
-                                color.value === 'red' ? '#dc2626' :
-                                color.value === 'pink' ? '#db2777' :
-                                color.value === 'amber' ? '#d97706' :
-                                color.value === 'orange' ? '#ea580c' :
-                                color.value === 'indigo' ? '#4f46e5' :
-                                color.value === 'yellow' ? '#ca8a04' :
-                                color.value === 'gray' ? '#4b5563' :
-                                '#3b82f6'
-                              })`
-                            }}
-                            title={color.name}
-                            onClick={() => handleInputChange(template.id, 'colorScheme', color.value)}
-                            aria-label={`Select ${color.name} color scheme as primary`}
-                          />
-                        ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Secondary Color</Label>
-                    <div className="grid grid-cols-6 gap-2">
-                      {availableColors
-                        .filter(color => 
-                          template.id !== 'cleanslate' || ['gray', 'black'].includes(color.value)
-                        )
-                        .map(color => (
-                          <button
-                            key={`secondary-${color.value}`}
-                            type="button"
-                            className={`w-full h-8 rounded-md border-2 hover:scale-110 transition-transform ${
-                              formData[template.id].secondaryColorScheme === color.value 
-                                ? 'ring-2 ring-offset-2 ring-black' 
-                                : ''
-                            }`}
-                            style={{
-                              backgroundColor: `var(--${color.value}-600, ${
-                                color.value === 'black' ? '#000000' : 
-                                color.value === 'blue' ? '#2563eb' :
-                                color.value === 'purple' ? '#9333ea' :
-                                color.value === 'teal' ? '#0d9488' :
-                                color.value === 'green' ? '#16a34a' :
-                                color.value === 'red' ? '#dc2626' :
-                                color.value === 'pink' ? '#db2777' :
-                                color.value === 'amber' ? '#d97706' :
-                                color.value === 'orange' ? '#ea580c' :
-                                color.value === 'indigo' ? '#4f46e5' :
-                                color.value === 'yellow' ? '#ca8a04' :
-                                color.value === 'gray' ? '#4b5563' :
-                                '#3b82f6'
-                              })`
-                            }}
-                            title={color.name}
-                            onClick={() => handleInputChange(template.id, 'secondaryColorScheme', color.value)}
-                            aria-label={`Select ${color.name} color scheme as secondary`}
-                          />
-                        ))}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="flex flex-col space-y-3">
-                <Button 
-                  onClick={() => handleCreateWebsite(template.id)}
-                  className="w-full font-medium shadow-lg py-2"
-                >
-                  Create Website
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full border-2 hover:bg-gray-100"
-                  onClick={() => handleViewTemplate(template.id)}
-                >
-                  View Template
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+          {templates.map(template => renderTemplateCard(template))}
         </div>
       </main>
       

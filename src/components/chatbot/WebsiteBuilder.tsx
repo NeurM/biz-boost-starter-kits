@@ -4,19 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { saveWebsiteConfig } from '@/utils/supabase';
+import { WebsiteStatus } from './types';
 
 interface WebsiteBuilderProps {
-  websiteStatus: {
-    isCreated: boolean;
-    template: string | null;
-    path: string | null;
-    companyName: string | null;
-    domainName: string | null;
-    logo: string | null;
-    colorScheme: string | null;
-    secondaryColorScheme: string | null;
-  };
+  websiteStatus: WebsiteStatus;
   onReset: () => void;
 }
 
@@ -35,7 +26,18 @@ const WebsiteBuilder = ({ websiteStatus, onReset }: WebsiteBuilderProps) => {
         secondaryColorScheme: websiteStatus.secondaryColorScheme
       }));
       
-      navigate(websiteStatus.path);
+      // Make sure we have a valid path to navigate to
+      const path = websiteStatus.path.startsWith('/') ? 
+        websiteStatus.path : 
+        `/${websiteStatus.path}`;
+        
+      navigate(path);
+    } else {
+      toast({
+        title: "Navigation Error",
+        description: "Could not find the website path. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
