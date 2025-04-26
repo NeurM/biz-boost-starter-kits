@@ -5,6 +5,7 @@ import { routes } from "./routes";
 import TemplatesNavigation from "./components/TemplatesNavigation";
 import { useTransition } from "react";
 import GeminiPersistentChat from "./components/chatbot/GeminiPersistentChat";
+import AnalyticsTracker from "./components/AnalyticsTracker";
 
 // Router component to separate the routes logic
 const Router = () => {
@@ -15,13 +16,13 @@ const Router = () => {
   const routeElements = useRoutes(routes);
   
   return (
-    <>
+    <AnalyticsTracker>
       {isPending ? (
         <div className="w-full h-screen flex items-center justify-center">Loading...</div>
       ) : (
         routeElements
       )}
-    </>
+    </AnalyticsTracker>
   );
 };
 

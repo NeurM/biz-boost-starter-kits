@@ -1,6 +1,5 @@
 
 import React, { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
 import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface AnalyticsTrackerProps {
@@ -8,13 +7,12 @@ interface AnalyticsTrackerProps {
 }
 
 const AnalyticsTracker: React.FC<AnalyticsTrackerProps> = ({ children }) => {
-  const location = useLocation();
-  const { trackEvent } = useAnalytics();
+  const { trackEvent, trackPageView } = useAnalytics();
   
   // Track page views
   useEffect(() => {
     // Track initial page load
-    trackEvent('Navigation', 'Page View', location.pathname);
+    trackPageView();
     
     // Record session start time
     const sessionStart = new Date().getTime();
@@ -24,12 +22,7 @@ const AnalyticsTracker: React.FC<AnalyticsTrackerProps> = ({ children }) => {
       const sessionDuration = Math.round((new Date().getTime() - sessionStart) / 1000);
       trackEvent('Session', 'Duration', 'seconds', sessionDuration);
     };
-  }, []);
-  
-  // Track route changes
-  useEffect(() => {
-    trackEvent('Navigation', 'Page View', location.pathname);
-  }, [location]);
+  }, [trackPageView]);
 
   return <>{children}</>;
 };
