@@ -19,6 +19,7 @@ interface WebsiteConfig {
   domain_name: string;
   logo: string;
   color_scheme?: string;
+  secondary_color_scheme?: string;
 }
 
 const availableColors = [
@@ -32,7 +33,8 @@ const availableColors = [
   { name: 'Orange', value: 'orange' },
   { name: 'Indigo', value: 'indigo' },
   { name: 'Gray', value: 'gray' },
-  { name: 'Black', value: 'black' }
+  { name: 'Black', value: 'black' },
+  { name: 'Yellow', value: 'yellow' }
 ];
 
 const Index = () => {
@@ -47,31 +49,36 @@ const Index = () => {
       companyName: '',
       domainName: '',
       logo: '',
-      colorScheme: 'black'
+      colorScheme: 'black',
+      secondaryColorScheme: 'gray'
     },
     tradecraft: {
       companyName: '',
       domainName: '',
       logo: '',
-      colorScheme: 'blue'
+      colorScheme: 'blue',
+      secondaryColorScheme: 'orange'
     },
     retail: {
       companyName: '',
       domainName: '',
       logo: '',
-      colorScheme: 'purple'
+      colorScheme: 'purple',
+      secondaryColorScheme: 'pink'
     },
     service: {
       companyName: '',
       domainName: '',
       logo: '',
-      colorScheme: 'teal'
+      colorScheme: 'teal',
+      secondaryColorScheme: 'green'
     },
     expert: {
       companyName: '',
       domainName: '',
       logo: '',
-      colorScheme: 'amber'
+      colorScheme: 'amber',
+      secondaryColorScheme: 'yellow'
     }
   });
 
@@ -170,7 +177,7 @@ const Index = () => {
   };
 
   const handleCreateWebsite = async (templateId: string) => {
-    const { companyName, domainName, logo, colorScheme } = formData[templateId];
+    const { companyName, domainName, logo, colorScheme, secondaryColorScheme } = formData[templateId];
     
     if (!companyName.trim() || !domainName.trim() || !logo.trim()) {
       toast({
@@ -194,7 +201,8 @@ const Index = () => {
           company_name: companyName,
           domain_name: domainName,
           logo,
-          color_scheme: colorScheme
+          color_scheme: colorScheme,
+          secondary_color_scheme: secondaryColorScheme
         });
         
         if (error) {
@@ -226,7 +234,8 @@ const Index = () => {
       companyName, 
       domainName, 
       logo,
-      colorScheme
+      colorScheme,
+      secondaryColorScheme
     }});
   };
 
@@ -381,15 +390,15 @@ const Index = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor={`colorScheme-${template.id}`}>Color Scheme</Label>
-                    <div className="grid grid-cols-5 gap-2">
+                    <Label>Primary Color</Label>
+                    <div className="grid grid-cols-6 gap-2">
                       {availableColors
                         .filter(color => 
                           template.id !== 'cleanslate' || color.value === 'black'
                         )
                         .map(color => (
                           <button
-                            key={color.value}
+                            key={`primary-${color.value}`}
                             type="button"
                             className={`w-full h-8 rounded-md border-2 hover:scale-110 transition-transform ${
                               formData[template.id].colorScheme === color.value 
@@ -408,13 +417,55 @@ const Index = () => {
                                 color.value === 'amber' ? '#d97706' :
                                 color.value === 'orange' ? '#ea580c' :
                                 color.value === 'indigo' ? '#4f46e5' :
+                                color.value === 'yellow' ? '#ca8a04' :
                                 color.value === 'gray' ? '#4b5563' :
                                 '#3b82f6'
                               })`
                             }}
                             title={color.name}
                             onClick={() => handleInputChange(template.id, 'colorScheme', color.value)}
-                            aria-label={`Select ${color.name} color scheme`}
+                            aria-label={`Select ${color.name} color scheme as primary`}
+                          />
+                        ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Secondary Color</Label>
+                    <div className="grid grid-cols-6 gap-2">
+                      {availableColors
+                        .filter(color => 
+                          template.id !== 'cleanslate' || ['gray', 'black'].includes(color.value)
+                        )
+                        .map(color => (
+                          <button
+                            key={`secondary-${color.value}`}
+                            type="button"
+                            className={`w-full h-8 rounded-md border-2 hover:scale-110 transition-transform ${
+                              formData[template.id].secondaryColorScheme === color.value 
+                                ? 'ring-2 ring-offset-2 ring-black' 
+                                : ''
+                            }`}
+                            style={{
+                              backgroundColor: `var(--${color.value}-600, ${
+                                color.value === 'black' ? '#000000' : 
+                                color.value === 'blue' ? '#2563eb' :
+                                color.value === 'purple' ? '#9333ea' :
+                                color.value === 'teal' ? '#0d9488' :
+                                color.value === 'green' ? '#16a34a' :
+                                color.value === 'red' ? '#dc2626' :
+                                color.value === 'pink' ? '#db2777' :
+                                color.value === 'amber' ? '#d97706' :
+                                color.value === 'orange' ? '#ea580c' :
+                                color.value === 'indigo' ? '#4f46e5' :
+                                color.value === 'yellow' ? '#ca8a04' :
+                                color.value === 'gray' ? '#4b5563' :
+                                '#3b82f6'
+                              })`
+                            }}
+                            title={color.name}
+                            onClick={() => handleInputChange(template.id, 'secondaryColorScheme', color.value)}
+                            aria-label={`Select ${color.name} color scheme as secondary`}
                           />
                         ))}
                     </div>

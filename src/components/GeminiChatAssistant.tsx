@@ -64,7 +64,8 @@ const GeminiChatAssistant = () => {
     `;
 
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+      // Updated to use the latest Gemini API version
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,20 +73,12 @@ const GeminiChatAssistant = () => {
         body: JSON.stringify({
           contents: [
             {
+              role: "user",
               parts: [
                 {
-                  text: systemContext
+                  text: systemContext + "\n\n" + input
                 }
-              ],
-              role: "system"
-            },
-            {
-              parts: [
-                {
-                  text: input
-                }
-              ],
-              role: "user"
+              ]
             }
           ],
           generationConfig: {
@@ -97,7 +90,9 @@ const GeminiChatAssistant = () => {
         })
       });
 
+      console.log("Gemini API response status:", response.status);
       const data = await response.json();
+      console.log("Gemini API response data:", data);
       
       let generatedText = '';
       if (data.candidates && data.candidates.length > 0 && 
@@ -105,6 +100,8 @@ const GeminiChatAssistant = () => {
           data.candidates[0].content.parts && 
           data.candidates[0].content.parts.length > 0) {
         generatedText = data.candidates[0].content.parts[0].text;
+      } else if (data.error) {
+        throw new Error(data.error.message || "Error from Gemini API");
       }
 
       const aiMessage = {

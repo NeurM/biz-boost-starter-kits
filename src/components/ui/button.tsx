@@ -18,8 +18,9 @@ const buttonVariants = cva(
         link: "text-[#1A1F2C] underline-offset-4 hover:underline",
         cta: "bg-orange-500 text-white hover:bg-orange-600 shadow-lg font-semibold tracking-wide",
         "cta-outline": "border-2 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white shadow-sm font-semibold tracking-wide",
-        // Add dynamic color variant
-        dynamic: "", // Will be populated dynamically based on user selection
+        // Add dynamic color variants
+        dynamic: "", // Primary color variant
+        "dynamic-secondary": "", // Secondary color variant
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -44,26 +45,31 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
-    const { templateColor, templateType } = useTemplateTheme();
+    const { templateColor, secondaryColor, templateType } = useTemplateTheme();
     
     // Get appropriate variant based on template type
     let effectiveVariant = variant;
     
     // For Clean Slate, force default (black) variant for buttons
-    if (templateType === 'cleanslate' && variant === 'cta') {
+    if (templateType === 'cleanslate' && (variant === 'cta' || variant === 'dynamic' || variant === 'dynamic-secondary')) {
       effectiveVariant = 'default';
     }
     
-    // Handle the dynamic variant based on template color
+    // Handle the dynamic variants based on template color
     let dynamicClassNames = '';
     if (effectiveVariant === 'dynamic' && templateColor) {
       // Create appropriate class names based on the template color
       const bgClass = `bg-${templateColor}-600`;
       const hoverClass = `hover:bg-${templateColor}-700`;
       dynamicClassNames = `${bgClass} text-white ${hoverClass} shadow-lg font-semibold tracking-wide`;
+    } else if (effectiveVariant === 'dynamic-secondary' && secondaryColor) {
+      // Create appropriate class names based on the secondary color
+      const bgClass = `bg-${secondaryColor}-600`;
+      const hoverClass = `hover:bg-${secondaryColor}-700`;
+      dynamicClassNames = `${bgClass} text-white ${hoverClass} shadow-lg font-semibold tracking-wide`;
     }
     
-    const finalClassName = effectiveVariant === 'dynamic' && dynamicClassNames
+    const finalClassName = (effectiveVariant === 'dynamic' || effectiveVariant === 'dynamic-secondary') && dynamicClassNames
       ? cn(buttonVariants({ variant: undefined, size }), dynamicClassNames, className)
       : cn(buttonVariants({ variant: effectiveVariant, size }), className);
     
