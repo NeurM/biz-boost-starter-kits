@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -136,7 +135,6 @@ const Templates = () => {
       if (user) {
         const templateId = template.path.replace('/', '');
         const { error } = await saveWebsiteConfig({
-          user_id: user.id,
           template_id: templateId,
           company_name: companyName,
           domain_name: domainName,
