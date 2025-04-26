@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageCircle, Send, X, Minimize2, Maximize2 } from "lucide-react";
+import { MessageCircle, Send, X, Minimize2, Maximize2, Code } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import MessageList from './MessageList';
 import WebsiteBuilder from './WebsiteBuilder';
@@ -25,7 +25,8 @@ const GeminiPersistentChat = () => {
     setIsMinimized,
     websiteStatus,
     setWebsiteStatus,
-    resetChat
+    resetChat,
+    viewCode
   } = useChat();
   
   const { user } = useAuth();
@@ -50,6 +51,7 @@ const GeminiPersistentChat = () => {
            Template: ${websiteStatus.template}
            Company: ${websiteStatus.companyName}
            Domain: ${websiteStatus.domainName}
+           Logo: ${websiteStatus.logo || 'Not specified'}
 
            Focus on guiding the agency in improving:
            - Content organization and clarity
@@ -141,8 +143,8 @@ Explain the benefits of our templates and encourage visitors to sign up to creat
           companyName: companyNameMatch ? companyNameMatch[1] : null,
           domainName: domainMatch ? domainMatch[1] : null,
           logo: logoMatch ? logoMatch[1] : null,
-          colorScheme: null,
-          secondaryColorScheme: null
+          colorScheme: websiteStatus.colorScheme,
+          secondaryColorScheme: websiteStatus.secondaryColorScheme
         };
         
         setWebsiteStatus(newWebsiteStatus);
@@ -204,9 +206,19 @@ Explain the benefits of our templates and encourage visitors to sign up to creat
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-medium flex items-center gap-2">
             <MessageCircle className="h-5 w-5" />
-            {user ? "Website Building Assistant" : "Chat Assistant"}
+            {user ? "Business Template Chat" : "Business Template Chat"}
           </CardTitle>
           <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-0 w-8 h-8"
+              onClick={viewCode}
+              aria-label="View Code"
+              title="View Code"
+            >
+              <Code className="h-4 w-4" />
+            </Button>
             <Button
               variant="ghost"
               size="sm"

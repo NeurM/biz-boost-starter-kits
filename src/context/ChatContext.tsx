@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import { Message, WebsiteStatus } from '../components/chatbot/types';
@@ -17,6 +18,7 @@ interface ChatContextProps {
   websiteStatus: WebsiteStatus;
   setWebsiteStatus: React.Dispatch<React.SetStateAction<WebsiteStatus>>;
   resetChat: () => void;
+  viewCode: () => void;
 }
 
 const ChatContext = createContext<ChatContextProps>({} as ChatContextProps);
@@ -46,6 +48,14 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   });
 
   useChatPersistence(messages, setMessages, websiteStatus);
+
+  // Function to toggle dev mode to view code
+  const viewCode = () => {
+    const devModeToggle = document.querySelector('[data-testid="dev-mode-toggle"]') as HTMLButtonElement;
+    if (devModeToggle) {
+      devModeToggle.click();
+    }
+  };
 
   useEffect(() => {
     if (messages.length === 0) {
@@ -127,7 +137,8 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
         setIsMinimized,
         websiteStatus,
         setWebsiteStatus,
-        resetChat
+        resetChat,
+        viewCode
       }}
     >
       {children}

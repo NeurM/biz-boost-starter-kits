@@ -1,10 +1,9 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from 'react-router-dom';
 import { WebsiteStatus } from './types';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface WebsiteBuilderProps {
   websiteStatus: WebsiteStatus;
@@ -13,54 +12,59 @@ interface WebsiteBuilderProps {
 
 const WebsiteBuilder = ({ websiteStatus, onReset }: WebsiteBuilderProps) => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-
+  
   const handleViewWebsite = () => {
     if (websiteStatus.path) {
-      // Store company data in session storage before navigation
-      sessionStorage.setItem('companyData', JSON.stringify({
-        companyName: websiteStatus.companyName,
-        domainName: websiteStatus.domainName,
-        logo: websiteStatus.logo,
-        colorScheme: websiteStatus.colorScheme,
-        secondaryColorScheme: websiteStatus.secondaryColorScheme
-      }));
-      
-      // Make sure we have a valid path to navigate to
-      const path = websiteStatus.path.startsWith('/') ? 
-        websiteStatus.path : 
-        `/${websiteStatus.path}`;
-        
-      navigate(path);
-    } else {
-      toast({
-        title: "Navigation Error",
-        description: "Could not find the website path. Please try again.",
-        variant: "destructive"
+      navigate(websiteStatus.path, { 
+        state: { 
+          companyName: websiteStatus.companyName, 
+          domainName: websiteStatus.domainName, 
+          logo: websiteStatus.logo,
+          colorScheme: websiteStatus.colorScheme,
+          secondaryColorScheme: websiteStatus.secondaryColorScheme
+        } 
       });
     }
   };
-
-  if (!websiteStatus.isCreated) return null;
+  
+  if (!websiteStatus.isCreated) {
+    return null;
+  }
 
   return (
-    <div className="flex flex-col gap-4 items-center my-4">
-      <Button 
-        onClick={handleViewWebsite} 
-        className="flex gap-2 items-center" 
-        variant="dynamic"
-      >
-        <ExternalLink className="h-4 w-4" />
-        View Your Website
-      </Button>
-      <Button 
-        onClick={onReset}
-        variant="outline"
-        size="sm"
-      >
-        Create New Website
-      </Button>
-    </div>
+    <Card className="mb-4 border border-green-300 bg-green-50">
+      <CardContent className="p-4">
+        <h3 className="font-medium text-green-800 mb-2">Website Created</h3>
+        {websiteStatus.companyName && (
+          <p className="text-sm mb-1"><strong>Company:</strong> {websiteStatus.companyName}</p>
+        )}
+        {websiteStatus.domainName && (
+          <p className="text-sm mb-1"><strong>Domain:</strong> {websiteStatus.domainName}</p>
+        )}
+        {websiteStatus.template && (
+          <p className="text-sm mb-2"><strong>Template:</strong> {websiteStatus.template}</p>
+        )}
+        {websiteStatus.logo && (
+          <p className="text-sm mb-2"><strong>Logo:</strong> {websiteStatus.logo}</p>
+        )}
+        <div className="flex gap-2 mt-3">
+          <Button 
+            variant="default"
+            className="w-full"
+            onClick={handleViewWebsite}
+          >
+            View Website
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={onReset}
+          >
+            Start Over
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
