@@ -44,17 +44,17 @@ const WebsiteBuilder = ({ websiteStatus, onReset }: WebsiteBuilderProps) => {
     <Card className="mb-4 border border-green-300 bg-green-50">
       <CardContent className="p-4">
         <h3 className="font-medium text-green-800 mb-2">Website Created</h3>
+        {websiteStatus.template && (
+          <p className="text-sm mb-1"><strong>Template:</strong> {websiteStatus.template}</p>
+        )}
         {websiteStatus.companyName && (
           <p className="text-sm mb-1"><strong>Company:</strong> {websiteStatus.companyName}</p>
         )}
         {websiteStatus.domainName && (
           <p className="text-sm mb-1"><strong>Domain:</strong> {websiteStatus.domainName}</p>
         )}
-        {websiteStatus.template && (
-          <p className="text-sm mb-2"><strong>Template:</strong> {websiteStatus.template}</p>
-        )}
         {websiteStatus.logo && (
-          <p className="text-sm mb-2"><strong>Logo:</strong> {websiteStatus.logo}</p>
+          <p className="text-sm mb-1 break-words"><strong>Logo:</strong> {websiteStatus.logo}</p>
         )}
         <div className="flex gap-2 mt-3">
           <Button 

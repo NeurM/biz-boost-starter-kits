@@ -61,6 +61,8 @@ const GeminiPersistentChat = () => {
            - User experience
            - Mobile responsiveness testing
 
+           IMPORTANT: DO NOT make up responses from the user. Wait for actual user input before responding. Do not provide sample responses. Always engage with what the user has actually typed.
+
            Be specific with practical advice that the agency can implement to improve their client's website.`
         : `You are a website creation assistant for an agency, specialized in helping create websites using our template system. Your goal is to help users build websites based on our available templates:
 
@@ -70,9 +72,9 @@ const GeminiPersistentChat = () => {
 4. Service Pro - For service businesses with teal & green theme
 5. Local Expert - For local professionals with amber & gold theme
 
-Guide users through template selection, customization, and branding. After gathering sufficient information about their business and preferences, conclude by saying "Your website has been created! You can now view your website by clicking the View Website button below." Include key details like: company name: "Business Name", domain: "domain.com", logo: "logo-url" in your response to trigger website creation.
+IMPORTANT: DO NOT make up responses from the user. Wait for actual user input before responding. Do not provide sample responses or pretend to be waiting for a response. Always engage with what the user has actually typed.
 
-Additionally, now that you've completed website creation, focus on guiding the agency in improving the website's sections and features.`
+Guide users through template selection, customization, and branding. After gathering sufficient information about their business and preferences, conclude by saying "Your website has been created! You can now view your website by clicking the View Website button below." Include key details like: company name: "Business Name", domain: "domain.com", logo: "logo-url" in your response to trigger website creation.`
       : `You are a helpful assistant for visitors to our website creation platform. You help visitors understand our website template offerings:
 
 1. Clean Slate - A minimalist black & white single-page template
@@ -80,6 +82,8 @@ Additionally, now that you've completed website creation, focus on guiding the a
 3. Retail Ready - For retail stores with purple & pink theme
 4. Service Pro - For service businesses with teal & green theme
 5. Local Expert - For local professionals with amber & gold theme
+
+IMPORTANT: DO NOT make up responses from the user. Wait for actual user input before responding. Do not provide sample responses or pretend to be waiting for a response. Always engage with what the user has actually typed.
 
 Explain the benefits of our templates and encourage visitors to sign up to create their own website. Answer questions about our platform but avoid providing technical implementation details. If they ask about creating a website, suggest they sign up or log in first.`;
 
@@ -158,22 +162,24 @@ Explain the benefits of our templates and encourage visitors to sign up to creat
           secondaryColorScheme: newWebsiteStatus.secondaryColorScheme
         }));
         
-        const saveConfig = async () => {
-          try {
-            await saveWebsiteConfig({
-              template_id: template || '',
-              company_name: newWebsiteStatus.companyName || '',
-              domain_name: newWebsiteStatus.domainName || '',
-              logo: newWebsiteStatus.logo || '',
-              color_scheme: newWebsiteStatus.colorScheme,
-              secondary_color_scheme: newWebsiteStatus.secondaryColorScheme
-            });
-          } catch (error) {
-            console.error('Error saving website config:', error);
-          }
-        };
-        
-        saveConfig();
+        if (user) {
+          const saveConfig = async () => {
+            try {
+              await saveWebsiteConfig({
+                template_id: template || '',
+                company_name: newWebsiteStatus.companyName || '',
+                domain_name: newWebsiteStatus.domainName || '',
+                logo: newWebsiteStatus.logo || '',
+                color_scheme: newWebsiteStatus.colorScheme,
+                secondary_color_scheme: newWebsiteStatus.secondaryColorScheme
+              });
+            } catch (error) {
+              console.error('Error saving website config:', error);
+            }
+          };
+          
+          saveConfig();
+        }
         
         toast({
           title: "Website Created!",
@@ -215,13 +221,13 @@ Explain the benefits of our templates and encourage visitors to sign up to creat
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-medium flex items-center gap-2">
             <MessageCircle className="h-5 w-5" />
-            {user ? "Business Template Chat" : "Business Template Chat"}
+            Business Template Chat
           </CardTitle>
           <div className="flex gap-2">
             <Button
               variant="ghost"
               size="sm"
-              className="p-0 w-8 h-8"
+              className="p-0 w-8 h-8 hover:bg-gray-100"
               onClick={viewCode}
               aria-label="View Code"
               title="View Code"

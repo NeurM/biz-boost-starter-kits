@@ -16,11 +16,12 @@ interface NavLogoProps {
 const NavLogo = ({ logo, basePath, companyData, forceTemplateName }: NavLogoProps) => {
   const renderLogo = () => {
     // If we have company data with a logo and we're not in template preview mode
-    if (companyData?.logo && !forceTemplateName && companyData?.companyName) {
-      // Check if it looks like a URL
-      if (companyData.logo.startsWith('http') && (companyData.logo.includes('.jpg') || 
+    if (companyData?.companyName && !forceTemplateName) {
+      // If we have a logo URL that appears valid
+      if (companyData.logo && 
+          (companyData.logo.startsWith('http') && (companyData.logo.includes('.jpg') || 
           companyData.logo.includes('.png') || companyData.logo.includes('.svg') || 
-          companyData.logo.includes('.jpeg') || companyData.logo.includes('.gif'))) {
+          companyData.logo.includes('.jpeg') || companyData.logo.includes('.gif')))) {
         return (
           <div className="flex items-center">
             <img src={companyData.logo} alt={companyData.companyName} className="h-8 mr-2" />
@@ -28,7 +29,7 @@ const NavLogo = ({ logo, basePath, companyData, forceTemplateName }: NavLogoProp
           </div>
         );
       } else {
-        // Use company name
+        // Use company name only
         return <span>{companyData.companyName}</span>;
       }
     }

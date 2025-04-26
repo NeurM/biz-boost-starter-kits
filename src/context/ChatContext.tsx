@@ -54,6 +54,10 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     const devModeToggle = document.querySelector('[data-testid="dev-mode-toggle"]') as HTMLButtonElement;
     if (devModeToggle) {
       devModeToggle.click();
+    } else {
+      // If we can't find the toggle, notify the user
+      console.log("Could not find dev mode toggle. Dev mode may not be available.");
+      alert("Developer mode is not currently available. Please try again later.");
     }
   };
 
@@ -61,11 +65,11 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     if (messages.length === 0) {
       const initialMessage: Message = user ? 
         {
-          content: "Welcome agency partner! I'm here to help you create and improve websites for your clients. Let me know what type of business site you're building, and I'll guide you through template selection and customization. After creating the website, I can help you optimize:\n\n- Content organization and clarity\n- Call-to-action placement\n- Visual hierarchy\n- SEO optimization\n- User experience\n- Mobile responsiveness",
+          content: "Welcome agency partner! I'm here to help you create and improve websites for your clients. Let me know what type of business site you're building, and I'll guide you through template selection and customization.",
           isUser: false
         } : 
         {
-          content: "Welcome! I can help you explore our website templates and answer any questions you might have about our services.",
+          content: "Welcome! I can help you explore our website templates and answer any questions you might have about our services. To create a website, you'll need to sign up or log in.",
           isUser: false
         };
       
@@ -74,6 +78,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   }, [user, messages.length]);
   
   const resetChat = () => {
+    sessionStorage.removeItem('companyData');
     setWebsiteStatus({
       isCreated: false,
       template: null,

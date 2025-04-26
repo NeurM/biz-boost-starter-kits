@@ -22,6 +22,7 @@ export const useChatPersistence = (
         const { data, error } = await supabase
           .from('chat_messages')
           .select('*')
+          .eq('user_id', user.id)
           .order('created_at', { ascending: true });
           
         if (error) throw error;
@@ -51,7 +52,7 @@ export const useChatPersistence = (
       if (!user) return;
       
       try {
-        // Convert websiteStatus to a plain object to satisfy Json type requirement
+        // Convert websiteStatus to a plain JavaScript object
         const websiteDataJson = message.isUser ? null : {
           isCreated: websiteStatus.isCreated,
           template: websiteStatus.template,
@@ -84,7 +85,7 @@ export const useChatPersistence = (
     };
 
     // Only save the last message if it exists
-    if (messages.length > 0) {
+    if (messages.length > 0 && user) {
       saveMessage(messages[messages.length - 1]);
     }
   }, [messages, user, websiteStatus]);
