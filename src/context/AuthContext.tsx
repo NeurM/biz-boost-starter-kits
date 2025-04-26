@@ -2,7 +2,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { getCurrentUser, signOut as supabaseSignOut } from '@/utils/supabase';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 interface AuthContextProps {
   user: User | null;
@@ -24,7 +24,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     async function loadUser() {
@@ -61,6 +60,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await supabaseSignOut();
       setUser(null);
       setSession(null);
+      toast({
+        title: "Signed out",
+        description: "You have been successfully signed out.",
+      });
       return Promise.resolve();
     } catch (error: any) {
       console.error('Error signing out:', error);

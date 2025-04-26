@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { 
@@ -11,7 +11,7 @@ import {
 import { User, LogOut } from 'lucide-react';
 import { signOut } from '@/utils/supabase';
 import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 interface UserMenuProps {
   isTemplate?: boolean;
@@ -21,7 +21,6 @@ interface UserMenuProps {
 const UserMenu = ({ isTemplate = false, templatePath = '' }: UserMenuProps) => {
   const { user, signOut: handleAuthSignOut } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const location = useLocation();
   
   // Check if we're on a template page
