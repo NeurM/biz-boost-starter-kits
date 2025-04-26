@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { PostgrestError } from '@supabase/supabase-js';
 
@@ -272,3 +271,22 @@ export const deleteData = async (tableName: TableNames, id: string) => {
   }
 };
 
+export const deleteWebsiteConfig = async (websiteId: string) => {
+  try {
+    const response = await supabase
+      .from('website_configs')
+      .delete()
+      .eq('id', websiteId);
+    
+    if (response.error) {
+      await logApiCall(`/website-configs/${websiteId}`, 'DELETE', { websiteId }, null, response.error);
+      throw response.error;
+    }
+    
+    await logApiCall(`/website-configs/${websiteId}`, 'DELETE', { websiteId }, response.data, null);
+    return response;
+  } catch (error) {
+    await logApiCall(`/website-configs/${websiteId}`, 'DELETE', { websiteId }, null, error as Error);
+    throw error;
+  }
+};

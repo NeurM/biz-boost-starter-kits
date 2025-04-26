@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { getAllWebsiteConfigs } from '@/utils/supabase';
+import { getAllWebsiteConfigs, deleteWebsiteConfig } from '@/utils/supabase';
 import { Pencil, ExternalLink, Trash2, Globe } from 'lucide-react';
 import {
   Table,
@@ -37,6 +36,7 @@ const SavedWebsites = () => {
   const { toast } = useToast();
   const [websiteConfigs, setWebsiteConfigs] = useState<WebsiteConfig[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     const loadSavedConfigs = async () => {
@@ -91,6 +91,31 @@ const SavedWebsites = () => {
     }});
   };
 
+  const handleDelete = async (websiteId: string) => {
+    try {
+      setIsDeleting(websiteId);
+      const { error } = await deleteWebsiteConfig(websiteId);
+      
+      if (error) throw error;
+      
+      setWebsiteConfigs(prev => prev.filter(config => config.id !== websiteId));
+      
+      toast({
+        title: "Website Deleted",
+        description: "The website has been successfully deleted.",
+      });
+    } catch (error) {
+      console.error('Error deleting website:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the website. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container py-8">
@@ -141,7 +166,7 @@ const SavedWebsites = () => {
               <TableHead>Template</TableHead>
               <TableHead>Domain</TableHead>
               <TableHead>Created</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
+              <TableHead className="w-[140px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -160,6 +185,16 @@ const SavedWebsites = () => {
                       title="View Website"
                     >
                       <ExternalLink className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleDelete(config.id)}
+                      disabled={isDeleting === config.id}
+                      title="Delete Website"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </TableCell>
