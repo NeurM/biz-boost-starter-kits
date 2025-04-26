@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import { Message, WebsiteStatus } from '../components/chatbot/types';
@@ -49,21 +48,17 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
 
   useChatPersistence(messages, setMessages, websiteStatus);
 
-  // Function to toggle dev mode to view code
   const viewCode = () => {
     const devModeToggle = document.querySelector('[data-testid="dev-mode-toggle"]') as HTMLButtonElement;
     if (devModeToggle) {
       devModeToggle.click();
     } else {
-      // If we can't find the toggle, notify the user
       console.log("Could not find dev mode toggle. Dev mode may not be available.");
       alert("Developer mode is not currently available. Please try again later.");
     }
   };
 
-  // Initialize chat with appropriate message based on user auth state
   useEffect(() => {
-    // Only initialize with welcome message if there are no messages yet
     if (messages.length === 0) {
       const initialMessage: Message = user ? 
         {
@@ -79,11 +74,8 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     }
   }, [user, messages.length]);
   
-  // Watch for authentication changes and update chat accordingly
   useEffect(() => {
     if (messages.length > 0) {
-      // If auth status changes while chat has messages, update the first message
-      // or add a notification that authentication status changed
       if (user && messages[0].content.includes("To create a website, you'll need to sign up or log in")) {
         const updatedMessages = [...messages];
         updatedMessages[0] = {
