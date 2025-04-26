@@ -1,7 +1,7 @@
-
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import { Message, WebsiteStatus } from '../components/chatbot/types';
+import { useChatPersistence } from '@/hooks/useChatPersistence';
 
 interface ChatContextProps {
   messages: Message[];
@@ -44,21 +44,24 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     colorScheme: null,
     secondaryColorScheme: null
   });
-  
-  // Load initial welcome message based on authentication status
+
+  useChatPersistence(messages, setMessages, websiteStatus);
+
   useEffect(() => {
-    const initialMessage: Message = user ? 
-      {
-        content: "Welcome agency partner! I'm here to help you create and improve websites for your clients. Let me know what type of business site you're building, and I'll guide you through template selection and customization.",
-        isUser: false
-      } : 
-      {
-        content: "Welcome! I can help you explore our website templates and answer any questions you might have about our services.",
-        isUser: false
-      };
-    
-    setMessages([initialMessage]);
-  }, [user]);
+    if (messages.length === 0) {
+      const initialMessage: Message = user ? 
+        {
+          content: "Welcome agency partner! I'm here to help you create and improve websites for your clients. Let me know what type of business site you're building, and I'll guide you through template selection and customization. After creating the website, I can help you optimize:\n\n- Content organization and clarity\n- Call-to-action placement\n- Visual hierarchy\n- SEO optimization\n- User experience\n- Mobile responsiveness",
+          isUser: false
+        } : 
+        {
+          content: "Welcome! I can help you explore our website templates and answer any questions you might have about our services.",
+          isUser: false
+        };
+      
+      setMessages([initialMessage]);
+    }
+  }, [user, messages.length]);
   
   const resetChat = () => {
     setWebsiteStatus({
@@ -84,6 +87,30 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     
     setMessages([initialMessage]);
   };
+
+  useEffect(() => {
+    if (isMinimized) {
+      sessionStorage.setItem('chatState', JSON.stringify({
+        messages,
+        isOpen,
+        isMinimized,
+        websiteStatus
+      }));
+    }
+  }, [isMinimized, messages, isOpen, websiteStatus]);
+
+  useEffect(() => {
+    const savedState = sessionStorage.getItem('chatState');
+    if (savedState) {
+      const { messages: savedMessages, isOpen: savedIsOpen, 
+              isMinimized: savedIsMinimized, websiteStatus: savedWebsiteStatus } = JSON.parse(savedState);
+      setMessages(savedMessages);
+      setIsOpen(savedIsOpen);
+      setIsMinimized(savedIsMinimized);
+      setWebsiteStatus(savedWebsiteStatus);
+      sessionStorage.removeItem('chatState');
+    }
+  }, []);
 
   return (
     <ChatContext.Provider

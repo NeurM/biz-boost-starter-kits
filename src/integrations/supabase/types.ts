@@ -45,6 +45,33 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_user: boolean
+          user_id: string | null
+          website_data: Json | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_user?: boolean
+          user_id?: string | null
+          website_data?: Json | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_user?: boolean
+          user_id?: string | null
+          website_data?: Json | null
+        }
+        Relationships: []
+      }
       website_configs: {
         Row: {
           color_scheme: string | null

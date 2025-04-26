@@ -31,8 +31,6 @@ const GeminiPersistentChat = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const apiKey = "AIzaSyAUQZFNXyvEfsiaFTawgiyNq7aJyV8KzgE";
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -42,9 +40,24 @@ const GeminiPersistentChat = () => {
     setInput('');
     setIsLoading(true);
 
-    // Create different system context based on auth status
+    // Create different system context based on auth status and website creation status
     const systemContext = user 
-      ? `You are a website creation assistant for an agency, specialized in helping create websites using our template system. Your goal is to help users build websites based on our available templates:
+      ? websiteStatus.isCreated
+        ? `You are a website improvement assistant for an agency. The website has already been created with these details:
+           Template: ${websiteStatus.template}
+           Company: ${websiteStatus.companyName}
+           Domain: ${websiteStatus.domainName}
+
+           Focus on guiding the agency in improving:
+           - Content organization and clarity
+           - Call-to-action placement
+           - Visual hierarchy
+           - SEO optimization
+           - User experience
+           - Mobile responsiveness testing
+
+           Be specific with practical advice that the agency can implement to improve their client's website.`
+        : `You are a website creation assistant for an agency, specialized in helping create websites using our template system. Your goal is to help users build websites based on our available templates:
 
 1. Clean Slate - A minimalist black & white single-page template
 2. Tradecraft - For trade businesses with blue & orange theme
@@ -54,16 +67,7 @@ const GeminiPersistentChat = () => {
 
 Guide users through template selection, customization, and branding. After gathering sufficient information about their business and preferences, conclude by saying "Your website has been created! You can now view your website by clicking the View Website button below." Include key details like: company name: "Business Name", domain: "domain.com", logo: "logo-url" in your response to trigger website creation.
 
-Additionally, now that you've completed website creation, focus on guiding the agency in improving the website's sections and features. Suggest improvements for:
-- Content organization and clarity
-- Call-to-action placement
-- Visual hierarchy
-- SEO optimization
-- User experience
-- Mobile responsiveness testing
-
-Be specific with practical advice that the agency can implement to improve their client's website.`
-      
+Additionally, now that you've completed website creation, focus on guiding the agency in improving the website's sections and features.`
       : `You are a helpful assistant for visitors to our website creation platform. You help visitors understand our website template offerings:
 
 1. Clean Slate - A minimalist black & white single-page template
