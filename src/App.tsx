@@ -4,6 +4,7 @@ import { AppProviders } from "./components/AppProviders";
 import { routes } from "./routes";
 import TemplatesNavigation from "./components/TemplatesNavigation";
 import { useTransition } from "react";
+import GeminiPersistentChat from "./components/chatbot/GeminiPersistentChat";
 
 // Router component to separate the routes logic
 const Router = () => {
@@ -34,6 +35,7 @@ function App() {
         <main className="flex-1">
           <Router />
         </main>
+        <GeminiPersistentChat />
       </div>
     </AppProviders>
   );

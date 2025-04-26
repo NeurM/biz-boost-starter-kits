@@ -9,6 +9,7 @@ interface CompanyData {
   domainName: string;
   logo: string;
   colorScheme?: string;
+  secondaryColorScheme?: string;
 }
 
 const CompanyDataContext = createContext<{
@@ -40,19 +41,31 @@ export const CompanyDataProvider = ({ children }: CompanyDataProviderProps) => {
         // First try to load from session storage (for non-logged in users or preview)
         const storedData = sessionStorage.getItem('companyData');
         if (storedData) {
-          setCompanyData(JSON.parse(storedData));
+          const parsedData = JSON.parse(storedData);
+          setCompanyData(parsedData);
+          
+          // Make sure we always have a company name
+          if (!parsedData.companyName) {
+            const updatedData = {
+              ...parsedData,
+              companyName: "Your Business Name"
+            };
+            setCompanyData(updatedData);
+            sessionStorage.setItem('companyData', JSON.stringify(updatedData));
+          }
           return;
         }
 
         // Then try to get from location state
         if (location.state) {
-          const { companyName, domainName, logo, colorScheme } = location.state;
-          if (companyName && domainName && logo) {
+          const { companyName, domainName, logo, colorScheme, secondaryColorScheme } = location.state;
+          if (domainName && logo) {
             const newData = { 
-              companyName, 
+              companyName: companyName || "Your Business Name", 
               domainName, 
               logo,
-              colorScheme // Add colorScheme to the data
+              colorScheme,
+              secondaryColorScheme
             };
             setCompanyData(newData);
             // Store in session storage for persistence
@@ -65,10 +78,11 @@ export const CompanyDataProvider = ({ children }: CompanyDataProviderProps) => {
         const { data, error } = await getWebsiteConfig(templateId);
         if (data && !error) {
           const newData = {
-            companyName: data.company_name,
+            companyName: data.company_name || "Your Business Name",
             domainName: data.domain_name,
             logo: data.logo,
-            colorScheme: data.color_scheme
+            colorScheme: data.color_scheme,
+            secondaryColorScheme: data.secondary_color_scheme
           };
           setCompanyData(newData);
           // Store in session storage for quick access in future

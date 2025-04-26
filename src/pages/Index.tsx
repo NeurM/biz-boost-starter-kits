@@ -9,7 +9,6 @@ import { saveWebsiteConfig, getAllWebsiteConfigs } from '@/utils/supabase';
 import { supabase } from "@/integrations/supabase/client";
 import { Globe, LogOut, User } from "lucide-react";
 import { signOut } from '@/utils/supabase';
-import GeminiChatAssistant from '@/components/GeminiChatAssistant';
 import { Helmet } from 'react-helmet-async';
 
 interface WebsiteConfig {
@@ -502,7 +501,6 @@ const Index = () => {
         </div>
       </main>
       
-      <GeminiChatAssistant />
       
       <footer className="py-8 bg-gray-900 text-white">
         <div className="container text-center">
