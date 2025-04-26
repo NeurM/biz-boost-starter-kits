@@ -1,5 +1,6 @@
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getWebsiteConfig, saveWebsiteConfig } from '@/utils/supabase';
 
 interface TemplateThemeContextProps {
@@ -49,7 +50,15 @@ const TemplateThemeContext = createContext<TemplateThemeContextProps>({
 export const useTemplateTheme = () => useContext(TemplateThemeContext);
 
 export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const location = useLocation();
+  // Handle the case where this component might be used outside of a router context
+  let pathname = '/';
+  try {
+    // Only use useLocation if we're in a router context
+    const location = useLocation();
+    pathname = location.pathname;
+  } catch (error) {
+    console.warn('TemplateThemeProvider used outside Router context, defaulting to "/" path');
+  }
   
   const getTemplateTypeFromPath = (path: string) => {
     if (path.startsWith('/tradecraft')) return 'tradecraft';
@@ -71,7 +80,7 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
   
-  const templateType = getTemplateTypeFromPath(location.pathname);
+  const templateType = getTemplateTypeFromPath(pathname);
   const defaultColors = getDefaultColors(templateType);
   
   const [templateColor, setTemplateColor] = useState<string>(defaultColors.primary);
