@@ -31,6 +31,9 @@ const GeminiPersistentChat = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   
+  // Define the API key as a constant in the component
+  const apiKey = "AIzaSyAUQZFNXyvEfsiaFTawgiyNq7aJyV8KzgE";
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
