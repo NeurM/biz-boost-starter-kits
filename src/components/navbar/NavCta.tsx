@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useTemplateTheme } from '@/context/TemplateThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface NavCtaProps {
   ctaText: string;
@@ -13,13 +14,17 @@ interface NavCtaProps {
 }
 
 const NavCta = ({ ctaText, ctaLink, isMobile, onClick, useSecondaryColor }: NavCtaProps) => {
-  const { colorClasses, templateType, templateColor, secondaryColor } = useTemplateTheme();
+  const { colorClasses, templateType } = useTemplateTheme();
+  const { t } = useLanguage();
   
   // For Clean Slate template, use black/white theme instead of the colors
   const isCleanSlate = templateType === 'cleanslate';
   
   // Choose the appropriate variant based on useSecondaryColor prop
   const buttonVariant = isCleanSlate ? "default" : useSecondaryColor ? "dynamic-secondary" : "dynamic";
+  
+  // Check if ctaText is a translation key (starts with "cta.")
+  const displayText = ctaText.startsWith('cta.') ? t(ctaText) : ctaText;
   
   // For hash links within the same page
   if (ctaLink.startsWith('#')) {
@@ -33,12 +38,12 @@ const NavCta = ({ ctaText, ctaLink, isMobile, onClick, useSecondaryColor }: NavC
         } text-white rounded-md shadow-lg transition-colors font-medium`}
         onClick={onClick}
       >
-        {ctaText}
+        {displayText}
       </a>
     ) : (
       <Button variant={buttonVariant} size="lg">
         <a href={ctaLink} onClick={onClick}>
-          {ctaText}
+          {displayText}
         </a>
       </Button>
     );
@@ -55,12 +60,12 @@ const NavCta = ({ ctaText, ctaLink, isMobile, onClick, useSecondaryColor }: NavC
       } text-white rounded-md shadow-lg transition-colors font-medium`}
       onClick={onClick}
     >
-      {ctaText}
+      {displayText}
     </Link>
   ) : (
     <Button variant={buttonVariant} size="lg" asChild>
       <Link to={ctaLink} onClick={onClick}>
-        {ctaText}
+        {displayText}
       </Link>
     </Button>
   );

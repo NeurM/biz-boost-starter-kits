@@ -1,59 +1,51 @@
 
 import React from 'react';
 import { Link } from "react-router-dom";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { useLanguage } from '@/context/LanguageContext';
 
 interface FooterProps {
-  logo: string | React.ReactNode;
-  description: string;
-  basePath: string;
-  navItems: Array<{ name: string; path: string; }>;
+  logo: string;
+  description?: string;
+  basePath?: string;
+  navItems: { name: string; path: string }[];
   contactInfo: {
-    address: string;
-    phone: string;
-    email: string;
+    address?: string;
+    phone?: string;
+    email?: string;
   };
-  className?: string;
 }
 
 const Footer = ({
   logo,
   description,
-  basePath,
+  basePath = "",
   navItems,
   contactInfo,
-  className = ""
 }: FooterProps) => {
-  const renderLogo = () => {
-    if (typeof logo === "string") {
-      return <span dangerouslySetInnerHTML={{ __html: logo }} />;
-    }
-    return logo;
-  };
-
+  const { t } = useLanguage();
+  const year = new Date().getFullYear();
+  
   return (
-    <footer className={`bg-gray-900 text-white py-12 ${className}`}>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Brand */}
-          <div>
-            <h3 className="text-xl font-bold mb-4">
-              {renderLogo()}
-            </h3>
-            <p className="text-gray-400 mb-6">
-              {description}
-            </p>
+    <footer className="bg-gray-900 text-gray-300">
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="md:col-span-2">
+            <Link to={basePath ? `/${basePath}` : "/"} className="text-xl font-bold text-white">
+              {logo}
+            </Link>
+            {description && (
+              <p className="mt-4 text-gray-400">{description}</p>
+            )}
           </div>
           
-          {/* Navigation */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+            <h3 className="text-white font-semibold mb-4">{t('footer.links') || "Quick Links"}</h3>
             <ul className="space-y-2">
-              {navItems.map((item) => (
-                <li key={item.name}>
+              {navItems.map((item, index) => (
+                <li key={index}>
                   <Link
                     to={item.path}
-                    className="text-gray-400 hover:text-white transition-colors"
+                    className="hover:text-white transition-colors"
                   >
                     {item.name}
                   </Link>
@@ -62,38 +54,32 @@ const Footer = ({
             </ul>
           </div>
           
-          {/* Contact */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
-            <ul className="space-y-4">
-              <li className="flex">
-                <MapPin className="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
-                <span className="text-gray-400">{contactInfo.address}</span>
-              </li>
-              <li className="flex">
-                <Phone className="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
-                <span className="text-gray-400">{contactInfo.phone}</span>
-              </li>
-              <li className="flex">
-                <Mail className="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
-                <span className="text-gray-400">{contactInfo.email}</span>
-              </li>
-            </ul>
-          </div>
-          
-          {/* Hours */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Working Hours</h3>
-            <ul className="text-gray-400 space-y-2">
-              <li>Monday - Friday: 9:00 AM - 5:00 PM</li>
-              <li>Saturday: 10:00 AM - 2:00 PM</li>
-              <li>Sunday: Closed</li>
-            </ul>
+            <h3 className="text-white font-semibold mb-4">{t('footer.contact') || "Contact Us"}</h3>
+            {contactInfo.address && (
+              <div className="mb-2">
+                <p>{contactInfo.address}</p>
+              </div>
+            )}
+            {contactInfo.phone && (
+              <div className="mb-2">
+                <a href={`tel:${contactInfo.phone}`} className="hover:text-white transition-colors">
+                  {contactInfo.phone}
+                </a>
+              </div>
+            )}
+            {contactInfo.email && (
+              <div className="mb-2">
+                <a href={`mailto:${contactInfo.email}`} className="hover:text-white transition-colors">
+                  {contactInfo.email}
+                </a>
+              </div>
+            )}
           </div>
         </div>
         
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
-          <p>&copy; {new Date().getFullYear()} {renderLogo()}. All rights reserved.</p>
+        <div className="border-t border-gray-700 mt-8 pt-8 text-sm text-gray-400">
+          <p>© {year} {logo}. {t('footer.rights') || "All rights reserved."}</p>
         </div>
       </div>
     </footer>

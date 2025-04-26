@@ -9,9 +9,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User, LogOut } from 'lucide-react';
-import { signOut } from '@/utils/supabase';
 import { useAuth } from '@/context/AuthContext';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface UserMenuProps {
   isTemplate?: boolean;
@@ -22,6 +22,7 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }: UserMenuProps) => {
   const { user, signOut: handleAuthSignOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
   
   // Check if we're on a template page
   const isTemplatePage = location.pathname.startsWith("/service") || 
@@ -45,8 +46,8 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }: UserMenuProps) => {
       await handleAuthSignOut();
       
       toast({
-        title: "Logged out successfully",
-        description: "You have been logged out of your account.",
+        title: t('auth.loggedOut') || "Logged out successfully",
+        description: t('auth.logoutSuccess') || "You have been logged out of your account.",
       });
       
       // If on a template page, stay on that template's home
@@ -59,7 +60,7 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }: UserMenuProps) => {
     } catch (error: any) {
       console.error('Logout error:', error);
       toast({
-        title: "Logout Failed",
+        title: t('auth.logoutFailed') || "Logout Failed",
         description: error.message || "There was a problem logging out",
         variant: "destructive"
       });
@@ -69,13 +70,16 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }: UserMenuProps) => {
   // Determine auth link based on whether this is a template or main menu
   const authLink = isTemplate ? `/${templatePath}/auth` : "/auth";
   
+  const loginText = t('auth.login') || "Login";
+  const logoutText = t('auth.logout') || "Logout";
+  
   return (
     <div className="z-50">
       {!user ? (
         <Button variant="outline" asChild size="sm" className={isTemplate ? "template-login-btn" : ""}>
           <Link to={authLink}>
             <User className="h-4 w-4 mr-2" />
-            Login
+            {loginText}
           </Link>
         </Button>
       ) : (
@@ -93,7 +97,7 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }: UserMenuProps) => {
           <DropdownMenuContent>
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="h-4 w-4 mr-2" />
-              Logout
+              {logoutText}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

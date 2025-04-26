@@ -11,6 +11,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useTemplateTheme } from '@/context/TemplateThemeContext';
 import { useCompanyData } from '@/context/CompanyDataContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface NavItem {
   name: string;
@@ -42,6 +43,7 @@ const Navbar = ({
   const { trackEvent } = useAnalytics();
   const { companyData } = useCompanyData();
   const { templateType } = useTemplateTheme();
+  const { user } = useAuth();
   
   const isTemplate = basePath && ["expert", "tradecraft", "retail", "service", "cleanslate"].includes(basePath);
   
@@ -60,12 +62,12 @@ const Navbar = ({
   // Translate navigation items
   const translatedNavItems = processedNavItems.map(item => ({
     ...item,
-    name: t(`nav.${item.name.toLowerCase()}`) || item.name
+    name: item.name.startsWith('nav.') ? t(item.name) : item.name
   }));
   
   // Translate CTA text if provided
   const translatedCtaText = ctaText 
-    ? (t(`cta.${ctaText.toLowerCase().replace(/\s/g, '')}`) || ctaText)
+    ? (ctaText.startsWith('cta.') ? t(ctaText) : ctaText)
     : undefined;
   
   useEffect(() => {
@@ -103,7 +105,7 @@ const Navbar = ({
           <div className="hidden md:flex md:items-center md:space-x-4">
             <DesktopNav 
               navItems={translatedNavItems}
-              ctaText={translatedCtaText}
+              ctaText={ctaText}
               ctaLink={ctaLink}
               isActive={isActive}
               companyData={companyData}
@@ -130,7 +132,7 @@ const Navbar = ({
       <MobileNav 
         isOpen={isOpen}
         navItems={translatedNavItems}
-        ctaText={translatedCtaText}
+        ctaText={ctaText}
         ctaLink={ctaLink}
         isActive={isActive}
         companyData={companyData}

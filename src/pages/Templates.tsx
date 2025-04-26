@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useTemplateTheme } from '@/context/TemplateThemeContext';
 import { useLanguage } from '@/context/LanguageContext';
+import GeminiPersistentChat from '@/components/chatbot/GeminiPersistentChat';
 import { tradecraftData } from '@/data/tradecraftData';
 import { retailData } from '@/data/retailData';
 import { serviceProData } from '@/data/serviceProData';
@@ -18,20 +19,37 @@ import { expertData } from '@/data/expertData';
 
 const Templates = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const { trackEvent } = useAnalytics();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { setTemplateColor, setSecondaryColor } = useTemplateTheme();
   
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [companyName, setCompanyName] = useState('');
   const [domainName, setDomainName] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
+  const [showChat, setShowChat] = useState(false);
+  
+  // Show chat component after a short delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowChat(true);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
   
   const navItems = [
     { name: t('nav.home'), path: "/" },
     { name: t('nav.templates'), path: "/templates" },
   ];
+  
+  // Add dashboard and saved websites links if user is logged in
+  if (user) {
+    navItems.push(
+      { name: t('nav.dashboard'), path: "/dashboard" },
+      { name: t('nav.savedwebsites'), path: "/saved-websites" }
+    );
+  }
   
   const contactInfo = {
     address: "123 Main Street, City, ST 12345",
@@ -128,7 +146,7 @@ const Templates = () => {
         logo={t('app.name') || "TemplateBuilder"} 
         basePath=""
         navItems={navItems}
-        ctaText="Get Started" 
+        ctaText={t('cta.getstarted')} 
         ctaLink={user ? "/dashboard" : "/auth"}
       />
 
@@ -143,6 +161,7 @@ const Templates = () => {
       {/* Templates Grid Section */}
       <section className="py-8 bg-white">
         <div className="container mx-auto px-4">
+          <h2 className="text-2xl font-bold mb-6 text-center">{t('templates.ourTemplates') || "Our Templates"}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {templates.map((template, i) => (
               <Card key={i} className={`overflow-hidden hover:shadow-lg transition-all ${selectedTemplate === template.path ? 'ring-2 ring-primary' : ''}`}>
@@ -176,12 +195,13 @@ const Templates = () => {
                           <label className="block text-sm font-medium">
                             {t('form.primaryColor') || "Primary Color"}
                           </label>
-                          <div className="grid grid-cols-6 gap-2">
+                          <div className="flex flex-wrap gap-2">
                             {colors.map((color) => (
                               <button
                                 key={color}
-                                className={`w-8 h-8 rounded-full bg-${color}-500 hover:ring-2 hover:ring-${color}-300`}
+                                className={`w-8 h-8 rounded-full bg-${color}-500 hover:ring-2 hover:ring-${color}-300 transition-all ${template.primaryColor === color ? 'ring-2 ring-black' : ''}`}
                                 onClick={() => setTemplateColor(color)}
+                                title={color}
                               />
                             ))}
                           </div>
@@ -191,18 +211,19 @@ const Templates = () => {
                           <label className="block text-sm font-medium">
                             {t('form.secondaryColor') || "Secondary Color"}
                           </label>
-                          <div className="grid grid-cols-6 gap-2">
+                          <div className="flex flex-wrap gap-2">
                             {colors.map((color) => (
                               <button
                                 key={color}
-                                className={`w-8 h-8 rounded-full bg-${color}-500 hover:ring-2 hover:ring-${color}-300`}
+                                className={`w-8 h-8 rounded-full bg-${color}-500 hover:ring-2 hover:ring-${color}-300 transition-all ${template.secondaryColor === color ? 'ring-2 ring-black' : ''}`}
                                 onClick={() => setSecondaryColor(color)}
+                                title={color}
                               />
                             ))}
                           </div>
                         </div>
                         
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 mt-4">
                           <Button
                             className="w-full"
                             onClick={() => handleCreateWebsite(template)}
@@ -233,13 +254,48 @@ const Templates = () => {
         </div>
       </section>
 
+      {/* Why Choose Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold mb-10 text-center">{t('why.title') || "Why Choose Our Platform"}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-xl font-bold">1</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">{t('why.design.title') || "Professionally Designed"}</h3>
+              <p className="text-gray-600">{t('why.design.desc') || "Templates created by experienced designers"}</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-xl font-bold">2</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">{t('why.responsive.title') || "Fully Responsive"}</h3>
+              <p className="text-gray-600">{t('why.responsive.desc') || "Look great on all devices, from mobile to desktop"}</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-xl font-bold">3</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">{t('why.custom.title') || "Easy Customization"}</h3>
+              <p className="text-gray-600">{t('why.custom.desc') || "Simple tools to match your brand and needs"}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <Footer 
-        logo="TemplateBuilder"
+        logo={t('app.name') || "TemplateBuilder"}
         description={t('app.description') || "Create stunning websites for your clients"}
         basePath=""
         navItems={navItems}
         contactInfo={contactInfo}
       />
+      
+      {/* Chat component */}
+      {showChat && <GeminiPersistentChat />}
     </div>
   );
 };
