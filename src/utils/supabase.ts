@@ -50,10 +50,17 @@ export const signIn = async (email: string, password: string) => {
       email,
       password,
     });
-    await logApiCall('/auth/sign-in', 'POST', { email }, response.data, response.error);
+    
+    // Handle both successful and error cases
+    if (response.error) {
+      await logApiCall('/auth/sign-in', 'POST', { email }, null, response.error);
+      throw response.error;
+    }
+    
+    await logApiCall('/auth/sign-in', 'POST', { email }, response.data, null);
     return response;
   } catch (error) {
-    // Fix: Don't try to access 'data' property on error response
+    // Ensure we're logging the error correctly
     await logApiCall('/auth/sign-in', 'POST', { email }, null, error as Error);
     throw error;
   }
