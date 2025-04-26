@@ -18,15 +18,16 @@ export function AppProviders({ children }: Props) {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
+        {/* Important: TemplateThemeProvider must come before AuthProvider to avoid circular dependencies */}
         <TemplateThemeProvider>
-          <AuthProvider>
-            <CompanyDataProvider>
-              <ChatProvider>
+          <ChatProvider>
+            <AuthProvider>
+              <CompanyDataProvider>
                 {children}
                 <Toaster />
-              </ChatProvider>
-            </CompanyDataProvider>
-          </AuthProvider>
+              </CompanyDataProvider>
+            </AuthProvider>
+          </ChatProvider>
         </TemplateThemeProvider>
       </LanguageProvider>
     </QueryClientProvider>

@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getWebsiteConfig } from '@/utils/supabase';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 
 interface CompanyData {
   companyName: string;
@@ -28,7 +28,6 @@ interface CompanyDataProviderProps {
 
 export const CompanyDataProvider = ({ children }: CompanyDataProviderProps) => {
   const [companyData, setCompanyData] = useState<CompanyData | null>(null);
-  const { toast } = useToast();
   
   // Handle the case where this component might be used outside of a router context
   let pathname = '/';
@@ -120,7 +119,7 @@ export const CompanyDataProvider = ({ children }: CompanyDataProviderProps) => {
     };
     
     loadCompanyData();
-  }, [pathname, toast, locationState]);
+  }, [pathname, locationState]);
 
   return (
     <CompanyDataContext.Provider value={{ companyData, setCompanyData }}>
