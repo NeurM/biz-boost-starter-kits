@@ -18,6 +18,8 @@ const buttonVariants = cva(
         link: "text-[#1A1F2C] underline-offset-4 hover:underline",
         cta: "bg-orange-500 text-white hover:bg-orange-600 shadow-lg font-semibold tracking-wide",
         "cta-outline": "border-2 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white shadow-sm font-semibold tracking-wide",
+        // Add dynamic color variant
+        dynamic: "", // Will be populated dynamically based on user selection
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -42,10 +44,29 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
+    const { templateColor, templateType } = useTemplateTheme();
+    
+    // Get appropriate variant based on template type
+    let effectiveVariant = variant;
+    
+    // For Clean Slate, force default (black) variant for buttons
+    if (templateType === 'cleanslate' && variant === 'cta') {
+      effectiveVariant = 'default';
+    }
+    
+    // Dynamic button styles for user-selected colors
+    let dynamicStyles = {};
+    if (variant === 'dynamic' && templateColor) {
+      dynamicStyles = {
+        backgroundColor: `bg-${templateColor}-600`,
+        hoverColor: `hover:bg-${templateColor}-700`,
+        textColor: 'text-white',
+      };
+    }
     
     const buttonClass = className?.includes("bg-") 
       ? className 
-      : cn(buttonVariants({ variant, size }), className);
+      : cn(buttonVariants({ variant: effectiveVariant, size }), className);
     
     return (
       <Comp

@@ -8,6 +8,7 @@ interface CompanyData {
   companyName: string;
   domainName: string;
   logo: string;
+  colorScheme?: string;
 }
 
 const CompanyDataContext = createContext<{
@@ -45,9 +46,14 @@ export const CompanyDataProvider = ({ children }: CompanyDataProviderProps) => {
 
         // Then try to get from location state
         if (location.state) {
-          const { companyName, domainName, logo } = location.state;
+          const { companyName, domainName, logo, colorScheme } = location.state;
           if (companyName && domainName && logo) {
-            const newData = { companyName, domainName, logo };
+            const newData = { 
+              companyName, 
+              domainName, 
+              logo,
+              colorScheme // Add colorScheme to the data
+            };
             setCompanyData(newData);
             // Store in session storage for persistence
             sessionStorage.setItem('companyData', JSON.stringify(newData));
@@ -56,13 +62,13 @@ export const CompanyDataProvider = ({ children }: CompanyDataProviderProps) => {
         }
         
         // If no session data and no location state, try loading from Supabase
-        // This will get the configuration for the current template and user
         const { data, error } = await getWebsiteConfig(templateId);
         if (data && !error) {
           const newData = {
             companyName: data.company_name,
             domainName: data.domain_name,
-            logo: data.logo
+            logo: data.logo,
+            colorScheme: data.color_scheme
           };
           setCompanyData(newData);
           // Store in session storage for quick access in future

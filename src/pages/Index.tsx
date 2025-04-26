@@ -9,7 +9,8 @@ import { saveWebsiteConfig, getAllWebsiteConfigs } from '@/utils/supabase';
 import { supabase } from "@/integrations/supabase/client";
 import { Globe, LogOut, User } from "lucide-react";
 import { signOut } from '@/utils/supabase';
-import HuggingFaceChatAssistant from '@/components/HuggingFaceChatAssistant';
+import GeminiChatAssistant from '@/components/GeminiChatAssistant';
+import { Helmet } from 'react-helmet-async';
 
 interface WebsiteConfig {
   id: string;
@@ -17,7 +18,22 @@ interface WebsiteConfig {
   company_name: string;
   domain_name: string;
   logo: string;
+  color_scheme?: string;
 }
+
+const availableColors = [
+  { name: 'Blue', value: 'blue' },
+  { name: 'Purple', value: 'purple' },
+  { name: 'Teal', value: 'teal' },
+  { name: 'Green', value: 'green' },
+  { name: 'Red', value: 'red' },
+  { name: 'Pink', value: 'pink' },
+  { name: 'Amber', value: 'amber' },
+  { name: 'Orange', value: 'orange' },
+  { name: 'Indigo', value: 'indigo' },
+  { name: 'Gray', value: 'gray' },
+  { name: 'Black', value: 'black' }
+];
 
 const Index = () => {
   const navigate = useNavigate();
@@ -30,27 +46,32 @@ const Index = () => {
     cleanslate: {
       companyName: '',
       domainName: '',
-      logo: ''
+      logo: '',
+      colorScheme: 'black'
     },
     tradecraft: {
       companyName: '',
       domainName: '',
-      logo: ''
+      logo: '',
+      colorScheme: 'blue'
     },
     retail: {
       companyName: '',
       domainName: '',
-      logo: ''
+      logo: '',
+      colorScheme: 'purple'
     },
     service: {
       companyName: '',
       domainName: '',
-      logo: ''
+      logo: '',
+      colorScheme: 'teal'
     },
     expert: {
       companyName: '',
       domainName: '',
-      logo: ''
+      logo: '',
+      colorScheme: 'amber'
     }
   });
 
@@ -149,7 +170,7 @@ const Index = () => {
   };
 
   const handleCreateWebsite = async (templateId: string) => {
-    const { companyName, domainName, logo } = formData[templateId];
+    const { companyName, domainName, logo, colorScheme } = formData[templateId];
     
     if (!companyName.trim() || !domainName.trim() || !logo.trim()) {
       toast({
@@ -172,7 +193,8 @@ const Index = () => {
           template_id: templateId,
           company_name: companyName,
           domain_name: domainName,
-          logo
+          logo,
+          color_scheme: colorScheme
         });
         
         if (error) {
@@ -203,7 +225,8 @@ const Index = () => {
     navigate(`/${templateId}`, { state: { 
       companyName, 
       domainName, 
-      logo 
+      logo,
+      colorScheme
     }});
   };
 
@@ -250,6 +273,19 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+      <Helmet>
+        <title>Small Business Website Templates | Professional Website Builder</title>
+        <meta name="description" content="Create professional websites for your small business. Choose from five specialized, responsive templates with built-in Supabase backend integration." />
+        <meta name="keywords" content="website templates, small business, professional website, responsive design, Supabase integration" />
+        <meta property="og:title" content="Small Business Website Templates" />
+        <meta property="og:description" content="Create professional websites for your small business with our specialized templates." />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Small Business Website Templates" />
+        <meta name="twitter:description" content="Create professional websites for your small business with our specialized templates." />
+        <link rel="canonical" href="https://yourdomain.com/" />
+      </Helmet>
+
       <header className="py-12 bg-white shadow-md">
         <div className="container">
           <h1 className="text-4xl font-bold text-center mb-2">Small Business Website Templates</h1>
@@ -294,7 +330,7 @@ const Index = () => {
       <main className="container py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {templates.map((template) => (
-            <Card key={template.id} className="hover-grow">
+            <Card key={template.id} className="hover:shadow-xl transition-all duration-300">
               <CardHeader className="pb-4">
                 <CardTitle className="text-xl">{template.name}</CardTitle>
               </CardHeader>
@@ -343,6 +379,46 @@ const Index = () => {
                       placeholder="Company Logo or URL"
                     />
                   </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor={`colorScheme-${template.id}`}>Color Scheme</Label>
+                    <div className="grid grid-cols-5 gap-2">
+                      {availableColors
+                        .filter(color => 
+                          template.id !== 'cleanslate' || color.value === 'black'
+                        )
+                        .map(color => (
+                          <button
+                            key={color.value}
+                            type="button"
+                            className={`w-full h-8 rounded-md border-2 hover:scale-110 transition-transform ${
+                              formData[template.id].colorScheme === color.value 
+                                ? 'ring-2 ring-offset-2 ring-black' 
+                                : ''
+                            }`}
+                            style={{
+                              backgroundColor: `var(--${color.value}-600, ${
+                                color.value === 'black' ? '#000000' : 
+                                color.value === 'blue' ? '#2563eb' :
+                                color.value === 'purple' ? '#9333ea' :
+                                color.value === 'teal' ? '#0d9488' :
+                                color.value === 'green' ? '#16a34a' :
+                                color.value === 'red' ? '#dc2626' :
+                                color.value === 'pink' ? '#db2777' :
+                                color.value === 'amber' ? '#d97706' :
+                                color.value === 'orange' ? '#ea580c' :
+                                color.value === 'indigo' ? '#4f46e5' :
+                                color.value === 'gray' ? '#4b5563' :
+                                '#3b82f6'
+                              })`
+                            }}
+                            title={color.name}
+                            onClick={() => handleInputChange(template.id, 'colorScheme', color.value)}
+                            aria-label={`Select ${color.name} color scheme`}
+                          />
+                        ))}
+                    </div>
+                  </div>
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col space-y-3">
@@ -365,11 +441,50 @@ const Index = () => {
         </div>
       </main>
       
-      <HuggingFaceChatAssistant />
+      <GeminiChatAssistant />
       
       <footer className="py-8 bg-gray-900 text-white">
         <div className="container text-center">
           <p className="mb-4">All templates include responsive design and Supabase backend integration.</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto mb-8">
+            <div>
+              <h3 className="text-lg font-medium mb-2">Features</h3>
+              <ul className="space-y-1 text-gray-300 text-sm">
+                <li>Responsive Design</li>
+                <li>SEO Optimized</li>
+                <li>Fast Performance</li>
+                <li>Customizable Themes</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium mb-2">Templates</h3>
+              <ul className="space-y-1 text-gray-300 text-sm">
+                <li>Clean Slate</li>
+                <li>Tradecraft</li>
+                <li>Retail Ready</li>
+                <li>Service Pro</li>
+                <li>Local Expert</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium mb-2">Resources</h3>
+              <ul className="space-y-1 text-gray-300 text-sm">
+                <li>Documentation</li>
+                <li>Support</li>
+                <li>FAQs</li>
+                <li>Blog</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium mb-2">Company</h3>
+              <ul className="space-y-1 text-gray-300 text-sm">
+                <li>About Us</li>
+                <li>Privacy Policy</li>
+                <li>Terms of Service</li>
+                <li>Contact</li>
+              </ul>
+            </div>
+          </div>
           <p className="text-sm text-gray-400">© 2025 Small Business Templates</p>
         </div>
       </footer>
