@@ -24,7 +24,6 @@ const GeminiChatAssistant = () => {
   const apiKey = "AIzaSyAUQZFNXyvEfsiaFTawgiyNq7aJyV8KzgE";
 
   useEffect(() => {
-    // Scroll to bottom when messages update
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
@@ -39,6 +38,31 @@ const GeminiChatAssistant = () => {
     setInput('');
     setIsLoading(true);
 
+    const systemContext = `You are a website building assistant specialized in helping users create and customize websites. 
+    You understand our available templates:
+    
+    1. Clean Slate - A minimalist black & white single-page template
+    2. Tradecraft - For trade businesses with blue & orange theme
+    3. Retail Ready - For retail stores with purple & pink theme
+    4. Service Pro - For service businesses with teal & green theme
+    5. Local Expert - For local professionals with amber & gold theme
+    
+    Each template includes:
+    - Responsive design
+    - Built with React and Tailwind CSS
+    - SEO optimization
+    - Authentication integration
+    - Contact forms
+    - Customizable colors and content
+    
+    Help users with:
+    - Template selection based on their business needs
+    - Customization options
+    - Color scheme recommendations
+    - Content organization
+    - Best practices for their industry
+    `;
+
     try {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
         method: 'POST',
@@ -47,6 +71,14 @@ const GeminiChatAssistant = () => {
         },
         body: JSON.stringify({
           contents: [
+            {
+              parts: [
+                {
+                  text: systemContext
+                }
+              ],
+              role: "system"
+            },
             {
               parts: [
                 {
@@ -76,7 +108,7 @@ const GeminiChatAssistant = () => {
       }
 
       const aiMessage = {
-        content: generatedText || "I'm not sure how to respond to that.",
+        content: generatedText || "I'm here to help you create and customize your website. What would you like to know about our templates or website building features?",
         isUser: false
       };
       setMessages(prev => [...prev, aiMessage]);
@@ -88,7 +120,7 @@ const GeminiChatAssistant = () => {
         variant: "destructive"
       });
       setMessages(prev => [...prev, {
-        content: "Sorry, I had trouble generating a response. Please try again.",
+        content: "I apologize, but I'm having trouble connecting to the AI service. Please try asking your question again.",
         isUser: false
       }]);
     } finally {
@@ -121,7 +153,7 @@ const GeminiChatAssistant = () => {
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-medium flex items-center gap-2">
             <MessageCircle className="h-5 w-5" />
-            Gemini AI
+            Website Building Assistant
           </CardTitle>
           <div className="flex gap-2">
             <Button
@@ -150,11 +182,12 @@ const GeminiChatAssistant = () => {
           <div className="h-[300px] overflow-y-auto mb-4 space-y-4 p-4 border rounded-md bg-background">
             {messages.length === 0 && (
               <div className="text-center text-gray-500">
-                <p>👋 Hi! I'm your Gemini AI assistant</p>
+                <p>👋 Hi! I'm your Website Building Assistant</p>
                 <ul className="mt-2 space-y-1">
-                  <li>• Chat with me about anything</li>
-                  <li>• Powered by Google's Gemini AI</li>
-                  <li>• Ask me questions about your business</li>
+                  <li>• Ask about our website templates</li>
+                  <li>• Get help with customization</li>
+                  <li>• Learn best practices for your industry</li>
+                  <li>• Get recommendations for your business</li>
                 </ul>
               </div>
             )}
@@ -189,7 +222,7 @@ const GeminiChatAssistant = () => {
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
+              placeholder="Ask about website templates or customization..."
               className="flex-1"
               disabled={isLoading}
             />
