@@ -82,7 +82,8 @@ export const signOut = async () => {
       throw response.error;
     }
     
-    await logApiCall('/auth/sign-out', 'POST', null, response.data, null);
+    // Fixed: Only access response.data if there's no error
+    await logApiCall('/auth/sign-out', 'POST', null, response, null);
     return response;
   } catch (error) {
     await logApiCall('/auth/sign-out', 'POST', null, null, error as Error);
@@ -99,6 +100,7 @@ export const getCurrentUser = async () => {
       throw response.error;
     }
     
+    // Fixed: Only access response.data if there's no error
     await logApiCall('/auth/user', 'GET', null, response.data, null);
     return response;
   } catch (error) {
