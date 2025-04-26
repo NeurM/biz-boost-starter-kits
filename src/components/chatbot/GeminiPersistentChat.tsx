@@ -1,14 +1,17 @@
+
 import React, { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageCircle, Send, X, Minimize2, Maximize2, Code } from "lucide-react";
+import { MessageCircle, Send, X, Minimize2, Maximize2, Code, History, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import MessageList from './MessageList';
 import WebsiteBuilder from './WebsiteBuilder';
 import { useChat } from '@/context/ChatContext';
 import { useAuth } from '@/context/AuthContext';
 import { saveWebsiteConfig } from '@/utils/supabase';
+import { useAnalytics } from '@/hooks/useAnalytics';
+import { useLanguage } from '@/context/LanguageContext';
 
 const GeminiPersistentChat = () => {
   const { 
@@ -25,11 +28,15 @@ const GeminiPersistentChat = () => {
     websiteStatus,
     setWebsiteStatus,
     resetChat,
-    viewCode
+    viewCode,
+    showChatHistory,
+    setShowChatHistory
   } = useChat();
   
   const { user } = useAuth();
   const { toast } = useToast();
+  const { trackEvent } = useAnalytics();
+  const { language } = useLanguage();
   
   // Define the API key as a constant in the component
   const apiKey = "AIzaSyAUQZFNXyvEfsiaFTawgiyNq7aJyV8KzgE";
@@ -53,6 +60,8 @@ const GeminiPersistentChat = () => {
     e.preventDefault();
     if (!input.trim()) return;
 
+    trackEvent('Chat', 'Message Sent', 'User Message');
+
     const userMessage = { content: input, isUser: true };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
@@ -75,6 +84,8 @@ const GeminiPersistentChat = () => {
            - User experience
            - Mobile responsiveness testing
 
+           The user's preferred language is: ${language}. Try to respond in this language when possible.
+
            IMPORTANT: DO NOT make up responses from the user. Wait for actual user input before responding. Do not provide sample responses. Always engage with what the user has actually typed.
 
            Be specific with practical advice that the agency can implement to improve their client's website.`
@@ -85,6 +96,8 @@ const GeminiPersistentChat = () => {
 3. Retail Ready - For retail stores with purple & pink theme
 4. Service Pro - For service businesses with teal & green theme
 5. Local Expert - For local professionals with amber & gold theme
+
+The user's preferred language is: ${language}. Try to respond in this language when possible.
 
 IMPORTANT: DO NOT make up responses from the user. Wait for actual user input before responding. Do not provide sample responses or pretend to be waiting for a response. Always engage with what the user has actually typed.
 
@@ -98,6 +111,8 @@ Guide users through template selection, customization, and branding. After gathe
 3. Retail Ready - For retail stores with purple & pink theme
 4. Service Pro - For service businesses with teal & green theme
 5. Local Expert - For local professionals with amber & gold theme
+
+The user's preferred language is: ${language}. Try to respond in this language when possible.
 
 IMPORTANT: DO NOT make up responses from the user. Wait for actual user input before responding. Do not provide sample responses or pretend to be waiting for a response. Always engage with what the user has actually typed.
 
@@ -133,7 +148,9 @@ Explain the benefits of our templates and encourage visitors to sign up to creat
           data.candidates[0].content.parts && 
           data.candidates[0].content.parts.length > 0) {
         generatedText = data.candidates[0].content.parts[0].text;
+        trackEvent('Chat', 'Message Received', 'AI Response');
       } else if (data.error) {
+        trackEvent('Chat', 'Error', 'API Error');
         throw new Error(data.error.message || "Error from Gemini API");
       }
 
@@ -168,6 +185,7 @@ Explain the benefits of our templates and encourage visitors to sign up to creat
         };
         
         setWebsiteStatus(newWebsiteStatus);
+        trackEvent('Website', 'Created', template || 'unknown');
         
         // Store in session storage so template can access it
         sessionStorage.setItem('companyData', JSON.stringify({
@@ -217,10 +235,23 @@ Explain the benefits of our templates and encourage visitors to sign up to creat
     }
   };
 
+  const toggleHistory = () => {
+    trackEvent('Chat', 'Toggle History', showChatHistory ? 'Hide' : 'Show');
+    setShowChatHistory(!showChatHistory);
+  };
+
+  const handleResetChat = () => {
+    trackEvent('Chat', 'Reset Chat');
+    resetChat();
+  };
+
   if (!isOpen) {
     return (
       <Button
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          setIsOpen(true);
+          trackEvent('Chat', 'Open Chat');
+        }}
         className="fixed bottom-4 right-4 rounded-full w-12 h-12 p-0 bg-primary hover:bg-primary/90 shadow-lg z-50"
         aria-label="Open chat assistant"
       >
@@ -240,6 +271,28 @@ Explain the benefits of our templates and encourage visitors to sign up to creat
             Business Template Chat
           </CardTitle>
           <div className="flex gap-2">
+            {user && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-0 w-8 h-8 hover:bg-gray-100"
+                onClick={toggleHistory}
+                aria-label={showChatHistory ? "Hide History" : "Show History"}
+                title={showChatHistory ? "Hide History" : "Show History"}
+              >
+                <History className="h-4 w-4" />
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-0 w-8 h-8 hover:bg-gray-100"
+              onClick={handleResetChat}
+              aria-label="Reset Chat"
+              title="Reset Chat"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -254,7 +307,10 @@ Explain the benefits of our templates and encourage visitors to sign up to creat
               variant="ghost"
               size="sm"
               className="p-0 w-8 h-8"
-              onClick={() => setIsMinimized(!isMinimized)}
+              onClick={() => {
+                setIsMinimized(!isMinimized);
+                trackEvent('Chat', 'Toggle Size', isMinimized ? 'Maximize' : 'Minimize');
+              }}
               aria-label={isMinimized ? "Maximize chat" : "Minimize chat"}
             >
               {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
@@ -263,7 +319,10 @@ Explain the benefits of our templates and encourage visitors to sign up to creat
               variant="ghost"
               size="sm"
               className="p-0 w-8 h-8"
-              onClick={() => setIsOpen(false)}
+              onClick={() => {
+                setIsOpen(false);
+                trackEvent('Chat', 'Close Chat');
+              }}
               aria-label="Close chat"
             >
               <X className="h-4 w-4" />

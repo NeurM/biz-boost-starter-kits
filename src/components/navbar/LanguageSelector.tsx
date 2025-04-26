@@ -8,14 +8,15 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { Globe } from "lucide-react";
+import { useLanguage, Language } from '@/context/LanguageContext';
 
-type Language = {
-  code: string;
+type LanguageOption = {
+  code: Language;
   name: string;
   flag: string;
 };
 
-const languages: Language[] = [
+const languages: LanguageOption[] = [
   { code: 'en', name: 'English', flag: '🇬🇧' },
   { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
   { code: 'fr', name: 'Français', flag: '🇫🇷' },
@@ -24,11 +25,10 @@ const languages: Language[] = [
 ];
 
 const LanguageSelector = () => {
-  const [selectedLang, setSelectedLang] = React.useState('en');
+  const { language, setLanguage } = useLanguage();
 
-  const handleLanguageChange = (langCode: string) => {
-    setSelectedLang(langCode);
-    // Here you would typically set the language in your app's state/context
+  const handleLanguageChange = (langCode: Language) => {
+    setLanguage(langCode);
   };
 
   return (
@@ -37,7 +37,7 @@ const LanguageSelector = () => {
         <NavigationMenuItem>
           <NavigationMenuTrigger className="flex items-center gap-2">
             <Globe className="h-4 w-4" />
-            <span>{languages.find(lang => lang.code === selectedLang)?.flag}</span>
+            <span>{languages.find(lang => lang.code === language)?.flag}</span>
           </NavigationMenuTrigger>
           <NavigationMenuContent>
             <div className="w-[200px] p-2">
@@ -46,7 +46,7 @@ const LanguageSelector = () => {
                   key={lang.code}
                   onClick={() => handleLanguageChange(lang.code)}
                   className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md 
-                    ${selectedLang === lang.code ? 'bg-accent' : 'hover:bg-accent/50'}`}
+                    ${language === lang.code ? 'bg-accent' : 'hover:bg-accent/50'}`}
                 >
                   <span>{lang.flag}</span>
                   <span>{lang.name}</span>

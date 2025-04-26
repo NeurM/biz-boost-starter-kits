@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import { Message, WebsiteStatus } from '../components/chatbot/types';
@@ -18,6 +19,8 @@ interface ChatContextProps {
   setWebsiteStatus: React.Dispatch<React.SetStateAction<WebsiteStatus>>;
   resetChat: () => void;
   viewCode: () => void;
+  showChatHistory: boolean;
+  setShowChatHistory: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const ChatContext = createContext<ChatContextProps>({} as ChatContextProps);
@@ -34,6 +37,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [showChatHistory, setShowChatHistory] = useState(false);
   const { user } = useAuth();
   const [websiteStatus, setWebsiteStatus] = useState<WebsiteStatus>({
     isCreated: false,
@@ -46,7 +50,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     secondaryColorScheme: null
   });
 
-  useChatPersistence(messages, setMessages, websiteStatus);
+  useChatPersistence(messages, setMessages, websiteStatus, showChatHistory);
 
   const viewCode = () => {
     const devModeToggle = document.querySelector('[data-testid="dev-mode-toggle"]') as HTMLButtonElement;
@@ -72,7 +76,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
       
       setMessages([initialMessage]);
     }
-  }, [user]);
+  }, [user, showChatHistory]);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -118,6 +122,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
       };
     
     setMessages([initialMessage]);
+    setShowChatHistory(false);
   };
 
   useEffect(() => {
@@ -126,20 +131,28 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
         messages,
         isOpen,
         isMinimized,
-        websiteStatus
+        websiteStatus,
+        showChatHistory
       }));
     }
-  }, [isMinimized, messages, isOpen, websiteStatus]);
+  }, [isMinimized, messages, isOpen, websiteStatus, showChatHistory]);
 
   useEffect(() => {
     const savedState = sessionStorage.getItem('chatState');
     if (savedState) {
-      const { messages: savedMessages, isOpen: savedIsOpen, 
-              isMinimized: savedIsMinimized, websiteStatus: savedWebsiteStatus } = JSON.parse(savedState);
+      const { 
+        messages: savedMessages, 
+        isOpen: savedIsOpen, 
+        isMinimized: savedIsMinimized, 
+        websiteStatus: savedWebsiteStatus,
+        showChatHistory: savedShowChatHistory
+      } = JSON.parse(savedState);
+      
       setMessages(savedMessages);
       setIsOpen(savedIsOpen);
       setIsMinimized(savedIsMinimized);
       setWebsiteStatus(savedWebsiteStatus);
+      setShowChatHistory(savedShowChatHistory || false);
       sessionStorage.removeItem('chatState');
     }
   }, []);
@@ -160,7 +173,9 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
         websiteStatus,
         setWebsiteStatus,
         resetChat,
-        viewCode
+        viewCode,
+        showChatHistory,
+        setShowChatHistory
       }}
     >
       {children}

@@ -1,92 +1,104 @@
 
 import { useEffect } from 'react';
-import { Message, WebsiteStatus } from '@/components/chatbot/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
-import { useToast } from './use-toast';
+import { Message, WebsiteStatus } from '@/components/chatbot/types';
 
 export const useChatPersistence = (
   messages: Message[],
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
-  websiteStatus: WebsiteStatus
+  websiteStatus: WebsiteStatus,
+  showChatHistory: boolean
 ) => {
   const { user } = useAuth();
-  const { toast } = useToast();
 
-  // Load messages on initial mount
+  // Load messages from Supabase when user logs in or showChatHistory changes
   useEffect(() => {
     const loadMessages = async () => {
-      if (!user) return;
-      
+      if (!user || !showChatHistory) return;
+
       try {
         const { data, error } = await supabase
           .from('chat_messages')
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: true });
-          
-        if (error) throw error;
-        
-        if (data) {
-          setMessages(data.map(msg => ({
-            content: msg.content,
-            isUser: msg.is_user
-          })));
+
+        if (error) {
+          console.error('Error loading chat messages:', error);
+          return;
         }
-      } catch (error) {
-        console.error('Error loading messages:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load chat history",
-          variant: "destructive"
-        });
+
+        if (data && data.length > 0) {
+          // Convert database records to Message objects
+          const loadedMessages = data.map(record => ({
+            content: record.content,
+            isUser: record.is_user
+          }));
+          
+          setMessages(loadedMessages);
+          
+          // If we have website data in the last message, use it
+          const lastMessageWithData = data
+            .filter(msg => msg.website_data)
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+            
+          if (lastMessageWithData && lastMessageWithData.website_data) {
+            websiteStatus = lastMessageWithData.website_data as WebsiteStatus;
+          }
+        } else if (showChatHistory) {
+          // If showing history but no messages found, show a message about that
+          setMessages([{
+            content: "No chat history found. Let's start a new conversation!",
+            isUser: false
+          }]);
+        }
+      } catch (err) {
+        console.error('Error in loadMessages:', err);
       }
     };
 
-    loadMessages();
-  }, [user]);
+    if (showChatHistory) {
+      loadMessages();
+    } else if (user && messages.length === 0) {
+      // If not showing history, just show welcome message
+      setMessages([{
+        content: "Welcome agency partner! I'm here to help you create and improve websites for your clients. Let me know what type of business site you're building, and I'll guide you through template selection and customization.",
+        isUser: false
+      }]);
+    } else if (!user && messages.length === 0) {
+      setMessages([{
+        content: "Welcome! I can help you explore our website templates and answer any questions you might have about our services. To create a website, you'll need to sign up or log in.",
+        isUser: false
+      }]);
+    }
+  }, [user, showChatHistory]);
 
-  // Save new messages
+  // Save messages to Supabase when they change
   useEffect(() => {
-    const saveMessage = async (message: Message) => {
-      if (!user) return;
+    const saveMessages = async () => {
+      if (!user || messages.length === 0) return;
+
+      // Get the last message
+      const lastMessage = messages[messages.length - 1];
       
       try {
-        // Convert websiteStatus to a plain JavaScript object
-        const websiteDataJson = message.isUser ? null : {
-          isCreated: websiteStatus.isCreated,
-          template: websiteStatus.template,
-          path: websiteStatus.path,
-          companyName: websiteStatus.companyName,
-          domainName: websiteStatus.domainName,
-          logo: websiteStatus.logo,
-          colorScheme: websiteStatus.colorScheme,
-          secondaryColorScheme: websiteStatus.secondaryColorScheme
-        };
-        
-        const { error } = await supabase
-          .from('chat_messages')
-          .insert({
-            content: message.content,
-            is_user: message.isUser,
-            user_id: user.id,
-            website_data: websiteDataJson
-          });
-          
-        if (error) throw error;
-      } catch (error) {
-        console.error('Error saving message:', error);
-        toast({
-          title: "Error",
-          description: "Failed to save message",
-          variant: "destructive"
+        await supabase.from('chat_messages').insert({
+          user_id: user.id,
+          content: lastMessage.content,
+          is_user: lastMessage.isUser,
+          website_data: websiteStatus.isCreated ? websiteStatus : null
         });
+      } catch (err) {
+        console.error('Error saving chat message:', err);
       }
     };
 
-    // Only save the last message if it exists
-    if (messages.length > 0 && user) {
-      saveMessage(messages[messages.length - 1]);
+    // Only save if the user is logged in and there are messages
+    if (user && messages.length > 0) {
+      saveMessages();
     }
-  }, [messages, user, websiteStatus]);
+  }, [messages.length]);
+
+  return null;
 };

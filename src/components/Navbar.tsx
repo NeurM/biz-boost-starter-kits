@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation } from "react-router-dom";
 import NavLogo from './navbar/NavLogo';
@@ -6,6 +7,8 @@ import MobileNav from './navbar/MobileNav';
 import MobileMenuButton from './navbar/MobileMenuButton';
 import UserMenu from './UserMenu';
 import LanguageSelector from './navbar/LanguageSelector';
+import { useLanguage } from '@/context/LanguageContext';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface NavItem {
   name: string;
@@ -38,8 +41,16 @@ const Navbar = ({
     domainName?: string;
     logo?: string;
   } | null>(null);
+  const { t } = useLanguage();
+  const { trackEvent } = useAnalytics();
   
   const isTemplate = basePath && ["expert", "tradecraft", "retail", "service"].includes(basePath);
+  
+  // Translate navigation items
+  const translatedNavItems = navItems.map(item => ({
+    ...item,
+    name: t(`nav.${item.name.toLowerCase()}`) || item.name
+  }));
   
   useEffect(() => {
     setIsOpen(false);
@@ -57,7 +68,10 @@ const Navbar = ({
       (path !== `/${basePath}` && location.pathname.startsWith(path));
   };
   
-  const toggleMenu = () => setIsOpen(!isOpen);
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+    trackEvent('Navigation', 'Toggle Mobile Menu', isOpen ? 'Close' : 'Open');
+  };
   
   const closeMenu = () => setIsOpen(false);
 
@@ -76,8 +90,8 @@ const Navbar = ({
 
           <div className="hidden md:flex md:items-center md:space-x-4">
             <DesktopNav 
-              navItems={navItems}
-              ctaText={ctaText}
+              navItems={translatedNavItems}
+              ctaText={ctaText ? t(`cta.${ctaText.toLowerCase().replace(/\s/g, '')}`) || ctaText : undefined}
               ctaLink={ctaLink}
               isActive={isActive}
               companyData={companyData}
@@ -103,8 +117,8 @@ const Navbar = ({
 
       <MobileNav 
         isOpen={isOpen}
-        navItems={navItems}
-        ctaText={ctaText}
+        navItems={translatedNavItems}
+        ctaText={ctaText ? t(`cta.${ctaText.toLowerCase().replace(/\s/g, '')}`) || ctaText : undefined}
         ctaLink={ctaLink}
         isActive={isActive}
         companyData={companyData}
