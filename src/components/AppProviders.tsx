@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
 import { TemplateThemeProvider } from '@/context/TemplateThemeContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { CompanyDataProvider } from '@/components/CompanyDataProvider';
@@ -18,20 +17,18 @@ interface Props {
 export function AppProviders({ children }: Props) {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <AuthProvider>
-          <LanguageProvider>
-            <TemplateThemeProvider>
-              <CompanyDataProvider>
-                <ChatProvider>
-                  {children}
-                  <Toaster />
-                </ChatProvider>
-              </CompanyDataProvider>
-            </TemplateThemeProvider>
-          </LanguageProvider>
-        </AuthProvider>
-      </Router>
+      <AuthProvider>
+        <LanguageProvider>
+          <TemplateThemeProvider>
+            <CompanyDataProvider>
+              <ChatProvider>
+                {children}
+                <Toaster />
+              </ChatProvider>
+            </CompanyDataProvider>
+          </TemplateThemeProvider>
+        </LanguageProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
