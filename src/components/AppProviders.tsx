@@ -2,7 +2,7 @@
 import React from 'react';
 import { TemplateThemeProvider } from '@/context/TemplateThemeContext';
 import { AuthProvider } from '@/context/AuthContext';
-import { CompanyDataProvider } from '@/components/CompanyDataProvider';
+import { CompanyDataProvider } from '@/context/CompanyDataContext';  // Use the CompanyDataProvider from context folder
 import { Toaster } from '@/components/ui/toaster';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ChatProvider } from '@/context/ChatContext';

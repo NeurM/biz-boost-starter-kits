@@ -28,14 +28,25 @@ interface CompanyDataProviderProps {
 
 export const CompanyDataProvider = ({ children }: CompanyDataProviderProps) => {
   const [companyData, setCompanyData] = useState<CompanyData | null>(null);
-  const location = useLocation();
   const { toast } = useToast();
+  
+  // Handle the case where this component might be used outside of a router context
+  let pathname = '/';
+  let locationState: any = null;
+  try {
+    // Only use useLocation if we're in a router context
+    const location = useLocation();
+    pathname = location.pathname;
+    locationState = location.state;
+  } catch (error) {
+    console.warn('CompanyDataProvider used outside Router context, defaulting to "/" path');
+  }
   
   useEffect(() => {
     const loadCompanyData = async () => {
       try {
         // Get template ID from URL
-        const templateId = location.pathname.split('/')[1];
+        const templateId = pathname.split('/')[1];
         if (!templateId) return;
         
         // First try to load from session storage (for non-logged in users or preview)
@@ -57,8 +68,8 @@ export const CompanyDataProvider = ({ children }: CompanyDataProviderProps) => {
         }
 
         // Then try to get from location state
-        if (location.state) {
-          const { companyName, domainName, logo, colorScheme, secondaryColorScheme } = location.state;
+        if (locationState) {
+          const { companyName, domainName, logo, colorScheme, secondaryColorScheme } = locationState;
           if (domainName && logo) {
             const newData = { 
               companyName: companyName || "Your Business Name", 
@@ -109,7 +120,7 @@ export const CompanyDataProvider = ({ children }: CompanyDataProviderProps) => {
     };
     
     loadCompanyData();
-  }, [location, toast]);
+  }, [pathname, toast, locationState]);
 
   return (
     <CompanyDataContext.Provider value={{ companyData, setCompanyData }}>
