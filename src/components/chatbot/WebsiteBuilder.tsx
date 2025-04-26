@@ -15,6 +15,15 @@ const WebsiteBuilder = ({ websiteStatus, onReset }: WebsiteBuilderProps) => {
   
   const handleViewWebsite = () => {
     if (websiteStatus.path) {
+      // Store the data in sessionStorage so it can be accessed by the template
+      sessionStorage.setItem('companyData', JSON.stringify({
+        companyName: websiteStatus.companyName, 
+        domainName: websiteStatus.domainName, 
+        logo: websiteStatus.logo,
+        colorScheme: websiteStatus.colorScheme,
+        secondaryColorScheme: websiteStatus.secondaryColorScheme
+      }));
+      
       navigate(websiteStatus.path, { 
         state: { 
           companyName: websiteStatus.companyName, 

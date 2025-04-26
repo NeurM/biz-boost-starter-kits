@@ -1,8 +1,8 @@
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Mail, Phone, ArrowRight, Users, Briefcase, HeartHandshake } from "lucide-react";
 import ServiceCard from "@/components/ServiceCard";
 import Testimonial from "@/components/Testimonial";
@@ -10,6 +10,15 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 const CleanSlate = () => {
+  const location = useLocation();
+  const [companyData, setCompanyData] = useState<{
+    companyName?: string;
+    domainName?: string;
+    logo?: string;
+    colorScheme?: string | null;
+    secondaryColorScheme?: string | null;
+  } | null>(null);
+  
   // Refs for scrolling
   const aboutRef = useRef<HTMLElement>(null);
   const servicesRef = useRef<HTMLElement>(null);
@@ -22,6 +31,36 @@ const CleanSlate = () => {
     { name: "Services", path: "#services" },
     { name: "Contact", path: "#contact" },
   ];
+  
+  // Load company data from sessionStorage or URL state
+  useEffect(() => {
+    // Try to get data from sessionStorage first
+    const storedData = sessionStorage.getItem('companyData');
+    
+    if (storedData) {
+      setCompanyData(JSON.parse(storedData));
+    } 
+    // Fall back to location state if available
+    else if (location.state) {
+      const { companyName, domainName, logo, colorScheme, secondaryColorScheme } = location.state;
+      setCompanyData({
+        companyName,
+        domainName,
+        logo,
+        colorScheme,
+        secondaryColorScheme
+      });
+      
+      // Also store in sessionStorage for persistence
+      sessionStorage.setItem('companyData', JSON.stringify({
+        companyName,
+        domainName,
+        logo,
+        colorScheme,
+        secondaryColorScheme
+      }));
+    }
+  }, [location.state]);
 
   // Handle navigation with hash links
   useEffect(() => {
@@ -49,8 +88,16 @@ const CleanSlate = () => {
 
   // Check if we're in template preview mode (no company data)
   const isTemplatePreview = () => {
-    // If there's no data in session storage or URL state, it's a template preview
-    return !sessionStorage.getItem('companyData');
+    // If there's no company data or company name, it's a template preview
+    return !companyData || !companyData.companyName;
+  };
+  
+  // Get company name or default to Clean Slate
+  const getCompanyName = () => {
+    if (companyData && companyData.companyName) {
+      return companyData.companyName;
+    }
+    return "Clean Slate";
   };
 
   // Services data
@@ -75,13 +122,13 @@ const CleanSlate = () => {
   // Testimonials data
   const testimonials = [
     {
-      quote: "Clean Slate transformed our business with their strategic insights and practical solutions.",
+      quote: `${getCompanyName()} transformed our business with their strategic insights and practical solutions.`,
       author: "Sarah Johnson",
       role: "CEO",
       company: "TechForward"
     },
     {
-      quote: "Working with the Clean Slate team has been revolutionary for our company culture.",
+      quote: `Working with the ${getCompanyName()} team has been revolutionary for our company culture.`,
       author: "Michael Chen",
       role: "Director",
       company: "InnovateCorp"
@@ -99,7 +146,7 @@ const CleanSlate = () => {
     <div className="min-h-screen flex flex-col bg-white">
       {/* Navbar using the reusable component */}
       <Navbar 
-        logo="Clean Slate"
+        logo={getCompanyName()}
         basePath="cleanslate"
         navItems={navItems}
         ctaText="Get Started"
@@ -113,10 +160,11 @@ const CleanSlate = () => {
         {/* Hero Section */}
         <section id="home" className="bg-gray-50 py-20">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">Build Your Vision</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6">{getCompanyName()}</h1>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              This clean slate template gives you the foundation to create something amazing.
-              Start building your next great project with this simple, flexible starting point.
+              {companyData && companyData.domainName ? 
+                `Welcome to ${companyData.domainName}` : 
+                "This clean slate template gives you the foundation to create something amazing."}
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Button size="lg" onClick={() => scrollToSection(contactRef)}>Get Started</Button>
@@ -139,7 +187,15 @@ const CleanSlate = () => {
             
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <div className="aspect-video bg-gray-200 rounded-lg"></div>
+                {companyData && companyData.logo && companyData.logo.startsWith('http') ? (
+                  <img 
+                    src={companyData.logo} 
+                    alt={`${getCompanyName()} logo`} 
+                    className="rounded-lg w-full h-auto"
+                  />
+                ) : (
+                  <div className="aspect-video bg-gray-200 rounded-lg"></div>
+                )}
               </div>
               <div>
                 <h3 className="text-2xl font-bold mb-4">Our Mission</h3>
@@ -268,7 +324,11 @@ const CleanSlate = () => {
                     </div>
                     <div>
                       <h4 className="font-medium">Email</h4>
-                      <p className="text-gray-300">contact@cleanslate.com</p>
+                      <p className="text-gray-300">
+                        {companyData && companyData.domainName ? 
+                          `contact@${companyData.domainName}` : 
+                          "contact@cleanslate.com"}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
@@ -298,14 +358,16 @@ const CleanSlate = () => {
 
       {/* Footer */}
       <Footer 
-        logo="Clean Slate"
+        logo={getCompanyName()}
         description="Your foundation for building amazing web applications."
         basePath="cleanslate"
         navItems={navItems}
         contactInfo={{
           address: "123 Business Ave, Suite 100, San Francisco, CA 94107",
           phone: "(123) 456-7890",
-          email: "contact@cleanslate.com"
+          email: companyData && companyData.domainName ? 
+            `contact@${companyData.domainName}` : 
+            "contact@cleanslate.com"
         }}
       />
     </div>

@@ -149,6 +149,15 @@ Explain the benefits of our templates and encourage visitors to sign up to creat
         
         setWebsiteStatus(newWebsiteStatus);
         
+        // Store in session storage so template can access it
+        sessionStorage.setItem('companyData', JSON.stringify({
+          companyName: newWebsiteStatus.companyName,
+          domainName: newWebsiteStatus.domainName,
+          logo: newWebsiteStatus.logo,
+          colorScheme: newWebsiteStatus.colorScheme,
+          secondaryColorScheme: newWebsiteStatus.secondaryColorScheme
+        }));
+        
         const saveConfig = async () => {
           try {
             await saveWebsiteConfig({
