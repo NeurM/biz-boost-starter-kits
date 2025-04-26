@@ -54,23 +54,22 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       effectiveVariant = 'default';
     }
     
-    // Dynamic button styles for user-selected colors
-    let dynamicStyles = {};
-    if (variant === 'dynamic' && templateColor) {
-      dynamicStyles = {
-        backgroundColor: `bg-${templateColor}-600`,
-        hoverColor: `hover:bg-${templateColor}-700`,
-        textColor: 'text-white',
-      };
+    // Handle the dynamic variant based on template color
+    let dynamicClassNames = '';
+    if (effectiveVariant === 'dynamic' && templateColor) {
+      // Create appropriate class names based on the template color
+      const bgClass = `bg-${templateColor}-600`;
+      const hoverClass = `hover:bg-${templateColor}-700`;
+      dynamicClassNames = `${bgClass} text-white ${hoverClass} shadow-lg font-semibold tracking-wide`;
     }
     
-    const buttonClass = className?.includes("bg-") 
-      ? className 
+    const finalClassName = effectiveVariant === 'dynamic' && dynamicClassNames
+      ? cn(buttonVariants({ variant: undefined, size }), dynamicClassNames, className)
       : cn(buttonVariants({ variant: effectiveVariant, size }), className);
     
     return (
       <Comp
-        className={buttonClass}
+        className={finalClassName}
         ref={ref}
         {...props}
       />

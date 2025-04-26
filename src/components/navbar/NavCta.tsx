@@ -14,7 +14,7 @@ interface NavCtaProps {
 const NavCta = ({ ctaText, ctaLink, isMobile, onClick }: NavCtaProps) => {
   const { colorClasses, templateType } = useTemplateTheme();
   
-  // For Clean Slate template, use black/white theme
+  // For Clean Slate template, use black/white theme instead of the orange
   const isCleanSlate = templateType === 'cleanslate';
   
   // For hash links within the same page
@@ -23,14 +23,14 @@ const NavCta = ({ ctaText, ctaLink, isMobile, onClick }: NavCtaProps) => {
       <a 
         href={ctaLink}
         className={`block w-full py-2 text-center ${
-          isCleanSlate ? 'bg-black hover:bg-gray-800' : 'bg-orange-500 hover:bg-orange-600'
+          isCleanSlate ? 'bg-black hover:bg-gray-800' : colorClasses.bg + ' ' + colorClasses.hover
         } text-white rounded-md shadow-lg transition-colors font-medium`}
         onClick={onClick}
       >
         {ctaText}
       </a>
     ) : (
-      <Button variant={isCleanSlate ? "default" : "cta"} size="lg">
+      <Button variant={isCleanSlate ? "default" : "dynamic"} size="lg">
         <a href={ctaLink} onClick={onClick}>
           {ctaText}
         </a>
@@ -43,14 +43,14 @@ const NavCta = ({ ctaText, ctaLink, isMobile, onClick }: NavCtaProps) => {
     <Link 
       to={ctaLink}
       className={`block w-full py-2 text-center ${
-        isCleanSlate ? 'bg-black hover:bg-gray-800' : 'bg-orange-500 hover:bg-orange-600'
+        isCleanSlate ? 'bg-black hover:bg-gray-800' : colorClasses.bg + ' ' + colorClasses.hover
       } text-white rounded-md shadow-lg transition-colors font-medium`}
       onClick={onClick}
     >
       {ctaText}
     </Link>
   ) : (
-    <Button variant={isCleanSlate ? "default" : "cta"} size="lg" asChild>
+    <Button variant={isCleanSlate ? "default" : "dynamic"} size="lg" asChild>
       <Link to={ctaLink} onClick={onClick}>
         {ctaText}
       </Link>
