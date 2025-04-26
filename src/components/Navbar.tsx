@@ -9,6 +9,8 @@ import UserMenu from './UserMenu';
 import LanguageSelector from './navbar/LanguageSelector';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { useTemplateTheme } from '@/context/TemplateThemeContext';
+import { useCompanyData } from '@/context/CompanyDataContext';
 
 interface NavItem {
   name: string;
@@ -36,29 +38,39 @@ const Navbar = ({
 }: NavbarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const [companyData, setCompanyData] = useState<{
-    companyName?: string;
-    domainName?: string;
-    logo?: string;
-  } | null>(null);
   const { t } = useLanguage();
   const { trackEvent } = useAnalytics();
+  const { companyData } = useCompanyData();
+  const { templateType } = useTemplateTheme();
   
-  const isTemplate = basePath && ["expert", "tradecraft", "retail", "service"].includes(basePath);
+  const isTemplate = basePath && ["expert", "tradecraft", "retail", "service", "cleanslate"].includes(basePath);
+  
+  // Process nav items to ensure they have the correct template path prefix
+  const processedNavItems = navItems.map(item => {
+    // If this is a template and the path doesn't already have the basePath prefix
+    if (isTemplate && !item.path.startsWith(`/${basePath}`)) {
+      return {
+        ...item,
+        path: item.path.startsWith('/') ? `/${basePath}${item.path}` : `/${basePath}/${item.path}`
+      };
+    }
+    return item;
+  });
   
   // Translate navigation items
-  const translatedNavItems = navItems.map(item => ({
+  const translatedNavItems = processedNavItems.map(item => ({
     ...item,
     name: t(`nav.${item.name.toLowerCase()}`) || item.name
   }));
   
+  // Translate CTA text if provided
+  const translatedCtaText = ctaText 
+    ? (t(`cta.${ctaText.toLowerCase().replace(/\s/g, '')}`) || ctaText)
+    : undefined;
+  
   useEffect(() => {
     setIsOpen(false);
   }, [location.pathname]);
-  
-  useEffect(() => {
-    setCompanyData(null);
-  }, [location]);
   
   const isActive = (path: string) => {
     if (path.startsWith('#')) {
@@ -84,29 +96,29 @@ const Navbar = ({
               logo={logo}
               basePath={basePath}
               companyData={companyData}
-              forceTemplateName={true}
+              forceTemplateName={forceTemplateName}
             />
           </div>
 
           <div className="hidden md:flex md:items-center md:space-x-4">
             <DesktopNav 
               navItems={translatedNavItems}
-              ctaText={ctaText ? t(`cta.${ctaText.toLowerCase().replace(/\s/g, '')}`) || ctaText : undefined}
+              ctaText={translatedCtaText}
               ctaLink={ctaLink}
               isActive={isActive}
               companyData={companyData}
-              forceTemplateName={true}
+              forceTemplateName={forceTemplateName}
             />
             
             <div className="flex items-center space-x-4">
               <LanguageSelector />
-              {!isTemplate && <UserMenu />}
+              <UserMenu isTemplate={isTemplate} templatePath={basePath} />
             </div>
           </div>
 
           <div className="md:hidden flex items-center space-x-2">
             <LanguageSelector />
-            {!isTemplate && <UserMenu />}
+            <UserMenu isTemplate={isTemplate} templatePath={basePath} />
             <MobileMenuButton 
               isOpen={isOpen}
               onClick={toggleMenu}
@@ -118,11 +130,11 @@ const Navbar = ({
       <MobileNav 
         isOpen={isOpen}
         navItems={translatedNavItems}
-        ctaText={ctaText ? t(`cta.${ctaText.toLowerCase().replace(/\s/g, '')}`) || ctaText : undefined}
+        ctaText={translatedCtaText}
         ctaLink={ctaLink}
         isActive={isActive}
         companyData={companyData}
-        forceTemplateName={true}
+        forceTemplateName={forceTemplateName}
         onNavClick={closeMenu}
       />
     </nav>

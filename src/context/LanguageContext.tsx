@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 // Define available languages
 export type Language = 'en' | 'nl' | 'fr' | 'ar' | 'es';
@@ -56,6 +56,27 @@ export const translations: Translations = {
     ar: 'اتصل بنا',
     es: 'Contacto',
   },
+  'nav.templates': {
+    en: 'Templates',
+    nl: 'Sjablonen',
+    fr: 'Modèles',
+    ar: 'قوالب',
+    es: 'Plantillas',
+  },
+  'nav.dashboard': {
+    en: 'Dashboard',
+    nl: 'Dashboard',
+    fr: 'Tableau de bord',
+    ar: 'لوحة التحكم',
+    es: 'Panel',
+  },
+  'nav.savedwebsites': {
+    en: 'Saved Websites',
+    nl: 'Opgeslagen websites',
+    fr: 'Sites web enregistrés',
+    ar: 'المواقع المحفوظة',
+    es: 'Sitios web guardados',
+  },
   'cta.contact': {
     en: 'Contact Us',
     nl: 'Neem contact op',
@@ -63,26 +84,33 @@ export const translations: Translations = {
     ar: 'اتصل بنا',
     es: 'Contáctenos',
   },
-  'cta.getStarted': {
+  'cta.getstarted': {
     en: 'Get Started',
     nl: 'Aan de slag',
     fr: 'Commencer',
     ar: 'ابدأ الآن',
     es: 'Comenzar',
   },
-  'cta.bookNow': {
+  'cta.booknow': {
     en: 'Book Now',
     nl: 'Nu boeken',
     fr: 'Réserver',
     ar: 'احجز الآن',
     es: 'Reservar ahora',
   },
-  'cta.learnMore': {
+  'cta.learnmore': {
     en: 'Learn More',
     nl: 'Meer informatie',
     fr: 'En savoir plus',
     ar: 'اعرف المزيد',
     es: 'Más información',
+  },
+  'cta.shopnow': {
+    en: 'Shop Now',
+    nl: 'Nu winkelen',
+    fr: 'Acheter',
+    ar: 'تسوق الآن',
+    es: 'Comprar ahora',
   },
   // Hero section
   'hero.title': {
@@ -143,7 +171,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   const direction = language === 'ar' ? 'rtl' : 'ltr';
   
   // Store language preference
-  React.useEffect(() => {
+  useEffect(() => {
     localStorage.setItem('preferred_language', language);
     
     // Set direction on document for RTL support
@@ -152,7 +180,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   }, [language, direction]);
   
   // Load saved language preference
-  React.useEffect(() => {
+  useEffect(() => {
     const savedLanguage = localStorage.getItem('preferred_language') as Language;
     if (savedLanguage && ['en', 'nl', 'fr', 'ar', 'es'].includes(savedLanguage)) {
       setLanguage(savedLanguage);

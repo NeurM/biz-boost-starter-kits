@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { signOut } from '@/utils/supabase';
 import { useToast } from "@/hooks/use-toast";
@@ -14,12 +14,26 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLanguage, Language } from '@/context/LanguageContext';
+import { useTemplateTheme } from '@/context/TemplateThemeContext';
 
 const TemplatesNavigation = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { language, setLanguage } = useLanguage();
+  const { templateType } = useTemplateTheme();
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const location = useLocation();
+  
+  // Hide TemplatesNavigation when on template pages
+  const isTemplatePage = location.pathname.startsWith("/service") || 
+                         location.pathname.startsWith("/tradecraft") || 
+                         location.pathname.startsWith("/retail") || 
+                         location.pathname.startsWith("/expert") || 
+                         location.pathname.startsWith("/cleanslate");
+                         
+  if (isTemplatePage) {
+    return null;
+  }
 
   const handleSignOut = async () => {
     setIsSigningOut(true);

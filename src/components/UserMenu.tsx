@@ -9,11 +9,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User, LogOut } from 'lucide-react';
-import { signOut, getCurrentUser } from '@/utils/supabase';
+import { signOut } from '@/utils/supabase';
+import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-const UserMenu = ({ isTemplate = false, templatePath = '' }) => {
-  const [user, setUser] = useState<any>(null);
+interface UserMenuProps {
+  isTemplate?: boolean;
+  templatePath?: string;
+}
+
+const UserMenu = ({ isTemplate = false, templatePath = '' }: UserMenuProps) => {
+  const { user, signOut: handleAuthSignOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const location = useLocation();
@@ -25,11 +31,8 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }) => {
                          location.pathname.startsWith("/expert") || 
                          location.pathname.startsWith("/cleanslate");
   
-  // Check if we're on the main home page
-  const isMainHomePage = location.pathname === "/";
-  
-  // If this is the main UserMenu (not template-specific) and we're on a template page, don't show it
-  if (!isTemplate && isTemplatePage && !isMainHomePage) {
+  // Don't show the user menu on the main menu bar when viewing a template
+  if (!isTemplate && isTemplatePage && location.pathname !== "/") {
     return null;
   }
   
@@ -38,31 +41,14 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }) => {
     return null;
   }
   
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const { data } = await getCurrentUser();
-        setUser(data.user);
-      } catch (error) {
-        console.error('Error checking user:', error);
-        setUser(null);
-      }
-    };
-    
-    checkUser();
-  }, [location.pathname]);
-  
   const handleLogout = async () => {
     try {
-      const { error } = await signOut();
-      if (error) throw error;
+      await handleAuthSignOut();
       
       toast({
         title: "Logged out successfully",
         description: "You have been logged out of your account.",
       });
-      
-      setUser(null);
       
       // If on a template page, stay on that template's home
       if (isTemplatePage) {
@@ -94,15 +80,24 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }) => {
           </Link>
         </Button>
       ) : (
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={handleLogout}
-          className={`flex items-center ${isTemplate ? "template-logout-btn" : ""}`}
-        >
-          <LogOut className="h-4 w-4 mr-2" />
-          Logout
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="outline" 
+              size="sm"
+              className={`flex items-center ${isTemplate ? "template-logout-btn" : ""}`}
+            >
+              <User className="h-4 w-4 mr-2" />
+              {user.email?.split('@')[0]}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
     </div>
   );

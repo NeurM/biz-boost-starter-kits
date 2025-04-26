@@ -1,7 +1,8 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { getCurrentUser, signOut } from '@/utils/supabase';
+import { getCurrentUser, signOut as supabaseSignOut } from '@/utils/supabase';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextProps {
   user: User | null;
@@ -23,6 +24,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     async function loadUser() {
@@ -33,7 +35,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (data?.user) {
           setUser(data.user);
           // Fix: Only access session if available in the return data
-          // TypeScript error was happening because session wasn't defined in the return type
           if ('session' in data) {
             setSession(data.session as Session);
           } else {
@@ -57,11 +58,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleSignOut = async () => {
     try {
-      await signOut();
+      await supabaseSignOut();
       setUser(null);
       setSession(null);
-    } catch (error) {
+      return Promise.resolve();
+    } catch (error: any) {
       console.error('Error signing out:', error);
+      toast({
+        title: "Error signing out",
+        description: error.message || "An unknown error occurred",
+        variant: "destructive",
+      });
+      return Promise.reject(error);
     }
   };
 

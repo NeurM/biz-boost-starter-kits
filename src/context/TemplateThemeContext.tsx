@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { getWebsiteConfig, saveWebsiteConfig } from '@/utils/supabase';
 
 interface TemplateThemeContextProps {
@@ -50,7 +50,7 @@ const TemplateThemeContext = createContext<TemplateThemeContextProps>({
 export const useTemplateTheme = () => useContext(TemplateThemeContext);
 
 export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Handle the case where this component might be used outside of a router context
+  // Default to empty pathname
   let pathname = '/';
   try {
     // Only use useLocation if we're in a router context
@@ -137,8 +137,8 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   const undoTemplateColorChange = async () => {
     if (previousTemplateColor || previousSecondaryColor) {
       const defaultColors = getDefaultColors(templateType);
-      setTemplateColor(defaultColors.primary);
-      setSecondaryColor(defaultColors.secondary);
+      setTemplateColor(previousTemplateColor || defaultColors.primary);
+      setSecondaryColor(previousSecondaryColor || defaultColors.secondary);
       setPreviousTemplateColor(null);
       setPreviousSecondaryColor(null);
       
@@ -151,8 +151,8 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
               company_name: config.company_name,
               domain_name: config.domain_name,
               logo: config.logo,
-              color_scheme: defaultColors.primary,
-              secondary_color_scheme: defaultColors.secondary
+              color_scheme: previousTemplateColor || defaultColors.primary,
+              secondary_color_scheme: previousSecondaryColor || defaultColors.secondary
             });
           }
         } catch (error) {
@@ -196,6 +196,22 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [templateType]);
   
   const getColorClasses = (primaryColor: string, secondaryColor: string) => {
+    // For Clean Slate template, use special handling
+    if (templateType === 'cleanslate') {
+      return {
+        bg: `bg-black`,
+        text: `text-black`,
+        hover: `hover:bg-gray-800`,
+        muted: `text-gray-700`,
+        border: `border-black`,
+        secondaryBg: `bg-gray-600`,
+        secondaryText: `text-gray-600`,
+        secondaryHover: `hover:bg-gray-700`,
+        secondaryMuted: `text-gray-500`,
+        secondaryBorder: `border-gray-600`,
+      };
+    }
+    
     return {
       bg: `bg-${primaryColor}-600`,
       text: `text-${primaryColor}-600`,
