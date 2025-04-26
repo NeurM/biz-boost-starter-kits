@@ -7,6 +7,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import SavedWebsites from "./pages/SavedWebsites";
 import Dashboard from "./pages/Dashboard";
+import Templates from "./pages/Templates";
 
 // Import routes from route files
 import { tradecraftRoutes } from "./routes/tradecraftRoutes";
@@ -38,6 +39,10 @@ const baseRoutes: RouteConfig[] = [
   {
     path: "/",
     element: <Index />,
+  },
+  {
+    path: "/templates",
+    element: <Templates />,
   },
   {
     path: "/dashboard",

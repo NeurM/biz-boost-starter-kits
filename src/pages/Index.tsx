@@ -19,6 +19,7 @@ const Index = () => {
   
   const navItems = [
     { name: "Home", path: "/" },
+    { name: "Templates", path: "/templates" },
   ];
   
   const contactInfo = {
@@ -70,9 +71,9 @@ const Index = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { name: "Tradecraft", desc: "Perfect for trade businesses", path: "/templates/tradecraft", bg: "bg-blue-50" },
-              { name: "Retail Ready", desc: "Ideal for retail stores", path: "/templates/retail", bg: "bg-purple-50" },
-              { name: "Service Pro", desc: "For service-based businesses", path: "/templates/service", bg: "bg-teal-50" }
+              { name: "Tradecraft", desc: "Perfect for trade businesses", path: "/templates", bg: "bg-blue-50" },
+              { name: "Retail Ready", desc: "Ideal for retail stores", path: "/templates", bg: "bg-purple-50" },
+              { name: "Service Pro", desc: "For service-based businesses", path: "/templates", bg: "bg-teal-50" }
             ].map((template, i) => (
               <Card key={i} className="overflow-hidden hover:shadow-md transition-shadow">
                 <CardContent className="p-0">
@@ -89,6 +90,12 @@ const Index = () => {
                 </CardContent>
               </Card>
             ))}
+          </div>
+          
+          <div className="text-center mt-8">
+            <Button asChild onClick={() => trackEvent('Homepage', 'All Templates Click')}>
+              <Link to="/templates">View All Templates</Link>
+            </Button>
           </div>
         </div>
       </section>

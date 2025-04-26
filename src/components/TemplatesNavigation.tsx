@@ -51,6 +51,9 @@ const TemplatesNavigation = () => {
             <Link to="/dashboard" className="text-gray-600 hover:text-gray-900">
               Dashboard
             </Link>
+            <Link to="/templates" className="text-gray-600 hover:text-gray-900">
+              Templates
+            </Link>
             <Link to="/saved-websites" className="text-gray-600 hover:text-gray-900">
               Saved Websites
             </Link>
