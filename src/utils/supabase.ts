@@ -36,7 +36,14 @@ export const signUp = async (email: string, password: string) => {
       email,
       password,
     });
-    await logApiCall('/auth/sign-up', 'POST', { email }, response.data, response.error);
+    
+    // Handle both successful and error cases
+    if (response.error) {
+      await logApiCall('/auth/sign-up', 'POST', { email }, null, response.error);
+      throw response.error;
+    }
+    
+    await logApiCall('/auth/sign-up', 'POST', { email }, response.data, null);
     return response;
   } catch (error) {
     await logApiCall('/auth/sign-up', 'POST', { email }, null, error as Error);
@@ -69,7 +76,13 @@ export const signIn = async (email: string, password: string) => {
 export const signOut = async () => {
   try {
     const response = await supabase.auth.signOut();
-    await logApiCall('/auth/sign-out', 'POST', null, response.data, response.error);
+    
+    if (response.error) {
+      await logApiCall('/auth/sign-out', 'POST', null, null, response.error);
+      throw response.error;
+    }
+    
+    await logApiCall('/auth/sign-out', 'POST', null, response.data, null);
     return response;
   } catch (error) {
     await logApiCall('/auth/sign-out', 'POST', null, null, error as Error);
@@ -80,7 +93,13 @@ export const signOut = async () => {
 export const getCurrentUser = async () => {
   try {
     const response = await supabase.auth.getUser();
-    await logApiCall('/auth/user', 'GET', null, response.data, response.error);
+    
+    if (response.error) {
+      await logApiCall('/auth/user', 'GET', null, null, response.error);
+      throw response.error;
+    }
+    
+    await logApiCall('/auth/user', 'GET', null, response.data, null);
     return response;
   } catch (error) {
     await logApiCall('/auth/user', 'GET', null, null, error as Error);
