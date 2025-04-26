@@ -6,6 +6,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import SavedWebsites from "./pages/SavedWebsites";
+import Dashboard from "./pages/Dashboard";
 
 // Import routes from route files
 import { tradecraftRoutes } from "./routes/tradecraftRoutes";
@@ -39,6 +40,10 @@ const baseRoutes: RouteConfig[] = [
     element: <Index />,
   },
   {
+    path: "/dashboard",
+    element: <Dashboard />,
+  },
+  {
     path: "/saved-websites",
     element: <SavedWebsites />,
   },
@@ -63,12 +68,10 @@ const baseRoutes: RouteConfig[] = [
 // Process template routes to add Suspense boundaries
 const processRoutes = (routes: RouteConfig[]): RouteConfig[] => {
   return routes.map(route => {
-    // Skip if element is not a valid React element (string, number, etc.)
     if (!React.isValidElement(route.element)) {
       return route;
     }
     
-    // If element already has Suspense boundary or is not a lazy component, leave it alone
     const elementType = route.element.type;
     if (elementType === SuspenseWrapper || 
         (typeof elementType === 'function' && 
@@ -76,7 +79,6 @@ const processRoutes = (routes: RouteConfig[]): RouteConfig[] => {
       return route;
     }
     
-    // Add Suspense boundary to lazy-loaded components
     return {
       ...route,
       element: <SuspenseWrapper>{route.element}</SuspenseWrapper>

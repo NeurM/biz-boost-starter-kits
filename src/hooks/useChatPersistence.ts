@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -85,11 +84,9 @@ export const useChatPersistence = (
     const saveMessages = async () => {
       if (!user || messages.length === 0) return;
 
-      // Get the last message
       const lastMessage = messages[messages.length - 1];
       
       try {
-        // Convert websiteStatus to Json compatible format before saving
         const websiteData = websiteStatus.isCreated ? 
           JSON.parse(JSON.stringify(websiteStatus)) as Json : 
           null;
@@ -105,7 +102,6 @@ export const useChatPersistence = (
       }
     };
 
-    // Only save if the user is logged in and there are messages
     if (user && messages.length > 0) {
       saveMessages();
     }

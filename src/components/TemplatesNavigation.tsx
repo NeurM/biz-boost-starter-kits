@@ -1,54 +1,96 @@
-
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { cn } from "@/lib/utils";
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import { signOut } from '@/utils/supabase';
+import { useToast } from "@/hooks/use-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useLanguage } from '@/context/LanguageContext';
 
 const TemplatesNavigation = () => {
-  const location = useLocation();
-  const currentPath = location.pathname;
-  
-  const templates = [
-    { id: 'cleanslate', name: 'Clean Slate' },
-    { id: 'tradecraft', name: 'Tradecraft' },
-    { id: 'retail', name: 'Retail Ready' },
-    { id: 'service', name: 'Service Pro' },
-    { id: 'expert', name: 'Local Expert' },
-  ];
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const { currentLanguage, setLanguage } = useLanguage();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    try {
+      await signOut();
+      toast({
+        title: "Signed out",
+        description: "You have been successfully signed out.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error signing out",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
 
   return (
-    <div className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <nav className="bg-white border-b">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-14">
-          <div className="flex space-x-6 overflow-x-auto w-full py-2">
-            <Link 
-              to="/" 
-              className={cn(
-                "px-3 py-2 text-sm font-medium transition-colors",
-                currentPath === "/" 
-                  ? "text-primary border-b-2 border-primary font-bold" 
-                  : "text-gray-600 hover:text-gray-900"
-              )}
-            >
-              Home
+        <div className="flex justify-between items-center h-16">
+          <div className="flex items-center space-x-4">
+            <Link to="/" className="text-xl font-bold">
+              Website Builder
             </Link>
-            {templates.map((template) => (
-              <Link
-                key={template.id}
-                to={`/${template.id}`}
-                className={cn(
-                  "px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap",
-                  currentPath.startsWith(`/${template.id}`)
-                    ? "text-primary border-b-2 border-primary font-bold"
-                    : "text-gray-600 hover:text-gray-900"
-                )}
-              >
-                {template.name}
-              </Link>
-            ))}
+            <Link to="/dashboard" className="text-gray-600 hover:text-gray-900">
+              Dashboard
+            </Link>
+            <Link to="/saved-websites" className="text-gray-600 hover:text-gray-900">
+              Saved Websites
+            </Link>
+          </div>
+          <div className="flex items-center space-x-4">
+            <select
+              value={currentLanguage}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="border rounded px-2 py-1"
+            >
+              <option value="en">English</option>
+              <option value="es">Español</option>
+              <option value="fr">Français</option>
+            </select>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <Avatar>
+                    <AvatarImage src={user.user_metadata?.avatar_url || ""} />
+                    <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem disabled={isSigningOut} onClick={handleSignOut}>
+                    {isSigningOut ? "Signing out..." : "Sign out"}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Link to="/auth" className="text-gray-600 hover:text-gray-900">
+                  Sign In
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
-    </div>
+    </nav>
   );
 };
 
