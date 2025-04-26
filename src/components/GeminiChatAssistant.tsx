@@ -1,13 +1,21 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageCircle, Send, X, Minimize2, Maximize2 } from "lucide-react";
+import { MessageCircle, Send, X, Minimize2, Maximize2, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
 
 interface Message {
   content: string;
   isUser: boolean;
+}
+
+interface WebsiteStatus {
+  isCreated: boolean;
+  template: string | null;
+  path: string | null;
 }
 
 const GeminiChatAssistant = () => {
@@ -16,6 +24,11 @@ const GeminiChatAssistant = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [websiteStatus, setWebsiteStatus] = useState<WebsiteStatus>({
+    isCreated: false,
+    template: null,
+    path: null
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
@@ -26,6 +39,70 @@ const GeminiChatAssistant = () => {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
+
+  // Monitor messages for website creation indicators
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (!lastMessage.isUser) {
+        // Check for template selection confirmation in AI responses
+        const cleanSlateMatch = lastMessage.content.match(/clean slate/i);
+        const tradecraftMatch = lastMessage.content.match(/tradecraft/i);
+        const retailReadyMatch = lastMessage.content.match(/retail ready/i);
+        const serviceProMatch = lastMessage.content.match(/service pro/i);
+        const localExpertMatch = lastMessage.content.match(/local expert/i);
+        
+        const websiteCreationIndicators = [
+          "Your website has been created",
+          "website is ready",
+          "You can now view your website",
+          "successfully created your website"
+        ];
+        
+        const isWebsiteCreated = websiteCreationIndicators.some(indicator => 
+          lastMessage.content.toLowerCase().includes(indicator.toLowerCase())
+        );
+        
+        if (isWebsiteCreated) {
+          let template = websiteStatus.template;
+          
+          // If template wasn't set yet, try to determine it from the message
+          if (!template) {
+            if (cleanSlateMatch) template = "cleanslate";
+            else if (tradecraftMatch) template = "tradecraft";
+            else if (retailReadyMatch) template = "retail";
+            else if (serviceProMatch) template = "service";
+            else if (localExpertMatch) template = "expert";
+            else template = "cleanslate"; // Default to Clean Slate
+          }
+          
+          setWebsiteStatus({
+            isCreated: true,
+            template,
+            path: `/${template}`
+          });
+          
+          toast({
+            title: "Website Created!",
+            description: "Your website is ready to view.",
+          });
+        } else if (!websiteStatus.template) {
+          // If just the template is mentioned but website not created yet
+          if (cleanSlateMatch) {
+            setWebsiteStatus(prev => ({ ...prev, template: "cleanslate" }));
+          } else if (tradecraftMatch) {
+            setWebsiteStatus(prev => ({ ...prev, template: "tradecraft" }));
+          } else if (retailReadyMatch) {
+            setWebsiteStatus(prev => ({ ...prev, template: "retail" }));
+          } else if (serviceProMatch) {
+            setWebsiteStatus(prev => ({ ...prev, template: "service" }));
+          } else if (localExpertMatch) {
+            setWebsiteStatus(prev => ({ ...prev, template: "expert" }));
+          }
+        }
+      }
+    }
+  }, [messages, toast, websiteStatus.template]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +128,9 @@ Guide users through:
 - Best practices for website structure
 - Color scheme and branding advice
 
-Always provide agency-focused guidance, not end-user website visitor support. You're helping the agency build websites for their clients.`;
+Always provide agency-focused guidance, not end-user website visitor support. You're helping the agency build websites for their clients.
+
+IMPORTANT: After 2-3 exchanges where the user has selected a template and discussed customizations, conclude by saying "Your website has been created based on our conversation! You can now view your website by clicking the View Website button below." This will trigger the website viewing functionality.`;
 
     try {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
@@ -117,6 +196,19 @@ Always provide agency-focused guidance, not end-user website visitor support. Yo
   const toggleChat = () => {
     setIsOpen(!isOpen);
     setIsMinimized(false);
+  };
+
+  const resetWebsite = () => {
+    setWebsiteStatus({
+      isCreated: false,
+      template: null,
+      path: null
+    });
+    setMessages([]);
+    toast({
+      title: "Website Reset",
+      description: "You can now start creating a new website."
+    });
   };
 
   if (!isOpen) {
@@ -202,6 +294,16 @@ Always provide agency-focused guidance, not end-user website visitor support. Yo
                 </div>
               </div>
             )}
+            {websiteStatus.isCreated && websiteStatus.path && (
+              <div className="flex justify-center my-4">
+                <Button asChild className="flex gap-2 items-center" variant="dynamic">
+                  <Link to={websiteStatus.path}>
+                    <ExternalLink className="h-4 w-4" />
+                    View Your Website
+                  </Link>
+                </Button>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
           <form onSubmit={handleSubmit} className="flex gap-2">
@@ -219,6 +321,17 @@ Always provide agency-focused guidance, not end-user website visitor support. Yo
               <Send className="h-4 w-4" />
             </Button>
           </form>
+          {websiteStatus.isCreated && (
+            <div className="mt-3 text-right">
+              <Button 
+                onClick={resetWebsite}
+                variant="outline"
+                size="sm"
+              >
+                Create New Website
+              </Button>
+            </div>
+          )}
         </CardContent>
       )}
     </Card>
