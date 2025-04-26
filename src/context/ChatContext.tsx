@@ -61,7 +61,9 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     }
   };
 
+  // Initialize chat with appropriate message based on user auth state
   useEffect(() => {
+    // Only initialize with welcome message if there are no messages yet
     if (messages.length === 0) {
       const initialMessage: Message = user ? 
         {
@@ -76,6 +78,29 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
       setMessages([initialMessage]);
     }
   }, [user, messages.length]);
+  
+  // Watch for authentication changes and update chat accordingly
+  useEffect(() => {
+    if (messages.length > 0) {
+      // If auth status changes while chat has messages, update the first message
+      // or add a notification that authentication status changed
+      if (user && messages[0].content.includes("To create a website, you'll need to sign up or log in")) {
+        const updatedMessages = [...messages];
+        updatedMessages[0] = {
+          content: "Welcome agency partner! I'm here to help you create and improve websites for your clients. Let me know what type of business site you're building, and I'll guide you through template selection and customization.",
+          isUser: false
+        };
+        setMessages(updatedMessages);
+      } else if (!user && messages[0].content.includes("Welcome agency partner!")) {
+        const updatedMessages = [...messages];
+        updatedMessages[0] = {
+          content: "Welcome! I can help you explore our website templates and answer any questions you might have about our services. To create a website, you'll need to sign up or log in.",
+          isUser: false
+        };
+        setMessages(updatedMessages);
+      }
+    }
+  }, [user, messages]);
   
   const resetChat = () => {
     sessionStorage.removeItem('companyData');

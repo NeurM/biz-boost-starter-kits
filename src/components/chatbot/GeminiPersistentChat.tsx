@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +33,21 @@ const GeminiPersistentChat = () => {
   
   // Define the API key as a constant in the component
   const apiKey = "AIzaSyAUQZFNXyvEfsiaFTawgiyNq7aJyV8KzgE";
+  
+  // Check and update auth state when component mounts or when user changes
+  useEffect(() => {
+    if (messages.length > 0 && user) {
+      // If user is logged in and the first message suggests they need to log in, update it
+      if (messages[0].content.includes("To create a website, you'll need to sign up or log in")) {
+        const updatedMessages = [...messages];
+        updatedMessages[0] = {
+          content: "Welcome agency partner! I'm here to help you create and improve websites for your clients. Let me know what type of business site you're building, and I'll guide you through template selection and customization.",
+          isUser: false
+        };
+        setMessages(updatedMessages);
+      }
+    }
+  }, [user, messages, setMessages]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,6 +87,8 @@ const GeminiPersistentChat = () => {
 5. Local Expert - For local professionals with amber & gold theme
 
 IMPORTANT: DO NOT make up responses from the user. Wait for actual user input before responding. Do not provide sample responses or pretend to be waiting for a response. Always engage with what the user has actually typed.
+
+The user is already logged in as an agency partner. They don't need to sign up or log in again.
 
 Guide users through template selection, customization, and branding. After gathering sufficient information about their business and preferences, conclude by saying "Your website has been created! You can now view your website by clicking the View Website button below." Include key details like: company name: "Business Name", domain: "domain.com", logo: "logo-url" in your response to trigger website creation.`
       : `You are a helpful assistant for visitors to our website creation platform. You help visitors understand our website template offerings:
