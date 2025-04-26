@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -65,13 +66,13 @@ export const useChatPersistence = (
 
     if (showChatHistory) {
       loadMessages();
-    } else if (user && messages.length === 0) {
+    } else if (user && (!messages || messages.length === 0)) {
       // If not showing history, just show welcome message
       setMessages([{
         content: "Welcome agency partner! I'm here to help you create and improve websites for your clients. Let me know what type of business site you're building, and I'll guide you through template selection and customization.",
         isUser: false
       }]);
-    } else if (!user && messages.length === 0) {
+    } else if (!user && (!messages || messages.length === 0)) {
       setMessages([{
         content: "Welcome! I can help you explore our website templates and answer any questions you might have about our services. To create a website, you'll need to sign up or log in.",
         isUser: false
@@ -82,7 +83,7 @@ export const useChatPersistence = (
   // Save messages to Supabase when they change
   useEffect(() => {
     const saveMessages = async () => {
-      if (!user || messages.length === 0) return;
+      if (!user || !messages || messages.length === 0) return;
 
       const lastMessage = messages[messages.length - 1];
       
@@ -102,10 +103,10 @@ export const useChatPersistence = (
       }
     };
 
-    if (user && messages.length > 0) {
+    if (user && messages && messages.length > 0) {
       saveMessages();
     }
-  }, [messages.length]);
+  }, [messages?.length]);
 
   return null;
 };

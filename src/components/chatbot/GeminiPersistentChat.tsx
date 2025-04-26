@@ -43,7 +43,8 @@ const GeminiPersistentChat = () => {
   
   // Check and update auth state when component mounts or when user changes
   useEffect(() => {
-    if (messages.length > 0 && user) {
+    // Add null/undefined check for messages
+    if (messages && messages.length > 0 && user) {
       // If user is logged in and the first message suggests they need to log in, update it
       if (messages[0].content.includes("To create a website, you'll need to sign up or log in")) {
         const updatedMessages = [...messages];
@@ -332,7 +333,7 @@ Explain the benefits of our templates and encourage visitors to sign up to creat
       </CardHeader>
       {!isMinimized && (
         <CardContent>
-          <MessageList messages={messages} isLoading={isLoading} />
+          <MessageList messages={messages || []} isLoading={isLoading} />
           {user && websiteStatus.isCreated && (
             <WebsiteBuilder 
               websiteStatus={websiteStatus}

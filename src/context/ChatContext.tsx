@@ -32,6 +32,7 @@ interface ChatProviderProps {
 }
 
 export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
+  // Initialize messages with an empty array to prevent undefined
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -62,6 +63,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     }
   };
 
+  // Safely initialize with default messages if needed
   useEffect(() => {
     if (messages.length === 0 || (user && messages[0].content.includes("sign up or log in"))) {
       const initialMessage: Message = user ? 
@@ -78,6 +80,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     }
   }, [user, showChatHistory]);
 
+  // Update messages based on auth state
   useEffect(() => {
     if (messages.length > 0) {
       if (user && messages[0].content.includes("To create a website, you'll need to sign up or log in")) {
@@ -125,6 +128,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     setShowChatHistory(false);
   };
 
+  // Save chat state to session storage
   useEffect(() => {
     if (isMinimized) {
       sessionStorage.setItem('chatState', JSON.stringify({
@@ -137,23 +141,30 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     }
   }, [isMinimized, messages, isOpen, websiteStatus, showChatHistory]);
 
+  // Restore chat state from session storage
   useEffect(() => {
     const savedState = sessionStorage.getItem('chatState');
     if (savedState) {
-      const { 
-        messages: savedMessages, 
-        isOpen: savedIsOpen, 
-        isMinimized: savedIsMinimized, 
-        websiteStatus: savedWebsiteStatus,
-        showChatHistory: savedShowChatHistory
-      } = JSON.parse(savedState);
-      
-      setMessages(savedMessages);
-      setIsOpen(savedIsOpen);
-      setIsMinimized(savedIsMinimized);
-      setWebsiteStatus(savedWebsiteStatus);
-      setShowChatHistory(savedShowChatHistory || false);
-      sessionStorage.removeItem('chatState');
+      try {
+        const { 
+          messages: savedMessages, 
+          isOpen: savedIsOpen, 
+          isMinimized: savedIsMinimized, 
+          websiteStatus: savedWebsiteStatus,
+          showChatHistory: savedShowChatHistory
+        } = JSON.parse(savedState);
+        
+        if (savedMessages && Array.isArray(savedMessages)) {
+          setMessages(savedMessages);
+        }
+        setIsOpen(savedIsOpen);
+        setIsMinimized(savedIsMinimized);
+        setWebsiteStatus(savedWebsiteStatus);
+        setShowChatHistory(savedShowChatHistory || false);
+        sessionStorage.removeItem('chatState');
+      } catch (error) {
+        console.error("Error parsing chat state from session storage:", error);
+      }
     }
   }, []);
 
