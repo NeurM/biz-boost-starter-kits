@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import MessageList from './chatbot/MessageList';
 import WebsiteBuilder from './chatbot/WebsiteBuilder';
 import { Message, WebsiteStatus } from './chatbot/types';
+import { saveWebsiteConfig } from '@/utils/supabase';
 
 const GeminiChatAssistant = () => {
   const [messages, setMessages] = useState<Message[]>([]);
