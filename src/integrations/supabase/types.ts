@@ -17,6 +17,7 @@ export type Database = {
           domain_name: string
           id: string
           logo: string
+          secondary_color_scheme: string | null
           template_id: string
           updated_at: string
           user_id: string | null
@@ -28,6 +29,7 @@ export type Database = {
           domain_name: string
           id?: string
           logo: string
+          secondary_color_scheme?: string | null
           template_id: string
           updated_at?: string
           user_id?: string | null
@@ -39,6 +41,7 @@ export type Database = {
           domain_name?: string
           id?: string
           logo?: string
+          secondary_color_scheme?: string | null
           template_id?: string
           updated_at?: string
           user_id?: string | null

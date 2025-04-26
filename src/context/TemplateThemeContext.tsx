@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getWebsiteConfig, saveWebsiteConfig } from '@/utils/supabase';
@@ -89,7 +88,10 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
         const { data: config } = await getWebsiteConfig(templateType);
         if (config) {
           await saveWebsiteConfig({
-            ...config,
+            template_id: templateType,
+            company_name: config.company_name,
+            domain_name: config.domain_name,
+            logo: config.logo,
             color_scheme: color,
             secondary_color_scheme: secondaryColor
           });
@@ -109,7 +111,10 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
         const { data: config } = await getWebsiteConfig(templateType);
         if (config) {
           await saveWebsiteConfig({
-            ...config,
+            template_id: templateType,
+            company_name: config.company_name,
+            domain_name: config.domain_name,
+            logo: config.logo,
             color_scheme: templateColor,
             secondary_color_scheme: color
           });
@@ -133,7 +138,10 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
           const { data: config } = await getWebsiteConfig(templateType);
           if (config) {
             await saveWebsiteConfig({
-              ...config,
+              template_id: templateType,
+              company_name: config.company_name,
+              domain_name: config.domain_name,
+              logo: config.logo,
               color_scheme: defaultColors.primary,
               secondary_color_scheme: defaultColors.secondary
             });

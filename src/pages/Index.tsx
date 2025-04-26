@@ -230,13 +230,15 @@ const Index = () => {
       }
     }
 
-    navigate(`/${templateId}`, { state: { 
-      companyName, 
-      domainName, 
-      logo,
-      colorScheme,
-      secondaryColorScheme
-    }});
+    navigate(`/${templateId}`, { 
+      state: { 
+        companyName, 
+        domainName, 
+        logo,
+        colorScheme,
+        secondaryColorScheme
+      }
+    });
   };
 
   const handleViewTemplate = (templateId: string) => {
