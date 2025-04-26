@@ -59,7 +59,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   };
 
   useEffect(() => {
-    if (messages.length === 0) {
+    if (messages.length === 0 || (user && messages[0].content.includes("sign up or log in"))) {
       const initialMessage: Message = user ? 
         {
           content: "Welcome agency partner! I'm here to help you create and improve websites for your clients. Let me know what type of business site you're building, and I'll guide you through template selection and customization.",
@@ -72,8 +72,8 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
       
       setMessages([initialMessage]);
     }
-  }, [user, messages.length]);
-  
+  }, [user]);
+
   useEffect(() => {
     if (messages.length > 0) {
       if (user && messages[0].content.includes("To create a website, you'll need to sign up or log in")) {
@@ -109,11 +109,11 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     
     const initialMessage: Message = user ? 
       {
-        content: "Chat reset. What kind of website would you like to create now?",
+        content: "Welcome agency partner! What kind of website would you like to create now?",
         isUser: false
       } : 
       {
-        content: "Chat reset. How can I help you today?",
+        content: "Welcome! How can I help you today?",
         isUser: false
       };
     

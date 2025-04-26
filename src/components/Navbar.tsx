@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation } from "react-router-dom";
 import NavLogo from './navbar/NavLogo';
@@ -6,6 +5,7 @@ import DesktopNav from './navbar/DesktopNav';
 import MobileNav from './navbar/MobileNav';
 import MobileMenuButton from './navbar/MobileMenuButton';
 import UserMenu from './UserMenu';
+import LanguageSelector from './navbar/LanguageSelector';
 
 interface NavItem {
   name: string;
@@ -39,26 +39,20 @@ const Navbar = ({
     logo?: string;
   } | null>(null);
   
-  // Determine if this is a template navbar
   const isTemplate = basePath && ["expert", "tradecraft", "retail", "service"].includes(basePath);
   
-  // Close mobile menu on route change
   useEffect(() => {
     setIsOpen(false);
   }, [location.pathname]);
   
   useEffect(() => {
-    // Always force template names for template pages
-    // This keeps templates looking like templates regardless of login status
     setCompanyData(null);
   }, [location]);
   
   const isActive = (path: string) => {
-    // For hash links
     if (path.startsWith('#')) {
       return location.hash === path;
     }
-    // For regular links
     return location.pathname === path || 
       (path !== `/${basePath}` && location.pathname.startsWith(path));
   };
@@ -76,11 +70,10 @@ const Navbar = ({
               logo={logo}
               basePath={basePath}
               companyData={companyData}
-              forceTemplateName={true} // Always force template name
+              forceTemplateName={true}
             />
           </div>
 
-          {/* Desktop navigation */}
           <div className="hidden md:flex md:items-center md:space-x-4">
             <DesktopNav 
               navItems={navItems}
@@ -88,16 +81,17 @@ const Navbar = ({
               ctaLink={ctaLink}
               isActive={isActive}
               companyData={companyData}
-              forceTemplateName={true} // Always force template name
+              forceTemplateName={true}
             />
             
-            {/* Only show main UserMenu in main navbar (not in templates) */}
-            {!isTemplate && <UserMenu />}
+            <div className="flex items-center space-x-4">
+              <LanguageSelector />
+              {!isTemplate && <UserMenu />}
+            </div>
           </div>
 
-          {/* Mobile menu button and user menu */}
           <div className="md:hidden flex items-center space-x-2">
-            {/* Only show main UserMenu in main navbar (not in templates) */}
+            <LanguageSelector />
             {!isTemplate && <UserMenu />}
             <MobileMenuButton 
               isOpen={isOpen}
@@ -107,7 +101,6 @@ const Navbar = ({
         </div>
       </div>
 
-      {/* Mobile menu */}
       <MobileNav 
         isOpen={isOpen}
         navItems={navItems}
@@ -115,7 +108,7 @@ const Navbar = ({
         ctaLink={ctaLink}
         isActive={isActive}
         companyData={companyData}
-        forceTemplateName={true} // Always force template name
+        forceTemplateName={true}
         onNavClick={closeMenu}
       />
     </nav>
