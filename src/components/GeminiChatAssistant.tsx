@@ -1,11 +1,12 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageCircle, Send, X, Minimize2, Maximize2, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { saveWebsiteConfig } from '@/utils/supabase';
 
 interface Message {
   content: string;
@@ -16,6 +17,11 @@ interface WebsiteStatus {
   isCreated: boolean;
   template: string | null;
   path: string | null;
+  companyName: string | null;
+  domainName: string | null;
+  logo: string | null;
+  colorScheme: string | null;
+  secondaryColorScheme: string | null;
 }
 
 const GeminiChatAssistant = () => {
@@ -27,10 +33,16 @@ const GeminiChatAssistant = () => {
   const [websiteStatus, setWebsiteStatus] = useState<WebsiteStatus>({
     isCreated: false,
     template: null,
-    path: null
+    path: null,
+    companyName: null,
+    domainName: null,
+    logo: null,
+    colorScheme: null,
+    secondaryColorScheme: null
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const apiKey = "AIzaSyAUQZFNXyvEfsiaFTawgiyNq7aJyV8KzgE";
 
@@ -40,12 +52,14 @@ const GeminiChatAssistant = () => {
     }
   }, [messages]);
 
-  // Monitor messages for website creation indicators
   useEffect(() => {
     if (messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
       if (!lastMessage.isUser) {
-        // Check for template selection confirmation in AI responses
+        const companyNameMatch = lastMessage.content.match(/company name:?\s*["']([^"']+)["']/i);
+        const domainMatch = lastMessage.content.match(/domain:?\s*["']([^"']+)["']/i);
+        const logoMatch = lastMessage.content.match(/logo:?\s*["']([^"']+)["']/i);
+        
         const cleanSlateMatch = lastMessage.content.match(/clean slate/i);
         const tradecraftMatch = lastMessage.content.match(/tradecraft/i);
         const retailReadyMatch = lastMessage.content.match(/retail ready/i);
@@ -66,7 +80,6 @@ const GeminiChatAssistant = () => {
         if (isWebsiteCreated) {
           let template = websiteStatus.template;
           
-          // If template wasn't set yet, try to determine it from the message
           if (!template) {
             if (cleanSlateMatch) template = "cleanslate";
             else if (tradecraftMatch) template = "tradecraft";
@@ -75,34 +88,73 @@ const GeminiChatAssistant = () => {
             else if (localExpertMatch) template = "expert";
             else template = "cleanslate"; // Default to Clean Slate
           }
-          
-          setWebsiteStatus({
+
+          const newWebsiteStatus = {
             isCreated: true,
             template,
-            path: `/${template}`
-          });
+            path: `/${template}`,
+            companyName: companyNameMatch ? companyNameMatch[1] : websiteStatus.companyName,
+            domainName: domainMatch ? domainMatch[1] : websiteStatus.domainName,
+            logo: logoMatch ? logoMatch[1] : websiteStatus.logo,
+            colorScheme: websiteStatus.colorScheme,
+            secondaryColorScheme: websiteStatus.secondaryColorScheme
+          };
+          
+          setWebsiteStatus(newWebsiteStatus);
+          
+          const saveConfig = async () => {
+            try {
+              const { data: user } = await supabase.auth.getUser();
+              if (user?.user) {
+                await saveWebsiteConfig({
+                  template_id: template,
+                  company_name: newWebsiteStatus.companyName || '',
+                  domain_name: newWebsiteStatus.domainName || '',
+                  logo: newWebsiteStatus.logo || '',
+                  color_scheme: newWebsiteStatus.colorScheme || undefined,
+                  secondary_color_scheme: newWebsiteStatus.secondaryColorScheme || undefined
+                });
+              }
+            } catch (error) {
+              console.error('Error saving website config:', error);
+            }
+          };
+          
+          saveConfig();
+
+          sessionStorage.setItem('companyData', JSON.stringify({
+            companyName: newWebsiteStatus.companyName,
+            domainName: newWebsiteStatus.domainName,
+            logo: newWebsiteStatus.logo
+          }));
           
           toast({
             title: "Website Created!",
             description: "Your website is ready to view.",
           });
-        } else if (!websiteStatus.template) {
-          // If just the template is mentioned but website not created yet
-          if (cleanSlateMatch) {
-            setWebsiteStatus(prev => ({ ...prev, template: "cleanslate" }));
-          } else if (tradecraftMatch) {
-            setWebsiteStatus(prev => ({ ...prev, template: "tradecraft" }));
-          } else if (retailReadyMatch) {
-            setWebsiteStatus(prev => ({ ...prev, template: "retail" }));
-          } else if (serviceProMatch) {
-            setWebsiteStatus(prev => ({ ...prev, template: "service" }));
-          } else if (localExpertMatch) {
-            setWebsiteStatus(prev => ({ ...prev, template: "expert" }));
+        } else {
+          if (!websiteStatus.template) {
+            let template = null;
+            if (cleanSlateMatch) template = "cleanslate";
+            else if (tradecraftMatch) template = "tradecraft";
+            else if (retailReadyMatch) template = "retail";
+            else if (serviceProMatch) template = "service";
+            else if (localExpertMatch) template = "expert";
+            
+            if (template) {
+              setWebsiteStatus(prev => ({
+                ...prev,
+                template,
+                companyName: companyNameMatch ? companyNameMatch[1] : prev.companyName,
+                domainName: domainMatch ? domainMatch[1] : prev.domainName,
+                logo: logoMatch ? logoMatch[1] : prev.logo
+              }));
+            }
           }
         }
       }
     }
-  }, [messages, toast, websiteStatus.template]);
+  }, [messages, toast, websiteStatus.template, websiteStatus.colorScheme, websiteStatus.secondaryColorScheme]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -199,10 +251,16 @@ IMPORTANT: After 2-3 exchanges where the user has selected a template and discus
   };
 
   const resetWebsite = () => {
+    sessionStorage.removeItem('companyData');
     setWebsiteStatus({
       isCreated: false,
       template: null,
-      path: null
+      path: null,
+      companyName: null,
+      domainName: null,
+      logo: null,
+      colorScheme: null,
+      secondaryColorScheme: null
     });
     setMessages([]);
     toast({
