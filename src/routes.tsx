@@ -1,127 +1,81 @@
 
-import React, { lazy, Suspense } from "react";
-import { RouteObject } from "react-router-dom";
-import { RouteConfig } from "./types/template";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
-import SavedWebsites from "./pages/SavedWebsites";
-import Dashboard from "./pages/Dashboard";
-import Templates from "./pages/Templates";
-import WebsiteEditor from "./pages/WebsiteEditor";
+import React, { lazy, Suspense } from 'react';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { expertRoutes } from './routes/expertRoutes';
+import { tradecraftRoutes } from './routes/tradecraftRoutes';
+import { retailRoutes } from './routes/retailRoutes';
+import { serviceRoutes } from './routes/serviceRoutes';
 
-// Import routes from route files
-import { tradecraftRoutes } from "./routes/tradecraftRoutes";
-import { retailRoutes } from "./routes/retailRoutes";
-import { expertRoutes } from "./routes/expertRoutes";
-import { serviceRoutes } from "./routes/serviceRoutes";
+// Use named imports for components to avoid dynamic imports
+import Index from './pages/Index';
+import Auth from './pages/Auth';
+import Dashboard from './pages/Dashboard';
+import Templates from './pages/Templates';
+import WebsiteEditor from './pages/WebsiteEditor';
+import SavedWebsites from './pages/SavedWebsites';
+import NotFound from './pages/NotFound';
+import CleanSlate from './templates/cleanslate/CleanSlate';
 
-// Lazy load templates
-const CleanSlate = lazy(() => import("./templates/cleanslate/CleanSlate"));
+// Error boundary for Suspense fallbacks
+const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
+  try {
+    return <>{children}</>;
+  } catch (error) {
+    console.error("Error in component:", error);
+    return <div>Something went wrong. Please try refreshing the page.</div>;
+  }
+};
 
-// Export components and data for use in other files
-export { 
-  TemplatePage, 
-  AboutPageComponent, 
-  ServicesPageComponent, 
-  BlogPageComponent, 
-  ContactPageGenericComponent 
-} from "./components/generic/GenericTemplatePages";
-
-// Create a wrapper component for Suspense boundaries
-const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
-  <Suspense fallback={<div className="w-full h-screen flex items-center justify-center">Loading...</div>}>
-    {children}
-  </Suspense>
+// Loading fallback
+const Loading = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+  </div>
 );
 
-// Base routes
-const baseRoutes: RouteConfig[] = [
+export const router = createBrowserRouter([
   {
-    path: "/",
+    path: '/',
     element: <Index />,
   },
   {
-    path: "/templates",
-    element: <Templates />,
-  },
-  {
-    path: "/dashboard",
-    element: <Dashboard />,
-  },
-  {
-    path: "/saved-websites",
-    element: <SavedWebsites />,
-  },
-  {
-    path: "/auth",
+    path: '/auth',
     element: <Auth />,
   },
   {
-    path: "/cleanslate",
+    path: '/dashboard',
     element: (
-      <SuspenseWrapper>
-        <CleanSlate />
-      </SuspenseWrapper>
+      <ErrorBoundary>
+        <Suspense fallback={<Loading />}>
+          <Dashboard />
+        </Suspense>
+      </ErrorBoundary>
     ),
   },
-  // Add website editor route for each template type
   {
-    path: "/cleanslate/edit",
-    element: <WebsiteEditor template="cleanslate" />,
+    path: '/templates',
+    element: <Templates />,
   },
   {
-    path: "/tradecraft/edit",
-    element: <WebsiteEditor template="tradecraft" />,
+    path: '/editor/:template',
+    element: <WebsiteEditor />,
   },
   {
-    path: "/retail/edit",
-    element: <WebsiteEditor template="retail" />,
-  }, 
-  {
-    path: "/service/edit",
-    element: <WebsiteEditor template="service" />,
+    path: '/websites',
+    element: <SavedWebsites />,
   },
   {
-    path: "/expert/edit",
-    element: <WebsiteEditor template="expert" />,
+    path: '/cleanslate/*',
+    element: <CleanSlate />,
   },
+  ...expertRoutes,
+  ...tradecraftRoutes,
+  ...retailRoutes,
+  ...serviceRoutes,
   {
-    path: "*",
-    element: <NotFound />,
-  },
-];
+    path: '*',
+    element: <NotFound />
+  }
+]);
 
-// Process template routes to add Suspense boundaries
-const processRoutes = (routes: RouteConfig[]): RouteConfig[] => {
-  return routes.map(route => {
-    // Ensure route has a path
-    if (!route.path) return route;
-    
-    // Ensure route has an element
-    if (!React.isValidElement(route.element)) {
-      return route;
-    }
-    
-    const elementType = route.element.type;
-    if (elementType === SuspenseWrapper || 
-        (typeof elementType === 'function' && 
-         elementType.name !== 'lazy')) {
-      return route;
-    }
-    
-    return {
-      ...route,
-      element: <SuspenseWrapper>{route.element}</SuspenseWrapper>
-    };
-  });
-};
-
-// Combine all routes with proper Suspense boundaries
-export const routes: RouteObject[] = [
-  ...baseRoutes,
-  ...processRoutes(tradecraftRoutes),
-  ...processRoutes(retailRoutes),
-  ...processRoutes(expertRoutes),
-  ...processRoutes(serviceRoutes),
-];
+export default router;
