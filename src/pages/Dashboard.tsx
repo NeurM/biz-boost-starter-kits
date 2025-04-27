@@ -3,9 +3,9 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
-import { WebsiteAnalyticsChart } from "@/components/dashboard/WebsiteAnalyticsChart";
-import { WebsiteVisitAnalytics } from "@/components/dashboard/WebsiteVisitAnalytics";
 import { ApiAnalyticsChart } from "@/components/dashboard/ApiAnalyticsChart";
+import { WebsiteAnalyticsChart } from "@/components/dashboard/WebsiteAnalyticsChart";
+import WebsiteVisitAnalytics from "@/components/dashboard/WebsiteVisitAnalytics";
 import GlobalAppNavbar from '@/components/GlobalAppNavbar';
 
 const Dashboard = () => {
