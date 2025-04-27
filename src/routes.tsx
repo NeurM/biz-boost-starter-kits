@@ -1,3 +1,4 @@
+
 import React, { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate, useParams } from 'react-router-dom';
 import { expertRoutes } from './routes/expertRoutes';
@@ -5,7 +6,7 @@ import { tradecraftRoutes } from './routes/tradecraftRoutes';
 import { retailRoutes } from './routes/retailRoutes';
 import { serviceRoutes } from './routes/serviceRoutes';
 
-// Use named imports for components to avoid dynamic imports
+// Use direct imports instead of dynamic imports for core pages
 import Index from './pages/Index';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
@@ -33,7 +34,7 @@ const Loading = () => (
 );
 
 // Website Editor Wrapper component that gets the template from URL params
-const EditorWrapper = () => {
+const EditorWrapper: React.FC = () => {
   const { template } = useParams<{ template: string }>();
   return <WebsiteEditor template={template || ''} />;
 };

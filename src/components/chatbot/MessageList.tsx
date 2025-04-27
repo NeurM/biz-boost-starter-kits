@@ -39,7 +39,7 @@ const MessageList = ({ messages, isLoading }: MessageListProps) => {
                 : 'bg-muted text-foreground'
             }`}
           >
-            {msg.content}
+            {typeof msg.content === 'string' ? msg.content : 'Message content unavailable'}
           </div>
         </div>
       ))}

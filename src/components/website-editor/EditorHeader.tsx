@@ -21,10 +21,28 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
   onPublish,
   isSaving
 }) => {
+  const handleSave = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onSave();
+  };
+
+  const handlePublish = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onPublish();
+  };
+
+  const handleBack = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onBack();
+  };
+
   return (
     <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
       <div className="flex items-center w-full sm:w-auto">
-        <Button variant="outline" onClick={onBack} className="mr-2">
+        <Button variant="outline" onClick={handleBack} className="mr-2">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Website
         </Button>
@@ -34,7 +52,7 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
       <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
         <Button 
           variant="outline" 
-          onClick={onSave} 
+          onClick={handleSave} 
           disabled={isSaving}
           className="w-full sm:w-auto"
         >
@@ -42,7 +60,7 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
           {isSaving ? "Saving..." : "Save Changes"}
         </Button>
         <Button 
-          onClick={onPublish}
+          onClick={handlePublish}
           className="w-full sm:w-auto"
         >
           <Globe className="h-4 w-4 mr-2" />
