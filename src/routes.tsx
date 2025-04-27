@@ -58,7 +58,11 @@ export const router = createBrowserRouter([
   },
   {
     path: '/editor/:template',
-    element: <WebsiteEditor />,
+    element: (props) => {
+      // Extract template from URL parameters and pass it as a prop
+      const template = props.params?.template || '';
+      return <WebsiteEditor template={template} />;
+    },
   },
   {
     path: '/websites',
