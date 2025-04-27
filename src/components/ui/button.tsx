@@ -23,6 +23,7 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         // Add new variants for CTA buttons
+        primary: "bg-primary text-primary-foreground hover:bg-primary/90",
         "cta": "bg-blue-600 text-white hover:bg-blue-700",
         "cta-outline": "border-2 border-current bg-transparent hover:bg-white/10",
       },

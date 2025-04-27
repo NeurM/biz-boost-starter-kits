@@ -21,7 +21,7 @@ const NavCta = ({ ctaText, ctaLink, isMobile, onClick, useSecondaryColor }: NavC
   const isCleanSlate = templateType === 'cleanslate';
   
   // Choose the appropriate variant based on template type and useSecondaryColor prop
-  let buttonVariant = "default";
+  let buttonVariant: "default" | "dynamic" | "dynamic-secondary" | "destructive" | "outline" | "secondary" | "ghost" | "link" | "primary" | "cta" | "cta-outline" = "default";
   
   if (!isCleanSlate) {
     buttonVariant = useSecondaryColor ? "dynamic-secondary" : "dynamic";

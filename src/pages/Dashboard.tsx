@@ -62,7 +62,10 @@ const Dashboard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="h-[300px]">
-            <WebsiteVisitAnalytics />
+            <WebsiteVisitAnalytics 
+              websiteId="main-website"
+              websiteName="Primary Website"
+            />
           </CardContent>
         </Card>
       </div>

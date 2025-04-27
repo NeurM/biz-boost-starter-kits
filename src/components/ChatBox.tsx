@@ -191,7 +191,7 @@ const ChatBox = () => {
             <Button 
               type="submit" 
               disabled={isLoading}
-              variant="primary"
+              variant="default"
             >
               <Send className="h-4 w-4" />
             </Button>
