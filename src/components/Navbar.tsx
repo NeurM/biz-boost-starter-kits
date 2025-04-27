@@ -47,6 +47,29 @@ const Navbar = ({
   
   const isTemplate = basePath && ["expert", "tradecraft", "retail", "service", "cleanslate"].includes(basePath);
   
+  // Check if we're coming from saved websites
+  const fromSavedWebsites = location.state && location.state.fromSavedWebsites;
+  
+  // Don't show duplicate template navigation when coming from saved websites
+  if (isTemplate && fromSavedWebsites && location.pathname === `/${basePath}`) {
+    // Set state to remove fromSavedWebsites flag after initial render
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        if (window.history && window.history.replaceState) {
+          const newState = { ...location.state };
+          delete newState.fromSavedWebsites;
+          window.history.replaceState(
+            newState, 
+            document.title,
+            location.pathname
+          );
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }, []);
+  }
+  
   // Process nav items to ensure they have the correct template path prefix
   const processedNavItems = navItems.map(item => {
     // If this is a template and the path doesn't already have the basePath prefix
@@ -105,7 +128,7 @@ const Navbar = ({
           <div className="hidden md:flex md:items-center md:space-x-4">
             <DesktopNav 
               navItems={translatedNavItems}
-              ctaText={ctaText}
+              ctaText={translatedCtaText}
               ctaLink={ctaLink}
               isActive={isActive}
               companyData={companyData}
@@ -132,7 +155,7 @@ const Navbar = ({
       <MobileNav 
         isOpen={isOpen}
         navItems={translatedNavItems}
-        ctaText={ctaText}
+        ctaText={translatedCtaText}
         ctaLink={ctaLink}
         isActive={isActive}
         companyData={companyData}

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { WebsiteAnalyticsChart } from '@/components/dashboard/WebsiteAnalyticsChart';
 import { ApiAnalyticsChart } from '@/components/dashboard/ApiAnalyticsChart';
 import Navbar from '@/components/Navbar';
@@ -11,11 +11,56 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import WebsiteVisitAnalytics from '@/components/dashboard/WebsiteVisitAnalytics';
+import { supabase } from '@/integrations/supabase/client';
+
+// Define the website config type
+interface WebsiteConfig {
+  id: string;
+  company_name: string;
+  template_id: string;
+  domain_name: string;
+  created_at: string;
+}
 
 const Dashboard = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedWebsite, setSelectedWebsite] = useState<string | null>(null);
+  const [websites, setWebsites] = useState<WebsiteConfig[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Fetch saved websites
+  useEffect(() => {
+    const fetchWebsites = async () => {
+      if (!user) return;
+      
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('website_configs')
+          .select('*')
+          .order('created_at', { ascending: false });
+          
+        if (error) throw error;
+        
+        if (data) {
+          setWebsites(data);
+          // Select the first website by default
+          if (data.length > 0 && !selectedWebsite) {
+            setSelectedWebsite(data[0].id);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching websites:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchWebsites();
+  }, [user]);
   
   // Define navigation and contact info for the navbar and footer
   const navItems = [
@@ -31,9 +76,12 @@ const Dashboard = () => {
     email: "contact@example.com",
   };
 
+  // Find the selected website
+  const selectedWebsiteData = websites.find(website => website.id === selectedWebsite);
+
   // Sample data for overview stats
   const overviewStats = [
-    { title: t('dashboard.websites') || "Active Websites", value: "5" },
+    { title: t('dashboard.websites') || "Active Websites", value: websites.length.toString() },
     { title: t('dashboard.visitors') || "Monthly Visitors", value: "1.2k" },
     { title: t('dashboard.apiCalls') || "API Calls", value: "8.5k" },
     { title: t('dashboard.uptime') || "Uptime", value: "99.9%" },
@@ -95,6 +143,7 @@ const Dashboard = () => {
           <TabsList className="mb-6">
             <TabsTrigger value="overview">{t('dashboard.overview') || "Overview"}</TabsTrigger>
             <TabsTrigger value="analytics">{t('dashboard.analytics') || "Analytics"}</TabsTrigger>
+            <TabsTrigger value="website-analytics">{t('dashboard.websiteAnalytics') || "Website Analytics"}</TabsTrigger>
             <TabsTrigger value="activity">{t('dashboard.activity') || "Recent Activity"}</TabsTrigger>
           </TabsList>
           
@@ -173,6 +222,53 @@ const Dashboard = () => {
                 <ApiAnalyticsChart />
               </CardContent>
             </Card>
+          </TabsContent>
+          
+          <TabsContent value="website-analytics">
+            {websites.length > 0 ? (
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Select Website</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {websites.map(website => (
+                        <Button
+                          key={website.id}
+                          variant={selectedWebsite === website.id ? "default" : "outline"}
+                          className="h-auto py-3 justify-start"
+                          onClick={() => setSelectedWebsite(website.id)}
+                        >
+                          <div className="flex flex-col items-start">
+                            <span className="font-medium">{website.company_name}</span>
+                            <span className="text-xs text-gray-500 mt-1">{website.template_id}</span>
+                          </div>
+                        </Button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {selectedWebsiteData && (
+                  <WebsiteVisitAnalytics 
+                    websiteId={selectedWebsiteData.id}
+                    websiteName={selectedWebsiteData.company_name}
+                  />
+                )}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="py-8">
+                  <div className="text-center">
+                    <p className="mb-4 text-gray-600">You don't have any websites yet.</p>
+                    <Button asChild>
+                      <Link to="/templates">Create Your First Website</Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
           
           <TabsContent value="activity">

@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, Home, Settings } from 'lucide-react';
+import { User, LogOut, Home, Settings, Edit, Globe } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/LanguageContext';
@@ -69,9 +69,24 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }: UserMenuProps) => {
     }
   };
 
-  // Navigation buttons for template pages
+  // Navigation buttons for template pages - ONLY show these on templates when we're NOT coming from the saved websites
   const renderTemplateNavigation = () => {
     if (!isTemplate) return null;
+    
+    // Check if we came from the saved websites page
+    const fromSavedWebsites = location.state && location.state.fromSavedWebsites;
+    if (fromSavedWebsites) {
+      return (
+        <div className="flex items-center mr-4 space-x-2">
+          <Button variant="outline" size="sm" asChild className="template-back-btn">
+            <Link to="/saved-websites">
+              <Home className="h-4 w-4 mr-2" />
+              {t('nav.back') || "Back to Saved"}
+            </Link>
+          </Button>
+        </div>
+      );
+    }
 
     return (
       <div className="flex items-center mr-4 space-x-2">
@@ -91,6 +106,47 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }: UserMenuProps) => {
     );
   };
   
+  // Handle website publishing
+  const handlePublishWebsite = () => {
+    // Extract template info from URL
+    const template = templatePath || location.pathname.split('/')[1];
+    const domain = sessionStorage.getItem('companyData') ? 
+                   JSON.parse(sessionStorage.getItem('companyData') || '{}').domainName : 
+                   'example.com';
+    
+    toast({
+      title: "Website Published!",
+      description: `Your website is live at ${domain}`,
+    });
+    
+    // In a real application, this would trigger a website publishing process
+    console.log(`Publishing website: ${template} to domain: ${domain}`);
+  };
+  
+  // Handle website content editing
+  const handleEditContent = () => {
+    const template = templatePath || location.pathname.split('/')[1];
+    navigate(`/${template}/edit`, { state: { editMode: true } });
+  };
+  
+  // Show edit/publish buttons only on template pages
+  const renderTemplateActions = () => {
+    if (!isTemplate) return null;
+    
+    return (
+      <div className="flex items-center mr-4 space-x-2">
+        <Button variant="outline" size="sm" onClick={handleEditContent}>
+          <Edit className="h-4 w-4 mr-2" />
+          {t('actions.edit') || "Edit Content"}
+        </Button>
+        <Button size="sm" onClick={handlePublishWebsite}>
+          <Globe className="h-4 w-4 mr-2" />
+          {t('actions.publish') || "Publish"}
+        </Button>
+      </div>
+    );
+  };
+  
   // Determine auth link based on whether this is a template or main menu
   const authLink = isTemplate ? `/${templatePath}/auth` : "/auth";
   
@@ -100,6 +156,7 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }: UserMenuProps) => {
   return (
     <div className="z-50 flex items-center">
       {renderTemplateNavigation()}
+      {renderTemplateActions()}
       
       {!user ? (
         <Button variant="outline" asChild size="sm" className={isTemplate ? "template-login-btn" : ""}>

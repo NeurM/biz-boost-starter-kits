@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import SavedWebsites from "./pages/SavedWebsites";
 import Dashboard from "./pages/Dashboard";
 import Templates from "./pages/Templates";
+import WebsiteEditor from "./pages/WebsiteEditor";
 
 // Import routes from route files
 import { tradecraftRoutes } from "./routes/tradecraftRoutes";
@@ -63,6 +64,27 @@ const baseRoutes: RouteConfig[] = [
         <CleanSlate />
       </SuspenseWrapper>
     ),
+  },
+  // Add website editor route for each template type
+  {
+    path: "/cleanslate/edit",
+    element: <WebsiteEditor template="cleanslate" />,
+  },
+  {
+    path: "/tradecraft/edit",
+    element: <WebsiteEditor template="tradecraft" />,
+  },
+  {
+    path: "/retail/edit",
+    element: <WebsiteEditor template="retail" />,
+  }, 
+  {
+    path: "/service/edit",
+    element: <WebsiteEditor template="service" />,
+  },
+  {
+    path: "/expert/edit",
+    element: <WebsiteEditor template="expert" />,
   },
   {
     path: "*",
