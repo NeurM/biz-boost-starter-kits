@@ -46,6 +46,7 @@ const Navbar = ({
   const { user } = useAuth();
   
   const isTemplate = basePath && ["expert", "tradecraft", "retail", "service", "cleanslate"].includes(basePath);
+  const isTemplateEditor = location.pathname.includes('/edit');
   
   // Check if we're coming from saved websites
   const fromSavedWebsites = location.state && location.state.fromSavedWebsites;

@@ -3,6 +3,7 @@ import React, { createContext, useState, useContext, useEffect, ReactNode } from
 import { useAuth } from './AuthContext';
 import { Message, WebsiteStatus } from '../components/chatbot/types';
 import { useChatPersistence } from '@/hooks/useChatPersistence';
+import { toast } from '@/hooks/use-toast';
 
 interface ChatContextProps {
   messages: Message[];
@@ -53,13 +54,67 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
 
   useChatPersistence(messages, setMessages, websiteStatus, setWebsiteStatus, showChatHistory);
 
+  // Enhanced viewCode function that works more reliably
   const viewCode = () => {
+    // Try different methods to access developer mode
+    
+    // Method 1: Find a dev-mode toggle button via data attribute
     const devModeToggle = document.querySelector('[data-testid="dev-mode-toggle"]') as HTMLButtonElement;
     if (devModeToggle) {
       devModeToggle.click();
-    } else {
-      console.log("Could not find dev mode toggle. Dev mode may not be available.");
-      alert("Developer mode is not currently available. Please try again later.");
+      return;
+    }
+    
+    // Method 2: Try finding buttons with specific text
+    const buttons = Array.from(document.querySelectorAll('button'));
+    const devButton = buttons.find(button => 
+      button.textContent?.toLowerCase().includes('dev mode') || 
+      button.textContent?.toLowerCase().includes('code') ||
+      button.textContent?.toLowerCase().includes('developer')
+    );
+    
+    if (devButton) {
+      devButton.click();
+      return;
+    }
+    
+    // Method 3: Check for keyboard shortcut element
+    const devModeShortcut = document.getElementById('dev-mode-shortcut');
+    if (devModeShortcut) {
+      // Simulate keyboard shortcut
+      const event = new KeyboardEvent('keydown', {
+        key: 'd',
+        code: 'KeyD',
+        ctrlKey: true,
+        shiftKey: true,
+        bubbles: true
+      });
+      document.dispatchEvent(event);
+      return;
+    }
+    
+    // If all methods fail, try dispatching the keyboard shortcut anyway
+    try {
+      const event = new KeyboardEvent('keydown', {
+        key: 'd',
+        code: 'KeyD',
+        ctrlKey: true,
+        shiftKey: true,
+        bubbles: true
+      });
+      document.dispatchEvent(event);
+      
+      toast({
+        title: "Developer Mode",
+        description: "Attempting to open developer mode. If it doesn't open, you can also try pressing Ctrl+Shift+D.",
+      });
+    } catch (error) {
+      console.error("Failed to toggle dev mode:", error);
+      toast({
+        title: "Developer Mode Unavailable",
+        description: "Could not access developer mode. Try pressing Ctrl+Shift+D or check your account permissions.",
+        variant: "destructive"
+      });
     }
   };
 
