@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { WebsiteStatus } from './types';
 import { Card, CardContent } from '@/components/ui/card';
+import { useTemplateTheme } from '@/context/TemplateThemeContext';
 
 interface WebsiteBuilderProps {
   websiteStatus: WebsiteStatus;
@@ -12,9 +13,19 @@ interface WebsiteBuilderProps {
 
 const WebsiteBuilder = ({ websiteStatus, onReset }: WebsiteBuilderProps) => {
   const navigate = useNavigate();
+  const { setTemplateColor, setSecondaryColor } = useTemplateTheme();
   
   const handleViewWebsite = () => {
     if (websiteStatus.path) {
+      // Apply color schemes if available
+      if (websiteStatus.colorScheme) {
+        setTemplateColor(websiteStatus.colorScheme);
+      }
+      
+      if (websiteStatus.secondaryColorScheme) {
+        setSecondaryColor(websiteStatus.secondaryColorScheme);
+      }
+      
       // Store the data in sessionStorage so it can be accessed by the template
       sessionStorage.setItem('companyData', JSON.stringify({
         companyName: websiteStatus.companyName, 
@@ -33,6 +44,12 @@ const WebsiteBuilder = ({ websiteStatus, onReset }: WebsiteBuilderProps) => {
           secondaryColorScheme: websiteStatus.secondaryColorScheme
         } 
       });
+    }
+  };
+  
+  const handleEditWebsite = () => {
+    if (websiteStatus.template) {
+      navigate(`/editor/${websiteStatus.template}`);
     }
   };
   
@@ -56,13 +73,20 @@ const WebsiteBuilder = ({ websiteStatus, onReset }: WebsiteBuilderProps) => {
         {websiteStatus.logo && (
           <p className="text-sm mb-1 break-words"><strong>Logo:</strong> {websiteStatus.logo}</p>
         )}
-        <div className="flex gap-2 mt-3">
+        <div className="flex flex-col sm:flex-row gap-2 mt-3">
           <Button 
             variant="default"
             className="w-full"
             onClick={handleViewWebsite}
           >
             View Website
+          </Button>
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={handleEditWebsite}
+          >
+            Edit Website
           </Button>
           <Button
             variant="outline"

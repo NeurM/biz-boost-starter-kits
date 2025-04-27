@@ -15,11 +15,11 @@ const MessageList = ({ messages, isLoading }: MessageListProps) => {
   }, [messages]);
 
   return (
-    <div className="h-[300px] overflow-y-auto mb-4 space-y-4 p-4 border rounded-md bg-background">
+    <div className="h-[300px] overflow-y-auto mb-4 space-y-4">
       {messages.length === 0 && (
         <div className="text-center text-gray-500">
-          <p>👋 Hi! I can help you with:</p>
-          <ul className="mt-2 space-y-1">
+          <p className="text-sm font-medium">👋 Hi! I can help you with:</p>
+          <ul className="mt-2 space-y-1 text-sm">
             <li>• Choosing the right template</li>
             <li>• Customizing your website</li>
             <li>• Content suggestions</li>
@@ -33,7 +33,7 @@ const MessageList = ({ messages, isLoading }: MessageListProps) => {
           className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}
         >
           <div
-            className={`max-w-[80%] p-3 rounded-lg ${
+            className={`max-w-[80%] p-3 rounded-lg text-sm ${
               msg.isUser
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-muted text-foreground'

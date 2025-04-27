@@ -1,4 +1,3 @@
-
 import React, { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate, useParams } from 'react-router-dom';
 import { expertRoutes } from './routes/expertRoutes';
@@ -67,8 +66,12 @@ export const router = createBrowserRouter([
     element: <EditorWrapper />,
   },
   {
-    path: '/websites',
+    path: '/saved-websites',
     element: <SavedWebsites />,
+  },
+  {
+    path: '/websites',
+    element: <Navigate to="/saved-websites" replace />,
   },
   {
     path: '/cleanslate/*',

@@ -1,8 +1,4 @@
 
-// This is a modified version that fixes the chat opening issue
-// Note: This is a mock implementation as the original file is read-only
-// In the real implementation, we'd need to ensure the click handler works properly
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { MessageSquare, X } from "lucide-react";
@@ -14,14 +10,17 @@ import { useChat } from '@/context/ChatContext';
 
 // Chat component with Gemini API integration
 const GeminiPersistentChat: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([
-    { content: 'Hello! How can I help you with your website today?', isUser: false }
-  ]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { showChatHistory, setShowChatHistory } = useChat();
+  const { 
+    messages, 
+    setMessages, 
+    isOpen, 
+    setIsOpen, 
+    showChatHistory, 
+    setShowChatHistory 
+  } = useChat();
   
   const apiKey = "AIzaSyAUQZFNXyvEfsiaFTawgiyNq7aJyV8KzgE";
   

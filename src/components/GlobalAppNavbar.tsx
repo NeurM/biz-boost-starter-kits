@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -18,6 +18,12 @@ import LanguageSelector from './navbar/LanguageSelector';
 
 const GlobalAppNavbar: React.FC = () => {
   const { user } = useAuth();
+  const location = useLocation();
+
+  const isActive = (path: string) => {
+    return location.pathname === path || 
+      (path !== '/' && location.pathname.startsWith(path));
+  };
 
   return (
     <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
@@ -31,24 +37,52 @@ const GlobalAppNavbar: React.FC = () => {
             <NavigationMenu className="hidden md:flex ml-8">
               <NavigationMenuList>
                 <NavigationMenuItem>
-                  <Link to="/" className={cn(navigationMenuTriggerStyle(), "px-3 py-2")}>
+                  <Link 
+                    to="/" 
+                    className={cn(
+                      navigationMenuTriggerStyle(), 
+                      "px-3 py-2",
+                      isActive('/') && "bg-muted"
+                    )}
+                  >
                     Home
                   </Link>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                  <Link to="/templates" className={cn(navigationMenuTriggerStyle(), "px-3 py-2")}>
+                  <Link 
+                    to="/templates" 
+                    className={cn(
+                      navigationMenuTriggerStyle(), 
+                      "px-3 py-2",
+                      isActive('/templates') && "bg-muted"
+                    )}
+                  >
                     Templates
                   </Link>
                 </NavigationMenuItem>
                 {user && (
                   <>
                     <NavigationMenuItem>
-                      <Link to="/dashboard" className={cn(navigationMenuTriggerStyle(), "px-3 py-2")}>
+                      <Link 
+                        to="/dashboard" 
+                        className={cn(
+                          navigationMenuTriggerStyle(), 
+                          "px-3 py-2",
+                          isActive('/dashboard') && "bg-muted"
+                        )}
+                      >
                         Dashboard
                       </Link>
                     </NavigationMenuItem>
                     <NavigationMenuItem>
-                      <Link to="/saved-websites" className={cn(navigationMenuTriggerStyle(), "px-3 py-2")}>
+                      <Link 
+                        to="/saved-websites" 
+                        className={cn(
+                          navigationMenuTriggerStyle(), 
+                          "px-3 py-2",
+                          isActive('/saved-websites') && "bg-muted"
+                        )}
+                      >
                         Saved Websites
                       </Link>
                     </NavigationMenuItem>

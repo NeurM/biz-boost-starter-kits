@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import NavLogo from './navbar/NavLogo';
 import DesktopNav from './navbar/DesktopNav';
 import MobileNav from './navbar/MobileNav';
@@ -12,6 +12,8 @@ import { useAnalytics } from '@/hooks/useAnalytics';
 import { useTemplateTheme } from '@/context/TemplateThemeContext';
 import { useCompanyData } from '@/context/CompanyDataContext';
 import { useAuth } from '@/context/AuthContext';
+import { Button } from './ui/button';
+import { Edit } from 'lucide-react';
 
 interface NavItem {
   name: string;
@@ -46,10 +48,11 @@ const Navbar = ({
   const { companyData } = useCompanyData();
   const { templateType } = useTemplateTheme();
   const { user } = useAuth();
+  const navigate = useLocation();
   
   // Detect if this is a template page
   const isTemplate = basePath && ["expert", "tradecraft", "retail", "service", "cleanslate"].includes(basePath);
-  const isTemplateEditor = location.pathname.includes('/edit');
+  const isTemplateEditor = location.pathname.includes('/editor');
   
   // Process nav items to ensure they have the correct template path prefix
   const processedNavItems = navItems.map(item => {
@@ -103,6 +106,13 @@ const Navbar = ({
   // Determine if we should show the auth buttons
   const showAuthButtons = !isTemplate || (isTemplate && !isAppLevel && !user);
 
+  // Handle edit website button
+  const handleEditWebsite = () => {
+    if (isTemplate && !isTemplateEditor) {
+      window.location.href = `/editor/${basePath}`;
+    }
+  };
+
   return (
     <nav className={`bg-white shadow-sm ${className} ${isAppLevel ? 'app-navbar' : 'site-navbar'}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -133,21 +143,45 @@ const Navbar = ({
             />
             
             {showTemplateActions && (
-              <UserMenu 
-                isTemplate={isTemplate} 
-                templatePath={basePath} 
-                isAppLevel={false} 
-              />
+              <div className="flex items-center space-x-2">
+                {isTemplate && !isTemplateEditor && user && (
+                  <Button 
+                    variant="outline"
+                    size="sm" 
+                    onClick={handleEditWebsite}
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Website
+                  </Button>
+                )}
+                <UserMenu 
+                  isTemplate={isTemplate} 
+                  templatePath={basePath} 
+                  isAppLevel={false} 
+                />
+              </div>
             )}
           </div>
 
           <div className="md:hidden flex items-center space-x-2">
             {showTemplateActions && (
-              <UserMenu 
-                isTemplate={isTemplate} 
-                templatePath={basePath} 
-                isAppLevel={false} 
-              />
+              <div className="flex items-center space-x-2">
+                {isTemplate && !isTemplateEditor && user && (
+                  <Button 
+                    variant="outline"
+                    size="sm" 
+                    onClick={handleEditWebsite}
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </Button>
+                )}
+                <UserMenu 
+                  isTemplate={isTemplate} 
+                  templatePath={basePath} 
+                  isAppLevel={false} 
+                />
+              </div>
             )}
             <MobileMenuButton 
               isOpen={isOpen}
