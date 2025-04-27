@@ -1,10 +1,11 @@
+
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { ApiAnalyticsChart } from "@/components/analytics/ApiAnalyticsChart";
 import { WebsiteAnalyticsChart } from "@/components/analytics/WebsiteAnalyticsChart";
-import { WebsiteVisitAnalytics } from "@/components/analytics/WebsiteVisitAnalytics";
+import WebsiteVisitAnalytics from "@/components/analytics/WebsiteVisitAnalytics";
 import AppNavbar from '@/components/AppNavbar';
 
 const Dashboard = () => {
