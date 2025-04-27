@@ -15,6 +15,10 @@ import { toast } from '@/hooks/use-toast';
 const GeminiPersistentChat: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState([
+    { content: 'Hello! How can I help you with your website today?', isUser: false }
+  ]);
+  const [isLoading, setIsLoading] = useState(false);
   
   // Toggle chat visibility
   const toggleChat = () => {
@@ -32,14 +36,31 @@ const GeminiPersistentChat: React.FC = () => {
             </Button>
           </CardHeader>
           <CardContent className="p-4 h-[400px] overflow-y-auto">
-            <MessageList messages={[
-              { role: 'assistant', content: 'Hello! How can I help you with your website today?' }
-            ]} />
+            <MessageList 
+              messages={messages} 
+              isLoading={isLoading} 
+            />
           </CardContent>
           <CardFooter className="p-4 border-t">
             <form className="flex w-full gap-2" onSubmit={(e) => {
               e.preventDefault();
               if (message.trim()) {
+                // Add the user message to the chat
+                setMessages([
+                  ...messages, 
+                  { content: message.trim(), isUser: true }
+                ]);
+                
+                // Simulate AI response
+                setIsLoading(true);
+                setTimeout(() => {
+                  setMessages(prev => [
+                    ...prev,
+                    { content: "I'm a mock assistant. This is a demo response.", isUser: false }
+                  ]);
+                  setIsLoading(false);
+                }, 1000);
+                
                 toast({
                   title: "Message received",
                   description: "Your message has been sent to the assistant.",
