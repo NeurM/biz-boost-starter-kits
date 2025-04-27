@@ -20,8 +20,12 @@ const NavCta = ({ ctaText, ctaLink, isMobile, onClick, useSecondaryColor }: NavC
   // For Clean Slate template, use black/white theme instead of the colors
   const isCleanSlate = templateType === 'cleanslate';
   
-  // Choose the appropriate variant based on useSecondaryColor prop
-  const buttonVariant = isCleanSlate ? "default" : useSecondaryColor ? "dynamic-secondary" : "dynamic";
+  // Choose the appropriate variant based on template type and useSecondaryColor prop
+  let buttonVariant = "default";
+  
+  if (!isCleanSlate) {
+    buttonVariant = useSecondaryColor ? "dynamic-secondary" : "dynamic";
+  }
   
   // Check if ctaText is a translation key (starts with "cta.")
   // Make sure to properly translate CTA text
@@ -33,10 +37,10 @@ const NavCta = ({ ctaText, ctaLink, isMobile, onClick, useSecondaryColor }: NavC
       <a 
         href={ctaLink}
         className={`block w-full py-2 text-center ${
-          isCleanSlate ? 'bg-black hover:bg-gray-800' : 
-          useSecondaryColor ? colorClasses.secondaryBg + ' ' + colorClasses.secondaryHover : 
-          colorClasses.bg + ' ' + colorClasses.hover
-        } text-white rounded-md shadow-lg transition-colors font-medium`}
+          isCleanSlate ? 'bg-black hover:bg-gray-800 text-white' : 
+          useSecondaryColor ? colorClasses.secondaryBg + ' ' + colorClasses.secondaryHover + ' text-white' : 
+          colorClasses.bg + ' ' + colorClasses.hover + ' text-white'
+        } rounded-md shadow-lg transition-colors font-medium`}
         onClick={onClick}
       >
         {displayText}
@@ -55,10 +59,10 @@ const NavCta = ({ ctaText, ctaLink, isMobile, onClick, useSecondaryColor }: NavC
     <Link 
       to={ctaLink}
       className={`block w-full py-2 text-center ${
-        isCleanSlate ? 'bg-black hover:bg-gray-800' : 
-        useSecondaryColor ? colorClasses.secondaryBg + ' ' + colorClasses.secondaryHover : 
-        colorClasses.bg + ' ' + colorClasses.hover
-      } text-white rounded-md shadow-lg transition-colors font-medium`}
+        isCleanSlate ? 'bg-black hover:bg-gray-800 text-white' : 
+        useSecondaryColor ? colorClasses.secondaryBg + ' ' + colorClasses.secondaryHover + ' text-white' : 
+        colorClasses.bg + ' ' + colorClasses.hover + ' text-white'
+      } rounded-md shadow-lg transition-colors font-medium`}
       onClick={onClick}
     >
       {displayText}

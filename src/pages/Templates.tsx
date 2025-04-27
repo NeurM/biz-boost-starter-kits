@@ -111,6 +111,9 @@ const Templates = () => {
 
   const handlePreviewTemplate = (template: any) => {
     setPreviewTemplate(template.path);
+    setTemplateColor(template.primaryColor);
+    setSecondaryColor(template.secondaryColor);
+    
     navigate(template.path, { 
       state: { 
         isPreview: true,
@@ -134,6 +137,9 @@ const Templates = () => {
       return;
     }
 
+    const selectedPrimaryColor = template.primaryColor;
+    const selectedSecondaryColor = template.secondaryColor;
+
     try {
       setIsSaving(true);
 
@@ -144,8 +150,8 @@ const Templates = () => {
           company_name: companyName,
           domain_name: domainName,
           logo: logoUrl,
-          color_scheme: template.primaryColor,
-          secondary_color_scheme: template.secondaryColor
+          color_scheme: selectedPrimaryColor,
+          secondary_color_scheme: selectedSecondaryColor
         });
 
         if (error) {
@@ -169,17 +175,20 @@ const Templates = () => {
         domainName,
         logo: logoUrl,
         template: template.name,
-        colorScheme: template.primaryColor,
-        secondaryColorScheme: template.secondaryColor
+        colorScheme: selectedPrimaryColor,
+        secondaryColorScheme: selectedSecondaryColor
       }));
+
+      setTemplateColor(selectedPrimaryColor);
+      setSecondaryColor(selectedSecondaryColor);
 
       navigate(template.path, { 
         state: {
           companyName,
           domainName,
           logo: logoUrl,
-          colorScheme: template.primaryColor,
-          secondaryColorScheme: template.secondaryColor
+          colorScheme: selectedPrimaryColor,
+          secondaryColorScheme: selectedSecondaryColor
         }
       });
       
@@ -277,16 +286,25 @@ const Templates = () => {
     type: 'primary' | 'secondary',
     color: string
   ) => {
-    if (type === 'primary') {
-      setTemplateColor(color);
-    } else {
-      setSecondaryColor(color);
-    }
+    const updatedTemplate = {...template};
     
     if (type === 'primary') {
-      template.primaryColor = color;
+      setTemplateColor(color);
+      updatedTemplate.primaryColor = color;
     } else {
-      template.secondaryColor = color;
+      setSecondaryColor(color);
+      updatedTemplate.secondaryColor = color;
+    }
+    
+    const updatedTemplates = templates.map(t => 
+      t.path === template.path ? updatedTemplate : t
+    );
+    
+    if (selectedTemplate === template.path) {
+      setSelectedTemplate(null);
+      setTimeout(() => {
+        setSelectedTemplate(template.path);
+      }, 10);
     }
   };
 

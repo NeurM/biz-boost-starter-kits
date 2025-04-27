@@ -12,27 +12,7 @@ import ServicesSection from '@/components/sections/ServicesSection';
 import CtaSection from '@/components/sections/CtaSection';
 import TestimonialsSection from '@/components/sections/TestimonialsSection';
 import ProcessSection from '@/components/sections/ProcessSection';
-import UserMenu from '@/components/UserMenu';
-
-// Create app-level navbar component
-const AppNavbar = () => {
-  const navItems = [
-    { name: "Home", path: "/" },
-    { name: "Templates", path: "/templates" },
-    { name: "Dashboard", path: "/dashboard" },
-    { name: "Saved Websites", path: "/saved-websites" },
-  ];
-  
-  return (
-    <Navbar 
-      logo="Template<span class='text-primary'>Builder</span>"
-      basePath=""
-      navItems={navItems}
-      isAppLevel={true}
-      className="border-b"
-    />
-  );
-};
+import GlobalAppNavbar from '@/components/GlobalAppNavbar';
 
 const TradecraftHome = () => {
   const navItems = [
@@ -52,7 +32,7 @@ const TradecraftHome = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* App-level navigation */}
-      <AppNavbar />
+      <GlobalAppNavbar />
       
       {/* Template-specific navigation */}
       <Navbar 

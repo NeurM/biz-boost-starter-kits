@@ -2,30 +2,31 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+
 import { cn } from "@/lib/utils"
 import { useTemplateTheme } from "@/context/TemplateThemeContext"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-[#1A1F2C] text-white hover:bg-[#2A2F3C] shadow-lg",
-        destructive: "bg-red-500 text-white hover:bg-red-600 shadow-lg",
-        outline: "border-2 border-[#1A1F2C] bg-transparent hover:bg-[#1A1F2C] hover:text-white text-[#1A1F2C] shadow-sm",
-        secondary: "bg-[#2A2F3C] text-white hover:bg-[#3A3F4C] shadow-lg",
-        ghost: "hover:bg-[#2A2F3C] hover:text-white",
-        link: "text-[#1A1F2C] underline-offset-4 hover:underline",
-        cta: "bg-orange-500 text-white hover:bg-orange-600 shadow-lg font-semibold tracking-wide",
-        "cta-outline": "border-2 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white shadow-sm font-semibold tracking-wide",
-        // Add dynamic color variants
-        dynamic: "", // Primary color variant
-        "dynamic-secondary": "", // Secondary color variant
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        dynamic: "bg-primary text-primary-foreground hover:bg-primary/90",
+        "dynamic-secondary": "bg-secondary text-secondary-foreground hover:bg-secondary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 px-4 py-2",
         sm: "h-9 rounded-md px-3",
-        lg: "h-12 rounded-md px-8 text-base",
+        lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",
       },
     },
@@ -44,38 +45,26 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const { colorClasses, templateType } = useTemplateTheme();
+    
+    // Dynamic variant handling for template colors
+    let dynamicClass = '';
+    if (variant === 'dynamic' && templateType !== 'cleanslate') {
+      dynamicClass = `${colorClasses.bg} ${colorClasses.hover} text-white`;
+    } else if (variant === 'dynamic-secondary' && templateType !== 'cleanslate') {
+      dynamicClass = `${colorClasses.secondaryBg} ${colorClasses.secondaryHover} text-white`;
+    }
+    
+    // Use alternative styling for cleanslate template
+    if ((variant === 'dynamic' || variant === 'dynamic-secondary') && templateType === 'cleanslate') {
+      variant = 'default';
+    }
+    
     const Comp = asChild ? Slot : "button"
-    const { templateColor, secondaryColor, templateType } = useTemplateTheme();
-    
-    // Get appropriate variant based on template type
-    let effectiveVariant = variant;
-    
-    // For Clean Slate, force default (black) variant for buttons
-    if (templateType === 'cleanslate' && (variant === 'cta' || variant === 'dynamic' || variant === 'dynamic-secondary')) {
-      effectiveVariant = 'default';
-    }
-    
-    // Handle the dynamic variants based on template color
-    let dynamicClassNames = '';
-    if (effectiveVariant === 'dynamic' && templateColor) {
-      // Create appropriate class names based on the template color
-      const bgClass = `bg-${templateColor}-600`;
-      const hoverClass = `hover:bg-${templateColor}-700`;
-      dynamicClassNames = `${bgClass} text-white ${hoverClass} shadow-lg font-semibold tracking-wide`;
-    } else if (effectiveVariant === 'dynamic-secondary' && secondaryColor) {
-      // Create appropriate class names based on the secondary color
-      const bgClass = `bg-${secondaryColor}-600`;
-      const hoverClass = `hover:bg-${secondaryColor}-700`;
-      dynamicClassNames = `${bgClass} text-white ${hoverClass} shadow-lg font-semibold tracking-wide`;
-    }
-    
-    const finalClassName = (effectiveVariant === 'dynamic' || effectiveVariant === 'dynamic-secondary') && dynamicClassNames
-      ? cn(buttonVariants({ variant: undefined, size }), dynamicClassNames, className)
-      : cn(buttonVariants({ variant: effectiveVariant, size }), className);
     
     return (
       <Comp
-        className={finalClassName}
+        className={cn(buttonVariants({ variant, size, className }), dynamicClass)}
         ref={ref}
         {...props}
       />

@@ -1,5 +1,5 @@
 
-import { useTransition } from "react";
+import React, { useTransition } from "react";
 import GeminiPersistentChat from "./components/chatbot/GeminiPersistentChat";
 import AnalyticsTracker from "./components/AnalyticsTracker";
 
@@ -16,8 +16,10 @@ function App() {
             <div className="w-full h-screen flex items-center justify-center">Loading...</div>
           ) : null}
         </main>
-        {/* Ensure the chat component is always rendered */}
-        <GeminiPersistentChat />
+        {/* Always render the chat component */}
+        <div className="fixed bottom-4 right-4 z-50">
+          <GeminiPersistentChat />
+        </div>
       </AnalyticsTracker>
     </div>
   );

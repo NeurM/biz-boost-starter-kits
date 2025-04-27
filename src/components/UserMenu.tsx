@@ -34,13 +34,8 @@ const UserMenu = ({ isTemplate = false, templatePath = '', isAppLevel = false }:
                          location.pathname.startsWith("/expert") || 
                          location.pathname.startsWith("/cleanslate");
 
-  // Hide app navigation when in templates
-  if (!isTemplate && isTemplatePage && location.pathname !== "/" && !isAppLevel) {
-    return null;
-  }
-  
   // If this is a template-specific UserMenu but we're not on the corresponding template page, don't show it
-  if (isTemplate && templatePath && !location.pathname.startsWith(`/${templatePath}`) && !isAppLevel) {
+  if (isTemplate && templatePath && !location.pathname.startsWith(`/${templatePath}`)) {
     return null;
   }
   
@@ -71,12 +66,10 @@ const UserMenu = ({ isTemplate = false, templatePath = '', isAppLevel = false }:
   };
 
   // Only show website-specific controls in template pages and for logged in users
+  // AND only when we're not in the app-level navigation (isAppLevel === false)
   const renderTemplateActions = () => {
     // Only show edit/publish buttons on template pages for authenticated users
-    if (!isTemplate || !user) return null;
-    
-    // Don't show template actions in app-level navigation
-    if (isAppLevel) return null;
+    if (!isTemplate || !user || isAppLevel) return null;
     
     return (
       <div className="flex items-center mr-4 space-x-2">
@@ -163,7 +156,6 @@ const UserMenu = ({ isTemplate = false, templatePath = '', isAppLevel = false }:
   // Mock domain availability check (would connect to real API)
   const checkDomainAvailability = async (domain: string): Promise<boolean> => {
     // In a real implementation, this would call an API to check domain availability
-    // For now, we'll just simulate an API call
     return new Promise((resolve) => {
       setTimeout(() => {
         // Randomly return true or false, but mostly true for better UX
@@ -178,17 +170,12 @@ const UserMenu = ({ isTemplate = false, templatePath = '', isAppLevel = false }:
   const loginText = t('auth.login') || "Login";
   const logoutText = t('auth.logout') || "Logout";
   
-  // For app-level navigation, show full user menu
-  // For template/website navigation, only show minimal controls
-  
-  const showAppLevelMenu = isAppLevel || !isTemplate;
-  
   return (
     <div className="z-50 flex items-center">
       {renderTemplateActions()}
       
       {!user ? (
-        <Button variant="outline" asChild size="sm" className={isTemplate ? "template-login-btn" : ""}>
+        <Button variant={isAppLevel ? "default" : "outline"} asChild size="sm">
           <Link to={authLink}>
             <User className="h-4 w-4 mr-2" />
             {loginText}
@@ -200,7 +187,7 @@ const UserMenu = ({ isTemplate = false, templatePath = '', isAppLevel = false }:
             <Button 
               variant="outline" 
               size="sm"
-              className={`flex items-center ${isTemplate ? "template-logout-btn" : ""}`}
+              className="flex items-center"
             >
               <User className="h-4 w-4 mr-2" />
               {user.email?.split('@')[0]}
@@ -208,7 +195,7 @@ const UserMenu = ({ isTemplate = false, templatePath = '', isAppLevel = false }:
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuLabel>{t('nav.userMenu') || "Navigation"}</DropdownMenuLabel>
-            {showAppLevelMenu && (
+            {isAppLevel && (
               <>
                 <DropdownMenuItem asChild>
                   <Link to="/">{t('nav.home') || "Home"}</Link>

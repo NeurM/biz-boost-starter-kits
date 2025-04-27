@@ -50,29 +50,6 @@ const Navbar = ({
   const isTemplate = basePath && ["expert", "tradecraft", "retail", "service", "cleanslate"].includes(basePath);
   const isTemplateEditor = location.pathname.includes('/edit');
   
-  // Check if we're coming from saved websites
-  const fromSavedWebsites = location.state && location.state.fromSavedWebsites;
-  
-  // Don't show duplicate template navigation when coming from saved websites
-  if (isTemplate && fromSavedWebsites && location.pathname === `/${basePath}`) {
-    // Set state to remove fromSavedWebsites flag after initial render
-    useEffect(() => {
-      const timer = setTimeout(() => {
-        if (window.history && window.history.replaceState) {
-          const newState = { ...location.state };
-          delete newState.fromSavedWebsites;
-          window.history.replaceState(
-            newState, 
-            document.title,
-            location.pathname
-          );
-        }
-      }, 100);
-      
-      return () => clearTimeout(timer);
-    }, []);
-  }
-  
   // Process nav items to ensure they have the correct template path prefix
   const processedNavItems = navItems.map(item => {
     // If this is a template and the path doesn't already have the basePath prefix
@@ -115,9 +92,8 @@ const Navbar = ({
   
   const closeMenu = () => setIsOpen(false);
 
-  // For app-level navigation, show user controls
-  // For template/website navigation, don't show app controls
-  const showAppControls = isAppLevel || !isTemplate;
+  // Only show template actions when we're on a template page and not in app-level mode
+  const showTemplateActions = isTemplate && !isAppLevel;
 
   return (
     <nav className={`bg-white shadow-sm ${className} ${isAppLevel ? 'app-navbar' : 'site-navbar'}`}>
@@ -142,17 +118,23 @@ const Navbar = ({
               forceTemplateName={forceTemplateName}
             />
             
-            {showAppControls && (
-              <div className="flex items-center space-x-4">
-                <LanguageSelector />
-                <UserMenu isTemplate={isTemplate} templatePath={basePath} isAppLevel={isAppLevel} />
-              </div>
+            {showTemplateActions && user && (
+              <UserMenu 
+                isTemplate={isTemplate} 
+                templatePath={basePath} 
+                isAppLevel={false} 
+              />
             )}
           </div>
 
           <div className="md:hidden flex items-center space-x-2">
-            {showAppControls && <LanguageSelector />}
-            {showAppControls && <UserMenu isTemplate={isTemplate} templatePath={basePath} isAppLevel={isAppLevel} />}
+            {showTemplateActions && user && (
+              <UserMenu 
+                isTemplate={isTemplate} 
+                templatePath={basePath} 
+                isAppLevel={false} 
+              />
+            )}
             <MobileMenuButton 
               isOpen={isOpen}
               onClick={toggleMenu}
