@@ -1,19 +1,17 @@
-
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from '@/hooks/use-toast';
 import { useCompanyData } from '@/context/CompanyDataContext';
-import { useTemplateTheme } from '@/context/TemplateThemeContext';
 import { saveWebsiteConfig } from '@/utils/supabase';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useLanguage } from '@/context/LanguageContext';
-import { ArrowLeft, Save, Globe } from 'lucide-react';
+import { EditorHeader } from '@/components/website-editor/EditorHeader';
+import { WebsiteInfoTab } from '@/components/website-editor/WebsiteInfoTab';
+import { AboutTab } from '@/components/website-editor/AboutTab';
+import { ServicesTab } from '@/components/website-editor/ServicesTab';
+import { ContactTab } from '@/components/website-editor/ContactTab';
 
 interface WebsiteEditorProps {
   template: string;
@@ -21,13 +19,11 @@ interface WebsiteEditorProps {
 
 const WebsiteEditor: React.FC<WebsiteEditorProps> = ({ template }) => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { t } = useLanguage();
   const { companyData, setCompanyData } = useCompanyData();
-  const { colorClasses, templateType, setTemplateType } = useTemplateTheme();
   const [isSaving, setIsSaving] = useState(false);
   
-  // Content sections that can be edited
+  // State sections
   const [sections, setSections] = useState({
     hero: {
       title: '',
@@ -208,7 +204,7 @@ const WebsiteEditor: React.FC<WebsiteEditorProps> = ({ template }) => {
       )
     }));
   };
-  
+
   const navItems = [
     { name: t('nav.back'), path: `/${template}` },
   ];
@@ -222,30 +218,13 @@ const WebsiteEditor: React.FC<WebsiteEditorProps> = ({ template }) => {
       />
       
       <div className="container mx-auto px-4 py-8 flex-1">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center">
-            <Button variant="outline" onClick={handleBack} className="mr-2">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Website
-            </Button>
-            <h1 className="text-2xl font-bold">Website Editor</h1>
-          </div>
-          
-          <div className="space-x-2">
-            <Button 
-              variant="outline" 
-              onClick={handleSave} 
-              disabled={isSaving}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {isSaving ? "Saving..." : "Save Changes"}
-            </Button>
-            <Button onClick={handlePublish}>
-              <Globe className="h-4 w-4 mr-2" />
-              Publish Website
-            </Button>
-          </div>
-        </div>
+        <EditorHeader 
+          websiteInfo={websiteInfo}
+          onBack={handleBack}
+          onSave={handleSave}
+          onPublish={handlePublish}
+          isSaving={isSaving}
+        />
         
         <Tabs defaultValue="general">
           <TabsList className="mb-4">
@@ -255,181 +234,32 @@ const WebsiteEditor: React.FC<WebsiteEditorProps> = ({ template }) => {
             <TabsTrigger value="contact">Contact</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="general" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Website Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label htmlFor="companyName" className="block text-sm font-medium mb-1">Company Name</label>
-                  <Input 
-                    id="companyName" 
-                    name="companyName" 
-                    value={websiteInfo.companyName} 
-                    onChange={handleInfoChange} 
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="domainName" className="block text-sm font-medium mb-1">Domain Name</label>
-                  <Input 
-                    id="domainName" 
-                    name="domainName" 
-                    value={websiteInfo.domainName} 
-                    onChange={handleInfoChange} 
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="logo" className="block text-sm font-medium mb-1">Logo URL</label>
-                  <Input 
-                    id="logo" 
-                    name="logo" 
-                    value={websiteInfo.logo} 
-                    onChange={handleInfoChange} 
-                    placeholder="https://example.com/logo.png" 
-                  />
-                  
-                  {websiteInfo.logo && (
-                    <div className="mt-2">
-                      <p className="text-sm mb-1">Logo Preview:</p>
-                      <img 
-                        src={websiteInfo.logo} 
-                        alt="Logo" 
-                        className="h-12 object-contain"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150';
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="general">
+            <WebsiteInfoTab 
+              websiteInfo={websiteInfo}
+              onInfoChange={handleInfoChange}
+            />
           </TabsContent>
           
-          <TabsContent value="about" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>About Section</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label htmlFor="aboutTitle" className="block text-sm font-medium mb-1">Title</label>
-                  <Input 
-                    id="aboutTitle" 
-                    value={sections.about.title} 
-                    onChange={(e) => handleSectionChange('about', 'title', e.target.value)} 
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="aboutContent" className="block text-sm font-medium mb-1">Main Content</label>
-                  <Textarea 
-                    id="aboutContent" 
-                    value={sections.about.content} 
-                    onChange={(e) => handleSectionChange('about', 'content', e.target.value)} 
-                    rows={4}
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="aboutMission" className="block text-sm font-medium mb-1">Mission</label>
-                  <Textarea 
-                    id="aboutMission" 
-                    value={sections.about.mission} 
-                    onChange={(e) => handleSectionChange('about', 'mission', e.target.value)} 
-                    rows={3}
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="aboutVision" className="block text-sm font-medium mb-1">Vision</label>
-                  <Textarea 
-                    id="aboutVision" 
-                    value={sections.about.vision} 
-                    onChange={(e) => handleSectionChange('about', 'vision', e.target.value)} 
-                    rows={3}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="about">
+            <AboutTab 
+              about={sections.about}
+              onSectionChange={handleSectionChange}
+            />
           </TabsContent>
           
-          <TabsContent value="services" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Services</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {sections.services.map((service) => (
-                    <div key={service.id} className="border rounded-md p-4">
-                      <div className="space-y-4">
-                        <div>
-                          <label htmlFor={`service-title-${service.id}`} className="block text-sm font-medium mb-1">Service Title</label>
-                          <Input 
-                            id={`service-title-${service.id}`} 
-                            value={service.title} 
-                            onChange={(e) => handleServiceChange(service.id, 'title', e.target.value)} 
-                          />
-                        </div>
-                        
-                        <div>
-                          <label htmlFor={`service-desc-${service.id}`} className="block text-sm font-medium mb-1">Description</label>
-                          <Textarea 
-                            id={`service-desc-${service.id}`} 
-                            value={service.description} 
-                            onChange={(e) => handleServiceChange(service.id, 'description', e.target.value)} 
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="services">
+            <ServicesTab 
+              services={sections.services}
+              onServiceChange={handleServiceChange}
+            />
           </TabsContent>
           
-          <TabsContent value="contact" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Contact Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label htmlFor="contactEmail" className="block text-sm font-medium mb-1">Email Address</label>
-                  <Input 
-                    id="contactEmail" 
-                    value={sections.contact.email} 
-                    onChange={(e) => handleSectionChange('contact', 'email', e.target.value)} 
-                    placeholder="contact@example.com"
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="contactPhone" className="block text-sm font-medium mb-1">Phone Number</label>
-                  <Input 
-                    id="contactPhone" 
-                    value={sections.contact.phone} 
-                    onChange={(e) => handleSectionChange('contact', 'phone', e.target.value)} 
-                    placeholder="(555) 123-4567"
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="contactAddress" className="block text-sm font-medium mb-1">Address</label>
-                  <Textarea 
-                    id="contactAddress" 
-                    value={sections.contact.address} 
-                    onChange={(e) => handleSectionChange('contact', 'address', e.target.value)} 
-                    placeholder="123 Main St, City, State 12345"
-                    rows={3}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="contact">
+            <ContactTab 
+              contact={sections.contact}
+              onSectionChange={handleSectionChange}
+            />
           </TabsContent>
         </Tabs>
       </div>
