@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,6 +8,7 @@ import { saveWebsiteConfig } from '@/utils/supabase';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useLanguage } from '@/context/LanguageContext';
+import { useTemplateTheme } from '@/context/TemplateThemeContext';
 import { EditorHeader } from '@/components/website-editor/EditorHeader';
 import { WebsiteInfoTab } from '@/components/website-editor/WebsiteInfoTab';
 import { AboutTab } from '@/components/website-editor/AboutTab';
@@ -21,6 +23,7 @@ const WebsiteEditor: React.FC<WebsiteEditorProps> = ({ template }) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { companyData, setCompanyData } = useCompanyData();
+  const { colorClasses, templateType, setTemplateColor } = useTemplateTheme();
   const [isSaving, setIsSaving] = useState(false);
   
   // State sections
@@ -72,8 +75,7 @@ const WebsiteEditor: React.FC<WebsiteEditorProps> = ({ template }) => {
 
   // Load existing data on component mount
   useEffect(() => {
-    // Set template type
-    setTemplateType(template);
+    // No need to set template type explicitly as it's managed by TemplateThemeContext
     
     // Attempt to load data from session storage or context
     const loadData = () => {
@@ -103,7 +105,7 @@ const WebsiteEditor: React.FC<WebsiteEditorProps> = ({ template }) => {
     };
     
     loadData();
-  }, [template, companyData, setTemplateType]);
+  }, [template, companyData]);
 
   // Save website content
   const handleSave = async () => {
@@ -130,13 +132,17 @@ const WebsiteEditor: React.FC<WebsiteEditorProps> = ({ template }) => {
       
       // Save to database if implemented
       try {
+        // Extract color classes properly using the context values
+        const primaryColorClass = colorClasses?.bg?.replace('bg-', '') || '';
+        const secondaryColorClass = colorClasses?.secondaryBg?.replace('bg-', '') || '';
+        
         await saveWebsiteConfig({
           template_id: template,
           company_name: websiteInfo.companyName,
           domain_name: websiteInfo.domainName,
           logo: websiteInfo.logo,
-          color_scheme: colorClasses.primary?.replace('bg-', ''),
-          secondary_color_scheme: colorClasses.secondary?.replace('bg-', ''),
+          color_scheme: primaryColorClass,
+          secondary_color_scheme: secondaryColorClass,
         });
       } catch (error) {
         console.error('Error saving to database:', error);
