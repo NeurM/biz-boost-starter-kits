@@ -1,6 +1,6 @@
 
 import React, { lazy, Suspense } from 'react';
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter, Navigate, useParams } from 'react-router-dom';
 import { expertRoutes } from './routes/expertRoutes';
 import { tradecraftRoutes } from './routes/tradecraftRoutes';
 import { retailRoutes } from './routes/retailRoutes';
@@ -33,6 +33,12 @@ const Loading = () => (
   </div>
 );
 
+// Website Editor Wrapper component that gets the template from URL params
+const EditorWrapper = () => {
+  const { template } = useParams<{ template: string }>();
+  return <WebsiteEditor template={template || ''} />;
+};
+
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -58,11 +64,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/editor/:template',
-    element: (props) => {
-      // Extract template from URL parameters and pass it as a prop
-      const template = props.params?.template || '';
-      return <WebsiteEditor template={template} />;
-    },
+    element: <EditorWrapper />,
   },
   {
     path: '/websites',
