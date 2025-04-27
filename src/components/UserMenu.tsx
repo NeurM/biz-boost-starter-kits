@@ -18,9 +18,10 @@ import { useLanguage } from '@/context/LanguageContext';
 interface UserMenuProps {
   isTemplate?: boolean;
   templatePath?: string;
+  isAppLevel?: boolean;
 }
 
-const UserMenu = ({ isTemplate = false, templatePath = '' }: UserMenuProps) => {
+const UserMenu = ({ isTemplate = false, templatePath = '', isAppLevel = false }: UserMenuProps) => {
   const { user, signOut: handleAuthSignOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -34,12 +35,12 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }: UserMenuProps) => {
                          location.pathname.startsWith("/cleanslate");
 
   // Hide app navigation when in templates
-  if (!isTemplate && isTemplatePage && location.pathname !== "/") {
+  if (!isTemplate && isTemplatePage && location.pathname !== "/" && !isAppLevel) {
     return null;
   }
   
   // If this is a template-specific UserMenu but we're not on the corresponding template page, don't show it
-  if (isTemplate && templatePath && !location.pathname.startsWith(`/${templatePath}`)) {
+  if (isTemplate && templatePath && !location.pathname.startsWith(`/${templatePath}`) && !isAppLevel) {
     return null;
   }
   
@@ -69,9 +70,13 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }: UserMenuProps) => {
     }
   };
 
-  // Only show website-specific controls in template pages
+  // Only show website-specific controls in template pages and for logged in users
   const renderTemplateActions = () => {
-    if (!isTemplate) return null;
+    // Only show edit/publish buttons on template pages for authenticated users
+    if (!isTemplate || !user) return null;
+    
+    // Don't show template actions in app-level navigation
+    if (isAppLevel) return null;
     
     return (
       <div className="flex items-center mr-4 space-x-2">
@@ -111,22 +116,60 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }: UserMenuProps) => {
       return;
     }
     
-    // Mock domain availability check (would be replaced by actual API call)
-    toast({
-      title: "Publishing Website...",
-      description: "Checking domain availability and preparing deployment.",
-    });
-    
-    // Simulate publishing process
-    setTimeout(() => {
+    // Check domain availability
+    checkDomainAvailability(domain).then(isAvailable => {
+      if (!isAvailable) {
+        toast({
+          title: "Domain Not Available",
+          description: "The domain you specified is already in use. Please try a different domain name.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Simulate Hostinger integration
       toast({
-        title: "Website Published!",
-        description: `Your website is now live at ${domain}. Connect with Hostinger to set up DNS.`,
+        title: "Publishing Website...",
+        description: "Checking domain availability and preparing deployment.",
       });
-    }, 2000);
-    
-    // In a real application, this would trigger a website publishing process
-    console.log(`Publishing website: ${template} to domain: ${domain}`);
+      
+      // Simulate publishing process
+      setTimeout(() => {
+        toast({
+          title: "Website Published!",
+          description: `Your website is now live at ${domain}. Connect with Hostinger to set up DNS.`,
+        });
+        
+        // Add link to Hostinger in a second toast
+        setTimeout(() => {
+          toast({
+            title: "Connect with Hostinger",
+            description: "Click to set up your domain with Hostinger",
+            action: (
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => window.open('https://www.hostinger.com', '_blank')}
+              >
+                Go to Hostinger
+              </Button>
+            ),
+          });
+        }, 1000);
+      }, 2000);
+    });
+  };
+  
+  // Mock domain availability check (would connect to real API)
+  const checkDomainAvailability = async (domain: string): Promise<boolean> => {
+    // In a real implementation, this would call an API to check domain availability
+    // For now, we'll just simulate an API call
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // Randomly return true or false, but mostly true for better UX
+        resolve(Math.random() > 0.2);
+      }, 1000);
+    });
   };
   
   // Determine auth link based on whether this is a template or main menu
@@ -134,6 +177,11 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }: UserMenuProps) => {
   
   const loginText = t('auth.login') || "Login";
   const logoutText = t('auth.logout') || "Logout";
+  
+  // For app-level navigation, show full user menu
+  // For template/website navigation, only show minimal controls
+  
+  const showAppLevelMenu = isAppLevel || !isTemplate;
   
   return (
     <div className="z-50 flex items-center">
@@ -160,19 +208,23 @@ const UserMenu = ({ isTemplate = false, templatePath = '' }: UserMenuProps) => {
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuLabel>{t('nav.userMenu') || "Navigation"}</DropdownMenuLabel>
-            <DropdownMenuItem asChild>
-              <Link to="/">{t('nav.home') || "Home"}</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/templates">{t('nav.templates') || "Templates"}</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/dashboard">{t('nav.dashboard') || "Dashboard"}</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/saved-websites">{t('nav.savedwebsites') || "Saved Websites"}</Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            {showAppLevelMenu && (
+              <>
+                <DropdownMenuItem asChild>
+                  <Link to="/">{t('nav.home') || "Home"}</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/templates">{t('nav.templates') || "Templates"}</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/dashboard">{t('nav.dashboard') || "Dashboard"}</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/saved-websites">{t('nav.savedwebsites') || "Saved Websites"}</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="h-4 w-4 mr-2" />
               {logoutText}

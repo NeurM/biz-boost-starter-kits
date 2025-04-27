@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,21 +32,11 @@ const Templates = () => {
   const [showChat, setShowChat] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
-  // Show chat component after a short delay
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowChat(true);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, []);
-  
   const navItems = [
     { name: t('nav.home'), path: "/" },
     { name: t('nav.templates'), path: "/templates" },
   ];
   
-  // Add dashboard and saved websites links if user is logged in
   if (user) {
     navItems.push(
       { name: t('nav.dashboard'), path: "/dashboard" },
@@ -121,7 +110,6 @@ const Templates = () => {
   };
 
   const handlePreviewTemplate = (template: any) => {
-    // Set template for preview and navigate to the template path
     setPreviewTemplate(template.path);
     navigate(template.path, { 
       state: { 
@@ -149,7 +137,6 @@ const Templates = () => {
     try {
       setIsSaving(true);
 
-      // If user is logged in, save the website configuration to the database
       if (user) {
         const templateId = template.path.replace('/', '');
         const { error } = await saveWebsiteConfig({
@@ -177,7 +164,6 @@ const Templates = () => {
         });
       }
 
-      // Store website data in session storage for all users (logged in or not)
       sessionStorage.setItem('companyData', JSON.stringify({
         companyName,
         domainName,
@@ -187,7 +173,6 @@ const Templates = () => {
         secondaryColorScheme: template.secondaryColor
       }));
 
-      // Navigate to the template
       navigate(template.path, { 
         state: {
           companyName,
@@ -210,6 +195,109 @@ const Templates = () => {
     }
   };
 
+  const getColorHex = (color: string, shade: number): string => {
+    const colorMap: Record<string, Record<number, string>> = {
+      blue: {
+        500: '#3b82f6',
+        400: '#60a5fa',
+        600: '#2563eb',
+      },
+      red: {
+        500: '#ef4444',
+        400: '#f87171',
+        600: '#dc2626',
+      },
+      green: {
+        500: '#22c55e',
+        400: '#4ade80',
+        600: '#16a34a',
+      },
+      purple: {
+        500: '#a855f7',
+        400: '#c084fc',
+        600: '#9333ea',
+      },
+      pink: {
+        500: '#ec4899',
+        400: '#f472b6',
+        600: '#db2777',
+      },
+      yellow: {
+        500: '#eab308',
+        400: '#facc15',
+        600: '#ca8a04',
+      },
+      orange: {
+        500: '#f97316',
+        400: '#fb923c',
+        600: '#ea580c',
+      },
+      teal: {
+        500: '#14b8a6',
+        400: '#2dd4bf',
+        600: '#0d9488',
+      },
+      cyan: {
+        500: '#06b6d4',
+        400: '#22d3ee',
+        600: '#0891b2',
+      },
+      gray: {
+        500: '#6b7280',
+        400: '#9ca3af',
+        600: '#4b5563',
+      },
+      black: {
+        500: '#000000',
+        400: '#333333',
+        600: '#000000',
+      },
+      white: {
+        500: '#ffffff',
+        400: '#ffffff',
+        600: '#f9fafb',
+      },
+      amber: {
+        500: '#f59e0b',
+        400: '#fbbf24',
+        600: '#d97706',
+      },
+      indigo: {
+        500: '#6366f1',
+        400: '#818cf8',
+        600: '#4f46e5',
+      },
+    };
+
+    return colorMap[color]?.[shade] || `#6b7280`;
+  };
+
+  const handleTemplateColorChange = (
+    template: any,
+    type: 'primary' | 'secondary',
+    color: string
+  ) => {
+    if (type === 'primary') {
+      setTemplateColor(color);
+    } else {
+      setSecondaryColor(color);
+    }
+    
+    if (type === 'primary') {
+      template.primaryColor = color;
+    } else {
+      template.secondaryColor = color;
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowChat(true);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex flex-col">
       <Navbar 
@@ -220,7 +308,6 @@ const Templates = () => {
         ctaLink={user ? undefined : "/auth"}
       />
 
-      {/* Hero Section */}
       <section className="pt-12 pb-8 container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">{t('templates.title') || "Choose Your Template"}</h1>
@@ -228,7 +315,6 @@ const Templates = () => {
         </div>
       </section>
 
-      {/* Templates Grid Section */}
       <section className="py-8 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl font-bold mb-6 text-center">{t('templates.ourTemplates') || "Our Templates"}</h2>
@@ -265,14 +351,23 @@ const Templates = () => {
                           <label className="block text-sm font-medium">
                             {t('form.primaryColor') || "Primary Color"}
                           </label>
-                          <div className="flex flex-wrap gap-2">
+                          <div className="flex flex-wrap gap-2 p-2 border rounded-md bg-white max-h-32 overflow-y-auto">
                             {colors.map((color) => (
                               <button
                                 key={color}
-                                className={`w-8 h-8 rounded-full bg-${color}-500 hover:ring-2 hover:ring-${color}-300 transition-all ${template.primaryColor === color ? 'ring-2 ring-black' : ''}`}
+                                className={`w-8 h-8 rounded-full hover:ring-2 transition-all ${
+                                  template.primaryColor === color 
+                                    ? 'ring-2 ring-black' 
+                                    : ''
+                                }`}
+                                style={{
+                                  backgroundColor: color.includes('#') 
+                                    ? color 
+                                    : `var(--${color}-500, ${getColorHex(color, 500)})`
+                                }}
                                 onClick={() => {
                                   const updatedTemplate = {...template, primaryColor: color};
-                                  setTemplateColor(color);
+                                  handleTemplateColorChange(updatedTemplate, 'primary', color);
                                 }}
                                 title={color}
                                 aria-label={`Select ${color} as primary color`}
@@ -285,14 +380,23 @@ const Templates = () => {
                           <label className="block text-sm font-medium">
                             {t('form.secondaryColor') || "Secondary Color"}
                           </label>
-                          <div className="flex flex-wrap gap-2">
+                          <div className="flex flex-wrap gap-2 p-2 border rounded-md bg-white max-h-32 overflow-y-auto">
                             {colors.map((color) => (
                               <button
                                 key={color}
-                                className={`w-8 h-8 rounded-full bg-${color}-500 hover:ring-2 hover:ring-${color}-300 transition-all ${template.secondaryColor === color ? 'ring-2 ring-black' : ''}`}
+                                className={`w-8 h-8 rounded-full hover:ring-2 transition-all ${
+                                  template.secondaryColor === color 
+                                    ? 'ring-2 ring-black' 
+                                    : ''
+                                }`}
+                                style={{
+                                  backgroundColor: color.includes('#') 
+                                    ? color 
+                                    : `var(--${color}-500, ${getColorHex(color, 500)})`
+                                }}
                                 onClick={() => {
                                   const updatedTemplate = {...template, secondaryColor: color};
-                                  setSecondaryColor(color);
+                                  handleTemplateColorChange(updatedTemplate, 'secondary', color);
                                 }}
                                 title={color}
                                 aria-label={`Select ${color} as secondary color`}
@@ -344,7 +448,6 @@ const Templates = () => {
         </div>
       </section>
 
-      {/* Why Choose Section */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold mb-10 text-center">{t('why.title') || "Why Choose Our Platform"}</h2>
@@ -384,7 +487,6 @@ const Templates = () => {
         contactInfo={contactInfo}
       />
       
-      {/* Chat component */}
       {showChat && <GeminiPersistentChat />}
     </div>
   );

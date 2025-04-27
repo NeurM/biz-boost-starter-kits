@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from '@/hooks/use-toast';
-import { Upload } from 'lucide-react';
+import { Upload, Image as ImageIcon } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface WebsiteInfo {
   companyName: string;
@@ -22,9 +23,15 @@ export const WebsiteInfoTab: React.FC<WebsiteInfoTabProps> = ({
   onInfoChange
 }) => {
   const [isUploading, setIsUploading] = useState(false);
+  const [contentImages, setContentImages] = useState<{[key: string]: string}>({
+    hero: '',
+    about: '',
+    services: '',
+    testimonials: ''
+  });
   
   // Function to handle image upload (mocked for now)
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: string = 'logo') => {
     const file = e.target.files?.[0];
     if (!file) return;
     
@@ -61,19 +68,34 @@ export const WebsiteInfoTab: React.FC<WebsiteInfoTabProps> = ({
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
-          // Create a mock event to update the logo field
-          const mockEvent = {
-            target: {
-              name: 'logo',
-              value: event.target.result.toString()
-            }
-          } as React.ChangeEvent<HTMLInputElement>;
-          
-          onInfoChange(mockEvent);
+          if (type === 'logo') {
+            // Create a mock event to update the logo field
+            const mockEvent = {
+              target: {
+                name: 'logo',
+                value: event.target.result.toString()
+              }
+            } as React.ChangeEvent<HTMLInputElement>;
+            
+            onInfoChange(mockEvent);
+          } else {
+            // Update content images
+            setContentImages(prev => ({
+              ...prev,
+              [type]: event.target.result?.toString() || ''
+            }));
+            
+            // Save to session storage
+            const storedImages = JSON.parse(sessionStorage.getItem('websiteContentImages') || '{}');
+            sessionStorage.setItem('websiteContentImages', JSON.stringify({
+              ...storedImages,
+              [type]: event.target.result?.toString()
+            }));
+          }
           
           toast({
             title: "Upload Complete",
-            description: "Your logo has been uploaded successfully",
+            description: `Your ${type === 'logo' ? 'logo' : 'image'} has been uploaded successfully`,
           });
         }
       };
@@ -90,6 +112,15 @@ export const WebsiteInfoTab: React.FC<WebsiteInfoTabProps> = ({
       setIsUploading(false);
     }
   };
+  
+  // Load content images from session storage on component mount
+  React.useEffect(() => {
+    const storedImages = JSON.parse(sessionStorage.getItem('websiteContentImages') || '{}');
+    setContentImages(prev => ({
+      ...prev,
+      ...storedImages
+    }));
+  }, []);
   
   return (
     <Card>
@@ -137,7 +168,7 @@ export const WebsiteInfoTab: React.FC<WebsiteInfoTabProps> = ({
                 id="logo-upload"
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 accept="image/*"
-                onChange={handleImageUpload}
+                onChange={(e) => handleImageUpload(e, 'logo')}
                 disabled={isUploading}
               />
               <Button variant="outline" disabled={isUploading}>
@@ -160,6 +191,72 @@ export const WebsiteInfoTab: React.FC<WebsiteInfoTabProps> = ({
               />
             </div>
           )}
+        </div>
+        
+        <div className="pt-4">
+          <h3 className="text-lg font-medium mb-4">Website Content Images</h3>
+          
+          <Tabs defaultValue="hero">
+            <TabsList>
+              <TabsTrigger value="hero">Hero Section</TabsTrigger>
+              <TabsTrigger value="about">About Section</TabsTrigger>
+              <TabsTrigger value="services">Services</TabsTrigger>
+              <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
+            </TabsList>
+            
+            {['hero', 'about', 'services', 'testimonials'].map(imageType => (
+              <TabsContent value={imageType} key={imageType} className="pt-4">
+                <div>
+                  <label htmlFor={`${imageType}-image`} className="block text-sm font-medium mb-1 capitalize">
+                    {imageType} Image
+                  </label>
+                  <div className="flex space-x-2">
+                    <Input 
+                      id={`${imageType}-image`} 
+                      value={contentImages[imageType] || ''} 
+                      onChange={(e) => {
+                        setContentImages(prev => ({...prev, [imageType]: e.target.value}));
+                        const storedImages = JSON.parse(sessionStorage.getItem('websiteContentImages') || '{}');
+                        sessionStorage.setItem('websiteContentImages', JSON.stringify({
+                          ...storedImages,
+                          [imageType]: e.target.value
+                        }));
+                      }} 
+                      placeholder={`https://example.com/${imageType}-image.jpg`} 
+                    />
+                    <div className="relative">
+                      <input
+                        type="file"
+                        id={`${imageType}-upload`}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, imageType)}
+                        disabled={isUploading}
+                      />
+                      <Button variant="outline" disabled={isUploading}>
+                        <ImageIcon className="h-4 w-4 mr-2" />
+                        Upload
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {contentImages[imageType] && (
+                    <div className="mt-2">
+                      <p className="text-sm mb-1 capitalize">{imageType} Image Preview:</p>
+                      <img 
+                        src={contentImages[imageType]} 
+                        alt={`${imageType} preview`} 
+                        className="max-h-40 object-contain border border-gray-200 rounded-md p-2"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x200';
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
         </div>
       </CardContent>
     </Card>

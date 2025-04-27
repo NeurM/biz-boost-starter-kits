@@ -14,6 +14,26 @@ import TestimonialsSection from '@/components/sections/TestimonialsSection';
 import ProcessSection from '@/components/sections/ProcessSection';
 import UserMenu from '@/components/UserMenu';
 
+// Create app-level navbar component
+const AppNavbar = () => {
+  const navItems = [
+    { name: "Home", path: "/" },
+    { name: "Templates", path: "/templates" },
+    { name: "Dashboard", path: "/dashboard" },
+    { name: "Saved Websites", path: "/saved-websites" },
+  ];
+  
+  return (
+    <Navbar 
+      logo="Template<span class='text-primary'>Builder</span>"
+      basePath=""
+      navItems={navItems}
+      isAppLevel={true}
+      className="border-b"
+    />
+  );
+};
+
 const TradecraftHome = () => {
   const navItems = [
     { name: "Home", path: "/tradecraft" },
@@ -31,6 +51,10 @@ const TradecraftHome = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* App-level navigation */}
+      <AppNavbar />
+      
+      {/* Template-specific navigation */}
       <Navbar 
         logo="Trade<span class='text-blue-600'>Craft</span>" 
         basePath="tradecraft"
@@ -38,11 +62,6 @@ const TradecraftHome = () => {
         ctaText="Book Now" 
         ctaLink="/tradecraft/contact"
       />
-      
-      {/* Template-specific User Menu */}
-      <div className="absolute top-4 right-4 z-50">
-        <UserMenu isTemplate={true} templatePath="tradecraft" />
-      </div>
       
       <HeroSection />
       <ServicesSection />

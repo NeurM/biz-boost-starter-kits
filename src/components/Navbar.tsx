@@ -26,6 +26,7 @@ interface NavbarProps {
   ctaLink?: string;
   className?: string;
   forceTemplateName?: boolean;
+  isAppLevel?: boolean;
 }
 
 const Navbar = ({
@@ -36,6 +37,7 @@ const Navbar = ({
   ctaLink,
   className = "",
   forceTemplateName = false,
+  isAppLevel = false,
 }: NavbarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
@@ -74,7 +76,7 @@ const Navbar = ({
   // Process nav items to ensure they have the correct template path prefix
   const processedNavItems = navItems.map(item => {
     // If this is a template and the path doesn't already have the basePath prefix
-    if (isTemplate && !item.path.startsWith(`/${basePath}`)) {
+    if (isTemplate && !item.path.startsWith(`/${basePath}`) && !isAppLevel) {
       return {
         ...item,
         path: item.path.startsWith('/') ? `/${basePath}${item.path}` : `/${basePath}/${item.path}`
@@ -113,8 +115,12 @@ const Navbar = ({
   
   const closeMenu = () => setIsOpen(false);
 
+  // For app-level navigation, show user controls
+  // For template/website navigation, don't show app controls
+  const showAppControls = isAppLevel || !isTemplate;
+
   return (
-    <nav className={`bg-white shadow-sm ${className}`}>
+    <nav className={`bg-white shadow-sm ${className} ${isAppLevel ? 'app-navbar' : 'site-navbar'}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -136,15 +142,17 @@ const Navbar = ({
               forceTemplateName={forceTemplateName}
             />
             
-            <div className="flex items-center space-x-4">
-              <LanguageSelector />
-              <UserMenu isTemplate={isTemplate} templatePath={basePath} />
-            </div>
+            {showAppControls && (
+              <div className="flex items-center space-x-4">
+                <LanguageSelector />
+                <UserMenu isTemplate={isTemplate} templatePath={basePath} isAppLevel={isAppLevel} />
+              </div>
+            )}
           </div>
 
           <div className="md:hidden flex items-center space-x-2">
-            <LanguageSelector />
-            <UserMenu isTemplate={isTemplate} templatePath={basePath} />
+            {showAppControls && <LanguageSelector />}
+            {showAppControls && <UserMenu isTemplate={isTemplate} templatePath={basePath} isAppLevel={isAppLevel} />}
             <MobileMenuButton 
               isOpen={isOpen}
               onClick={toggleMenu}

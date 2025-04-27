@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { getAllWebsiteConfigs, deleteWebsiteConfig } from '@/utils/supabase';
 import { Pencil, ExternalLink, Trash2, Globe } from 'lucide-react';
-import Navbar from '@/components/Navbar';
+import AppNavbar from '@/components/AppNavbar';
 import Footer from '@/components/Footer';
 import { useLanguage } from '@/context/LanguageContext';
 import {
@@ -43,7 +42,6 @@ const SavedWebsites = () => {
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const { t } = useLanguage();
 
-  // Define navigation and contact info for the navbar and footer
   const navItems = [
     { name: t('nav.home'), path: "/" },
     { name: t('nav.templates'), path: "/templates" },
@@ -137,13 +135,7 @@ const SavedWebsites = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar 
-        logo={t('app.name') || "TemplateBuilder"}
-        basePath=""
-        navItems={navItems}
-        ctaText={t('cta.getstarted')}
-        ctaLink={"/auth"}
-      />
+      <AppNavbar />
       
       <div className="container py-8 flex-grow">
         <div className="flex justify-between items-center mb-8">

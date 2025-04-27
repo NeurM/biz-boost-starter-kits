@@ -16,6 +16,7 @@ function App() {
             <div className="w-full h-screen flex items-center justify-center">Loading...</div>
           ) : null}
         </main>
+        {/* Ensure the chat component is always rendered */}
         <GeminiPersistentChat />
       </AnalyticsTracker>
     </div>
