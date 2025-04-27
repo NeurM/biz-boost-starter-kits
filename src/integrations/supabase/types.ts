@@ -72,6 +72,57 @@ export type Database = {
         }
         Relationships: []
       }
+      website_analytics: {
+        Row: {
+          created_at: string
+          element_class: string | null
+          element_id: string | null
+          element_text: string | null
+          element_type: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          page_path: string
+          scroll_depth: number | null
+          session_id: string
+          template_id: string
+          timestamp: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          element_class?: string | null
+          element_id?: string | null
+          element_text?: string | null
+          element_type?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          page_path: string
+          scroll_depth?: number | null
+          session_id: string
+          template_id: string
+          timestamp?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          element_class?: string | null
+          element_id?: string | null
+          element_text?: string | null
+          element_type?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          page_path?: string
+          scroll_depth?: number | null
+          session_id?: string
+          template_id?: string
+          timestamp?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       website_configs: {
         Row: {
           color_scheme: string | null
