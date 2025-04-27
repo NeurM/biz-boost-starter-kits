@@ -22,7 +22,7 @@ const Templates = () => {
   const navigate = useNavigate();
   const { trackEvent } = useAnalytics();
   const { t, language } = useLanguage();
-  const { setTemplateColor, setSecondaryColor } = useTemplateTheme();
+  const { setTemplateColor, setSecondaryColor, templateColor, secondaryColor } = useTemplateTheme();
   
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
@@ -31,6 +31,8 @@ const Templates = () => {
   const [logoUrl, setLogoUrl] = useState('');
   const [showChat, setShowChat] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedPrimaryColor, setSelectedPrimaryColor] = useState('');
+  const [selectedSecondaryColor, setSelectedSecondaryColor] = useState('');
   
   const navItems = [
     { name: t('nav.home'), path: "/" },
@@ -104,6 +106,8 @@ const Templates = () => {
 
   const handleTemplateClick = (template: any) => {
     setSelectedTemplate(template.path);
+    setSelectedPrimaryColor(template.primaryColor);
+    setSelectedSecondaryColor(template.secondaryColor);
     setTemplateColor(template.primaryColor);
     setSecondaryColor(template.secondaryColor);
     trackEvent('Templates', 'Template Click', template.name);
@@ -137,9 +141,6 @@ const Templates = () => {
       return;
     }
 
-    const selectedPrimaryColor = template.primaryColor;
-    const selectedSecondaryColor = template.secondaryColor;
-
     try {
       setIsSaving(true);
 
@@ -150,8 +151,8 @@ const Templates = () => {
           company_name: companyName,
           domain_name: domainName,
           logo: logoUrl,
-          color_scheme: selectedPrimaryColor,
-          secondary_color_scheme: selectedSecondaryColor
+          color_scheme: selectedPrimaryColor || template.primaryColor,
+          secondary_color_scheme: selectedSecondaryColor || template.secondaryColor
         });
 
         if (error) {
@@ -175,20 +176,20 @@ const Templates = () => {
         domainName,
         logo: logoUrl,
         template: template.name,
-        colorScheme: selectedPrimaryColor,
-        secondaryColorScheme: selectedSecondaryColor
+        colorScheme: selectedPrimaryColor || template.primaryColor,
+        secondaryColorScheme: selectedSecondaryColor || template.secondaryColor
       }));
 
-      setTemplateColor(selectedPrimaryColor);
-      setSecondaryColor(selectedSecondaryColor);
+      setTemplateColor(selectedPrimaryColor || template.primaryColor);
+      setSecondaryColor(selectedSecondaryColor || template.secondaryColor);
 
       navigate(template.path, { 
         state: {
           companyName,
           domainName,
           logo: logoUrl,
-          colorScheme: selectedPrimaryColor,
-          secondaryColorScheme: selectedSecondaryColor
+          colorScheme: selectedPrimaryColor || template.primaryColor,
+          secondaryColorScheme: selectedSecondaryColor || template.secondaryColor
         }
       });
       
@@ -286,26 +287,19 @@ const Templates = () => {
     type: 'primary' | 'secondary',
     color: string
   ) => {
-    const updatedTemplate = {...template};
-    
     if (type === 'primary') {
+      setSelectedPrimaryColor(color);
       setTemplateColor(color);
-      updatedTemplate.primaryColor = color;
     } else {
+      setSelectedSecondaryColor(color);
       setSecondaryColor(color);
-      updatedTemplate.secondaryColor = color;
     }
     
-    const updatedTemplates = templates.map(t => 
-      t.path === template.path ? updatedTemplate : t
-    );
-    
-    if (selectedTemplate === template.path) {
-      setSelectedTemplate(null);
-      setTimeout(() => {
-        setSelectedTemplate(template.path);
-      }, 10);
-    }
+    toast({
+      title: type === 'primary' ? "Primary Color Updated" : "Secondary Color Updated",
+      description: `Color changed to ${color}`,
+      duration: 1500,
+    });
   };
 
   useEffect(() => {
@@ -373,9 +367,10 @@ const Templates = () => {
                             {colors.map((color) => (
                               <button
                                 key={color}
+                                type="button"
                                 className={`w-8 h-8 rounded-full hover:ring-2 transition-all ${
-                                  template.primaryColor === color 
-                                    ? 'ring-2 ring-black' 
+                                  (selectedPrimaryColor || template.primaryColor) === color 
+                                    ? 'ring-2 ring-black scale-110' 
                                     : ''
                                 }`}
                                 style={{
@@ -383,10 +378,7 @@ const Templates = () => {
                                     ? color 
                                     : `var(--${color}-500, ${getColorHex(color, 500)})`
                                 }}
-                                onClick={() => {
-                                  const updatedTemplate = {...template, primaryColor: color};
-                                  handleTemplateColorChange(updatedTemplate, 'primary', color);
-                                }}
+                                onClick={() => handleTemplateColorChange(template, 'primary', color)}
                                 title={color}
                                 aria-label={`Select ${color} as primary color`}
                               />
@@ -402,9 +394,10 @@ const Templates = () => {
                             {colors.map((color) => (
                               <button
                                 key={color}
+                                type="button"
                                 className={`w-8 h-8 rounded-full hover:ring-2 transition-all ${
-                                  template.secondaryColor === color 
-                                    ? 'ring-2 ring-black' 
+                                  (selectedSecondaryColor || template.secondaryColor) === color 
+                                    ? 'ring-2 ring-black scale-110' 
                                     : ''
                                 }`}
                                 style={{
@@ -412,10 +405,7 @@ const Templates = () => {
                                     ? color 
                                     : `var(--${color}-500, ${getColorHex(color, 500)})`
                                 }}
-                                onClick={() => {
-                                  const updatedTemplate = {...template, secondaryColor: color};
-                                  handleTemplateColorChange(updatedTemplate, 'secondary', color);
-                                }}
+                                onClick={() => handleTemplateColorChange(template, 'secondary', color)}
                                 title={color}
                                 aria-label={`Select ${color} as secondary color`}
                               />
@@ -505,7 +495,11 @@ const Templates = () => {
         contactInfo={contactInfo}
       />
       
-      {showChat && <GeminiPersistentChat />}
+      {showChat && (
+        <div className="fixed bottom-6 right-6 z-[100]">
+          <GeminiPersistentChat />
+        </div>
+      )}
     </div>
   );
 };

@@ -47,6 +47,7 @@ const Navbar = ({
   const { templateType } = useTemplateTheme();
   const { user } = useAuth();
   
+  // Detect if this is a template page
   const isTemplate = basePath && ["expert", "tradecraft", "retail", "service", "cleanslate"].includes(basePath);
   const isTemplateEditor = location.pathname.includes('/edit');
   
@@ -92,8 +93,15 @@ const Navbar = ({
   
   const closeMenu = () => setIsOpen(false);
 
-  // Only show template actions when we're on a template page and not in app-level mode
-  const showTemplateActions = isTemplate && !isAppLevel;
+  // Only show template actions when on a template page 
+  // AND not in app-level mode AND user is logged in
+  const showTemplateActions = isTemplate && !isAppLevel && user;
+
+  // Only show language selector in app-level or when not on template
+  const showLanguageSelector = isAppLevel || !isTemplate;
+  
+  // Determine if we should show the auth buttons
+  const showAuthButtons = !isTemplate || (isTemplate && !isAppLevel && !user);
 
   return (
     <nav className={`bg-white shadow-sm ${className} ${isAppLevel ? 'app-navbar' : 'site-navbar'}`}>
@@ -106,19 +114,25 @@ const Navbar = ({
               companyData={companyData}
               forceTemplateName={forceTemplateName}
             />
+            
+            {showLanguageSelector && (
+              <div className="ml-4 hidden md:block">
+                <LanguageSelector />
+              </div>
+            )}
           </div>
 
           <div className="hidden md:flex md:items-center md:space-x-4">
             <DesktopNav 
               navItems={translatedNavItems}
-              ctaText={translatedCtaText}
-              ctaLink={ctaLink}
+              ctaText={showAuthButtons ? translatedCtaText : undefined}
+              ctaLink={showAuthButtons ? ctaLink : undefined}
               isActive={isActive}
               companyData={companyData}
               forceTemplateName={forceTemplateName}
             />
             
-            {showTemplateActions && user && (
+            {showTemplateActions && (
               <UserMenu 
                 isTemplate={isTemplate} 
                 templatePath={basePath} 
@@ -128,7 +142,7 @@ const Navbar = ({
           </div>
 
           <div className="md:hidden flex items-center space-x-2">
-            {showTemplateActions && user && (
+            {showTemplateActions && (
               <UserMenu 
                 isTemplate={isTemplate} 
                 templatePath={basePath} 
@@ -146,8 +160,8 @@ const Navbar = ({
       <MobileNav 
         isOpen={isOpen}
         navItems={translatedNavItems}
-        ctaText={translatedCtaText}
-        ctaLink={ctaLink}
+        ctaText={showAuthButtons ? translatedCtaText : undefined}
+        ctaLink={showAuthButtons ? ctaLink : undefined}
         isActive={isActive}
         companyData={companyData}
         forceTemplateName={forceTemplateName}

@@ -34,8 +34,8 @@ const Index = () => {
         logo="<span class='text-primary font-semibold'>Template</span><span class='text-gray-600'>Builder</span>" 
         basePath=""
         navItems={navItems}
-        ctaText="Get Started" 
-        ctaLink={user ? "/templates" : "/auth"}
+        ctaText={user ? undefined : "Get Started"} 
+        ctaLink={user ? undefined : "/auth"}
       />
 
       {/* Hero Section */}

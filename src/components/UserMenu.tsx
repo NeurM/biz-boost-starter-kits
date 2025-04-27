@@ -38,6 +38,22 @@ const UserMenu = ({ isTemplate = false, templatePath = '', isAppLevel = false }:
   if (isTemplate && templatePath && !location.pathname.startsWith(`/${templatePath}`)) {
     return null;
   }
+
+  // If there's no user, render the Login button for app-level navigation
+  if (!user && isAppLevel) {
+    return (
+      <Button variant="default" size="sm" asChild>
+        <Link to="/auth">
+          {t('auth.login') || "Login"}
+        </Link>
+      </Button>
+    );
+  }
+  
+  // If there's no user at all, render nothing
+  if (!user) {
+    return null;
+  }
   
   const handleLogout = async () => {
     try {
@@ -65,11 +81,11 @@ const UserMenu = ({ isTemplate = false, templatePath = '', isAppLevel = false }:
     }
   };
 
-  // Only show website-specific controls in template pages and for logged in users
+  // Only show website-specific controls in template pages
   // AND only when we're not in the app-level navigation (isAppLevel === false)
   const renderTemplateActions = () => {
-    // Only show edit/publish buttons on template pages for authenticated users
-    if (!isTemplate || !user || isAppLevel) return null;
+    // Only show edit/publish buttons on template pages
+    if (!isTemplate || isAppLevel) return null;
     
     return (
       <div className="flex items-center mr-4 space-x-2">
@@ -174,51 +190,42 @@ const UserMenu = ({ isTemplate = false, templatePath = '', isAppLevel = false }:
     <div className="z-50 flex items-center">
       {renderTemplateActions()}
       
-      {!user ? (
-        <Button variant={isAppLevel ? "default" : "outline"} asChild size="sm">
-          <Link to={authLink}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="flex items-center"
+          >
             <User className="h-4 w-4 mr-2" />
-            {loginText}
-          </Link>
-        </Button>
-      ) : (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="flex items-center"
-            >
-              <User className="h-4 w-4 mr-2" />
-              {user.email?.split('@')[0]}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuLabel>{t('nav.userMenu') || "Navigation"}</DropdownMenuLabel>
-            {isAppLevel && (
-              <>
-                <DropdownMenuItem asChild>
-                  <Link to="/">{t('nav.home') || "Home"}</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/templates">{t('nav.templates') || "Templates"}</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/dashboard">{t('nav.dashboard') || "Dashboard"}</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/saved-websites">{t('nav.savedwebsites') || "Saved Websites"}</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-              </>
-            )}
-            <DropdownMenuItem onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              {logoutText}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
+            {user.email?.split('@')[0]}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuLabel>{t('nav.userMenu') || "Navigation"}</DropdownMenuLabel>
+          {isAppLevel && (
+            <>
+              <DropdownMenuItem asChild>
+                <Link to="/">{t('nav.home') || "Home"}</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/templates">{t('nav.templates') || "Templates"}</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/dashboard">{t('nav.dashboard') || "Dashboard"}</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/saved-websites">{t('nav.savedwebsites') || "Saved Websites"}</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
+          <DropdownMenuItem onClick={handleLogout}>
+            <LogOut className="h-4 w-4 mr-2" />
+            {logoutText}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };

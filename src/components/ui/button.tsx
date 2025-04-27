@@ -64,6 +64,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       variant = 'default';
     }
     
+    // Transform cta and cta-outline variants for CleanSlate template
+    if (variant === 'cta' && templateType === 'cleanslate') {
+      dynamicClass = 'bg-black hover:bg-gray-800 text-white';
+    } else if (variant === 'cta-outline' && templateType === 'cleanslate') {
+      dynamicClass = 'border-2 border-black text-black hover:bg-black/5';
+    }
+    
     const Comp = asChild ? Slot : "button"
     
     return (
