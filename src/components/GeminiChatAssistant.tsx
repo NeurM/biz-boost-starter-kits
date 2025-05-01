@@ -1,5 +1,5 @@
 
-import React, { Suspense } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { MessageCircle } from "lucide-react";
@@ -40,13 +40,13 @@ const GeminiChatAssistant = () => {
       {!isOpen ? (
         <Button
           onClick={() => startTransition(() => setIsOpen(true))}
-          className="fixed bottom-4 right-4 rounded-full w-12 h-12 p-0 bg-primary hover:bg-primary/90 shadow-lg z-50"
+          className="fixed bottom-4 right-4 rounded-full w-12 h-12 p-0 bg-primary hover:bg-primary/90 shadow-lg z-40"
           aria-label="Open chat assistant"
         >
           <MessageCircle className="h-6 w-6" />
         </Button>
       ) : (
-        <Card className={`fixed bottom-4 right-4 shadow-lg transition-all duration-300 z-50 ${
+        <Card className={`fixed bottom-4 right-4 shadow-lg transition-all duration-300 z-40 ${
           isMinimized ? 'w-72' : 'w-full max-w-md'
         }`}>
           <CardHeader className="pb-3">
@@ -59,7 +59,7 @@ const GeminiChatAssistant = () => {
           {!isMinimized && (
             <CardContent>
               <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense fallback={<div className="p-4 text-center">Loading chat...</div>}>
+                <div>
                   <MessageList messages={messages} isLoading={isLoading || isPending} />
                   <WebsiteBuilder 
                     websiteStatus={websiteStatus}
@@ -71,7 +71,7 @@ const GeminiChatAssistant = () => {
                     onSubmit={handleSubmit}
                     disabled={isLoading || isPending}
                   />
-                </Suspense>
+                </div>
               </ErrorBoundary>
             </CardContent>
           )}

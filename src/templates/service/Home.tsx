@@ -27,7 +27,7 @@ const ServiceHome = () => {
       />
       
       {/* Template-specific User Menu - Position adjusted for better visibility */}
-      <div className="absolute top-4 right-8 z-50">
+      <div className="absolute top-4 right-8 z-30">
         <UserMenu isTemplate={true} templatePath="service" />
       </div>
       
