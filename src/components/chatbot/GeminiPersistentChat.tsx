@@ -9,11 +9,19 @@ import { toast } from '@/hooks/use-toast';
 import { useChat } from '@/context/ChatContext';
 import { useChatPersistence } from '@/hooks/useChatPersistence';
 import { ErrorBoundary } from 'react-error-boundary';
+import { Suspense } from 'react';
 
-const ErrorFallback = () => (
+const ErrorFallback = ({error}: {error?: Error}) => (
   <div className="p-4 text-red-500 bg-red-50 rounded-md">
     <h4 className="font-medium mb-2">Something went wrong with the chat</h4>
-    <p className="text-sm">Please try refreshing the page</p>
+    <p className="text-sm">{error?.message || 'Please try refreshing the page'}</p>
+  </div>
+);
+
+// Loading component for suspense
+const ChatLoading = () => (
+  <div className="flex items-center justify-center p-4">
+    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
   </div>
 );
 
@@ -47,13 +55,15 @@ const GeminiPersistentChat: React.FC = () => {
     
     // Save messages to persistence
     if (messages.length > 0) {
-      startTransition(() => {
+      const timeoutId = setTimeout(() => {
         if (websiteStatus.isCreated) {
           saveMessagesWithWebsiteData(messages, websiteStatus);
         } else {
           saveMessages(messages);
         }
-      });
+      }, 0);
+      
+      return () => clearTimeout(timeoutId);
     }
   }, [messages, saveMessages, saveMessagesWithWebsiteData, websiteStatus]);
   
@@ -148,53 +158,59 @@ Guide users through template selection, customization, and branding.`;
     }
   };
   
+  const ChatContent = () => (
+    <Card className="w-[350px] shadow-lg border-primary z-50">
+      <CardHeader className="flex flex-row items-center justify-between p-4">
+        <h3 className="font-semibold">Website Assistant</h3>
+        <div className="flex items-center gap-2">
+          {typeof setShowChatHistory === 'function' && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-xs"
+              onClick={() => startTransition(() => setShowChatHistory(!showChatHistory))}
+            >
+              {showChatHistory ? "New Chat" : "History"}
+            </Button>
+          )}
+          <Button variant="ghost" size="icon" onClick={toggleChat}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-4 h-[400px] overflow-y-auto">
+        <MessageList 
+          messages={messages} 
+          isLoading={isLoading || isPending} 
+        />
+        <div ref={messagesEndRef} />
+      </CardContent>
+      <CardFooter className="p-4 border-t">
+        <form className="flex w-full gap-2" onSubmit={handleSubmit}>
+          <Textarea 
+            placeholder="Ask me anything..." 
+            className="min-h-[40px] flex-1"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            disabled={isLoading || isPending}
+          />
+          <Button type="submit" size="icon" disabled={isLoading || isPending}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+              <path d="m22 2-7 20-4-9-9-4Z" />
+              <path d="M22 2 11 13" />
+            </svg>
+          </Button>
+        </form>
+      </CardFooter>
+    </Card>
+  );
+  
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       {isOpen ? (
-        <Card className="w-[350px] shadow-lg border-primary z-50">
-          <CardHeader className="flex flex-row items-center justify-between p-4">
-            <h3 className="font-semibold">Website Assistant</h3>
-            <div className="flex items-center gap-2">
-              {typeof setShowChatHistory === 'function' && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-xs"
-                  onClick={() => startTransition(() => setShowChatHistory(!showChatHistory))}
-                >
-                  {showChatHistory ? "New Chat" : "History"}
-                </Button>
-              )}
-              <Button variant="ghost" size="icon" onClick={toggleChat}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-4 h-[400px] overflow-y-auto">
-            <MessageList 
-              messages={messages} 
-              isLoading={isLoading || isPending} 
-            />
-            <div ref={messagesEndRef} />
-          </CardContent>
-          <CardFooter className="p-4 border-t">
-            <form className="flex w-full gap-2" onSubmit={handleSubmit}>
-              <Textarea 
-                placeholder="Ask me anything..." 
-                className="min-h-[40px] flex-1"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                disabled={isLoading || isPending}
-              />
-              <Button type="submit" size="icon" disabled={isLoading || isPending}>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                  <path d="m22 2-7 20-4-9-9-4Z" />
-                  <path d="M22 2 11 13" />
-                </svg>
-              </Button>
-            </form>
-          </CardFooter>
-        </Card>
+        <Suspense fallback={<ChatLoading />}>
+          <ChatContent />
+        </Suspense>
       ) : (
         <Button 
           onClick={toggleChat}

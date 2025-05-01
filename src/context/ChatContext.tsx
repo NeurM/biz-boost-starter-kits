@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, ReactNode, useTransition, useEffect } from 'react';
 import { Message, WebsiteStatus } from '../components/chatbot/types';
 import { useChatPersistence } from '../hooks/useChatPersistence';
+import { ErrorBoundary } from 'react-error-boundary';
 
 interface ChatContextType {
   messages: Message[];
@@ -39,6 +40,13 @@ const defaultContext: ChatContextType = {
 const ChatContext = createContext<ChatContextType>(defaultContext);
 
 export const useChat = () => useContext(ChatContext);
+
+const ErrorFallback = ({error}: {error?: Error}) => (
+  <div className="p-4 text-red-500 bg-red-50 rounded-md">
+    <h4 className="font-medium mb-2">Chat Context Error</h4>
+    <p className="text-sm">{error?.message || 'An error occurred in the chat system'}</p>
+  </div>
+);
 
 export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -100,31 +108,36 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Save messages when they change
   useEffect(() => {
     if (messages.length > 0) {
-      startTransition(() => {
+      // Use setTimeout to prevent blocking the main thread
+      const saveMessagesTimeout = setTimeout(() => {
         if (websiteStatus.isCreated) {
           saveMessagesWithWebsiteData(messages, websiteStatus);
         } else {
           saveMessages(messages);
         }
-      });
+      }, 0);
+      
+      return () => clearTimeout(saveMessagesTimeout);
     }
   }, [messages, websiteStatus, saveMessages, saveMessagesWithWebsiteData]);
 
   return (
-    <ChatContext.Provider 
-      value={{ 
-        messages, 
-        setMessages, 
-        isOpen, 
-        setIsOpen,
-        showChatHistory,
-        setShowChatHistory,
-        resetChat,
-        websiteStatus,
-        setWebsiteStatus
-      }}
-    >
-      {children}
-    </ChatContext.Provider>
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <ChatContext.Provider 
+        value={{ 
+          messages, 
+          setMessages, 
+          isOpen, 
+          setIsOpen,
+          showChatHistory,
+          setShowChatHistory,
+          resetChat,
+          websiteStatus,
+          setWebsiteStatus
+        }}
+      >
+        {children}
+      </ChatContext.Provider>
+    </ErrorBoundary>
   );
 };

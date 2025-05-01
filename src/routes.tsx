@@ -43,7 +43,11 @@ const ErrorFallback = ({error}: {error?: Error}) => (
 // Website Editor Wrapper component that gets the template from URL params
 const EditorWrapper: React.FC = () => {
   const { template } = useParams<{ template: string }>();
-  return <WebsiteEditor template={template || ''} />;
+  return (
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <WebsiteEditor template={template || ''} />
+    </ErrorBoundary>
+  );
 };
 
 // Wrap all routes with Suspense and ErrorBoundary
@@ -103,7 +107,7 @@ export const router = createBrowserRouter([
   ...serviceRoutes,
   {
     path: '*',
-    element: <NotFound />,
+    element: withSuspense(NotFound),
     errorElement: <ErrorFallback />
   }
 ]);

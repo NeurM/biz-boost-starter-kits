@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useTransition } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +9,15 @@ import MessageList from './chatbot/MessageList';
 import WebsiteBuilder from './chatbot/WebsiteBuilder';
 import { Message, WebsiteStatus } from './chatbot/types';
 import { saveWebsiteConfig } from '@/utils/supabase';
+import { ErrorBoundary } from 'react-error-boundary';
+
+const ErrorFallback = ({error}: {error?: Error}) => (
+  <div className="text-red-500 p-4 bg-red-50 rounded-md">
+    <h4 className="font-bold">Something went wrong with the chat assistant</h4>
+    <p className="text-sm">{error?.message || 'An unknown error occurred'}</p>
+    <p className="mt-2">Please try refreshing the page</p>
+  </div>
+);
 
 const GeminiChatAssistant = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -25,6 +35,7 @@ const GeminiChatAssistant = () => {
     colorScheme: null,
     secondaryColorScheme: null
   });
+  const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   
   const apiKey = "AIzaSyAUQZFNXyvEfsiaFTawgiyNq7aJyV8KzgE";
@@ -34,7 +45,9 @@ const GeminiChatAssistant = () => {
     if (!input.trim()) return;
 
     const userMessage = { content: input, isUser: true };
-    setMessages(prev => [...prev, userMessage]);
+    startTransition(() => {
+      setMessages(prev => [...prev, userMessage]);
+    });
     setInput('');
     setIsLoading(true);
 
@@ -112,7 +125,9 @@ Guide users through template selection, customization, and branding. After gathe
           secondaryColorScheme: null
         };
         
-        setWebsiteStatus(newWebsiteStatus);
+        startTransition(() => {
+          setWebsiteStatus(newWebsiteStatus);
+        });
         
         const saveConfig = async () => {
           try {
@@ -138,7 +153,9 @@ Guide users through template selection, customization, and branding. After gathe
       }
 
       const aiMessage = { content: generatedText, isUser: false };
-      setMessages(prev => [...prev, aiMessage]);
+      startTransition(() => {
+        setMessages(prev => [...prev, aiMessage]);
+      });
     } catch (error) {
       console.error('Chat error:', error);
       toast({
@@ -153,92 +170,98 @@ Guide users through template selection, customization, and branding. After gathe
 
   const resetWebsite = () => {
     sessionStorage.removeItem('companyData');
-    setWebsiteStatus({
-      isCreated: false,
-      template: null,
-      path: null,
-      companyName: null,
-      domainName: null,
-      logo: null,
-      colorScheme: null,
-      secondaryColorScheme: null
+    startTransition(() => {
+      setWebsiteStatus({
+        isCreated: false,
+        template: null,
+        path: null,
+        companyName: null,
+        domainName: null,
+        logo: null,
+        colorScheme: null,
+        secondaryColorScheme: null
+      });
+      setMessages([]);
     });
-    setMessages([]);
     toast({
       title: "Website Reset",
       description: "You can now start creating a new website."
     });
   };
 
-  if (!isOpen) {
-    return (
-      <Button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 rounded-full w-12 h-12 p-0 bg-primary hover:bg-primary/90 shadow-lg z-50"
-        aria-label="Open chat assistant"
-      >
-        <MessageCircle className="h-6 w-6" />
-      </Button>
-    );
-  }
-
   return (
-    <Card className={`fixed bottom-4 right-4 shadow-lg transition-all duration-300 z-50 ${
-      isMinimized ? 'w-72' : 'w-full max-w-md'
-    }`}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-medium flex items-center gap-2">
-            <MessageCircle className="h-5 w-5" />
-            Website Building Assistant
-          </CardTitle>
-          <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-0 w-8 h-8"
-              onClick={() => setIsMinimized(!isMinimized)}
-              aria-label={isMinimized ? "Maximize chat" : "Minimize chat"}
-            >
-              {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-0 w-8 h-8"
-              onClick={() => setIsOpen(false)}
-              aria-label="Close chat"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      {!isMinimized && (
-        <CardContent>
-          <MessageList messages={messages} isLoading={isLoading} />
-          <WebsiteBuilder 
-            websiteStatus={websiteStatus}
-            onReset={resetWebsite}
-          />
-          <form onSubmit={handleSubmit} className="flex gap-2">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about website templates or customization..."
-              className="flex-1"
-              disabled={isLoading}
-            />
-            <Button 
-              type="submit" 
-              disabled={isLoading}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </form>
-        </CardContent>
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
+      {!isOpen ? (
+        <Button
+          onClick={() => startTransition(() => setIsOpen(true))}
+          className="fixed bottom-4 right-4 rounded-full w-12 h-12 p-0 bg-primary hover:bg-primary/90 shadow-lg z-50"
+          aria-label="Open chat assistant"
+        >
+          <MessageCircle className="h-6 w-6" />
+        </Button>
+      ) : (
+        <Card className={`fixed bottom-4 right-4 shadow-lg transition-all duration-300 z-50 ${
+          isMinimized ? 'w-72' : 'w-full max-w-md'
+        }`}>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-medium flex items-center gap-2">
+                <MessageCircle className="h-5 w-5" />
+                Website Building Assistant
+              </CardTitle>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-0 w-8 h-8"
+                  onClick={() => startTransition(() => setIsMinimized(!isMinimized))}
+                  aria-label={isMinimized ? "Maximize chat" : "Minimize chat"}
+                >
+                  {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-0 w-8 h-8"
+                  onClick={() => startTransition(() => setIsOpen(false))}
+                  aria-label="Close chat"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          {!isMinimized && (
+            <CardContent>
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense fallback={<div className="p-4 text-center">Loading chat...</div>}>
+                  <MessageList messages={messages} isLoading={isLoading || isPending} />
+                  <WebsiteBuilder 
+                    websiteStatus={websiteStatus}
+                    onReset={resetWebsite}
+                  />
+                  <form onSubmit={handleSubmit} className="flex gap-2">
+                    <Input
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="Ask about website templates or customization..."
+                      className="flex-1"
+                      disabled={isLoading || isPending}
+                    />
+                    <Button 
+                      type="submit" 
+                      disabled={isLoading || isPending}
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </form>
+                </Suspense>
+              </ErrorBoundary>
+            </CardContent>
+          )}
+        </Card>
       )}
-    </Card>
+    </ErrorBoundary>
   );
 };
 
