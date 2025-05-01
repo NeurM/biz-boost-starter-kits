@@ -16,16 +16,6 @@ import SavedWebsites from './pages/SavedWebsites';
 import NotFound from './pages/NotFound';
 import CleanSlate from './templates/cleanslate/CleanSlate';
 
-// Error boundary for Suspense fallbacks
-const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
-  try {
-    return <>{children}</>;
-  } catch (error) {
-    console.error("Error in component:", error);
-    return <div>Something went wrong. Please try refreshing the page.</div>;
-  }
-};
-
 // Loading fallback
 const Loading = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -50,13 +40,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/dashboard',
-    element: (
-      <ErrorBoundary>
-        <Suspense fallback={<Loading />}>
-          <Dashboard />
-        </Suspense>
-      </ErrorBoundary>
-    ),
+    element: <Dashboard />,
   },
   {
     path: '/templates',

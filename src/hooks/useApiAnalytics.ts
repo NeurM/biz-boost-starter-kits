@@ -14,31 +14,43 @@ export const useApiAnalytics = () => {
   return useQuery({
     queryKey: ['api-analytics'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('api_logs')
-        .select('endpoint')
-        .filter('user_id', 'eq', (await supabase.auth.getUser()).data.user?.id);
+      try {
+        const userData = await supabase.auth.getUser();
+        
+        if (!userData?.data?.user?.id) {
+          console.warn('No authenticated user found for analytics');
+          return [];
+        }
+        
+        const { data, error } = await supabase
+          .from('api_logs')
+          .select('endpoint')
+          .filter('user_id', 'eq', userData.data.user.id);
 
-      if (error) {
-        toast({
-          title: "Error loading API analytics",
-          description: error.message,
-          variant: "destructive"
-        });
+        if (error) {
+          console.error('Error loading API analytics:', error);
+          return [];
+        }
+
+        const analytics = (data || []).reduce((acc: ApiLogAnalytics[], curr) => {
+          const existing = acc.find(a => a.endpoint === curr.endpoint);
+          if (existing) {
+            existing.count++;
+          } else {
+            acc.push({ endpoint: curr.endpoint, count: 1 });
+          }
+          return acc;
+        }, []);
+
+        return analytics;
+      } catch (error) {
+        console.error('Error in API analytics:', error);
         return [];
       }
-
-      const analytics = data.reduce((acc: ApiLogAnalytics[], curr) => {
-        const existing = acc.find(a => a.endpoint === curr.endpoint);
-        if (existing) {
-          existing.count++;
-        } else {
-          acc.push({ endpoint: curr.endpoint, count: 1 });
-        }
-        return acc;
-      }, []);
-
-      return analytics;
-    }
+    },
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+    refetchInterval: false,
   });
 };

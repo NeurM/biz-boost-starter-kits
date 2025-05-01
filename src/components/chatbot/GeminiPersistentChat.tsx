@@ -17,9 +17,9 @@ const GeminiPersistentChat: React.FC = () => {
     messages, 
     setMessages, 
     isOpen, 
-    setIsOpen, 
-    showChatHistory, 
-    setShowChatHistory 
+    setIsOpen,
+    showChatHistory = false,
+    setShowChatHistory = () => {}
   } = useChat();
   
   const apiKey = "AIzaSyAUQZFNXyvEfsiaFTawgiyNq7aJyV8KzgE";
@@ -119,14 +119,16 @@ Guide users through template selection, customization, and branding.`;
           <CardHeader className="flex flex-row items-center justify-between p-4">
             <h3 className="font-semibold">Website Assistant</h3>
             <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-xs"
-                onClick={() => setShowChatHistory(!showChatHistory)}
-              >
-                {showChatHistory ? "New Chat" : "History"}
-              </Button>
+              {typeof setShowChatHistory === 'function' && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-xs"
+                  onClick={() => setShowChatHistory(!showChatHistory)}
+                >
+                  {showChatHistory ? "New Chat" : "History"}
+                </Button>
+              )}
               <Button variant="ghost" size="icon" onClick={toggleChat}>
                 <X className="h-4 w-4" />
               </Button>

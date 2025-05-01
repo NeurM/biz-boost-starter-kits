@@ -1,247 +1,60 @@
 
-import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { useAuth } from './AuthContext';
-import { Message, WebsiteStatus } from '../components/chatbot/types';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { Message } from '../components/chatbot/types';
 import { useChatPersistence } from '@/hooks/useChatPersistence';
-import { toast } from '@/hooks/use-toast';
 
-interface ChatContextProps {
+interface ChatContextType {
   messages: Message[];
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  isMinimized: boolean;
-  setIsMinimized: React.Dispatch<React.SetStateAction<boolean>>;
-  input: string;
-  setInput: React.Dispatch<React.SetStateAction<string>>;
-  isLoading: boolean;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  websiteStatus: WebsiteStatus;
-  setWebsiteStatus: React.Dispatch<React.SetStateAction<WebsiteStatus>>;
-  resetChat: () => void;
-  viewCode: () => void;
   showChatHistory: boolean;
   setShowChatHistory: React.Dispatch<React.SetStateAction<boolean>>;
+  resetChat: () => void;
 }
 
-const ChatContext = createContext<ChatContextProps>({} as ChatContextProps);
+const defaultContext: ChatContextType = {
+  messages: [],
+  setMessages: () => {},
+  isOpen: false,
+  setIsOpen: () => {},
+  showChatHistory: false,
+  setShowChatHistory: () => {},
+  resetChat: () => {},
+};
+
+const ChatContext = createContext<ChatContextType>(defaultContext);
 
 export const useChat = () => useContext(ChatContext);
 
-interface ChatProviderProps {
-  children: ReactNode;
-}
-
-export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
-  // Initialize messages with an empty array to prevent undefined
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { savedMessages, saveMessages, clearSavedMessages } = useChatPersistence();
+  const [messages, setMessages] = useState<Message[]>(savedMessages || []);
   const [isOpen, setIsOpen] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
   const [showChatHistory, setShowChatHistory] = useState(false);
-  const { user } = useAuth();
-  const [websiteStatus, setWebsiteStatus] = useState<WebsiteStatus>({
-    isCreated: false,
-    template: null,
-    path: null,
-    companyName: null,
-    domainName: null,
-    logo: null,
-    colorScheme: null,
-    secondaryColorScheme: null
-  });
 
-  useChatPersistence(messages, setMessages, websiteStatus, setWebsiteStatus, showChatHistory);
-
-  // Enhanced viewCode function that works more reliably
-  const viewCode = () => {
-    // Try different methods to access developer mode
-    
-    // Method 1: Find a dev-mode toggle button via data attribute
-    const devModeToggle = document.querySelector('[data-testid="dev-mode-toggle"]') as HTMLButtonElement;
-    if (devModeToggle) {
-      devModeToggle.click();
-      return;
-    }
-    
-    // Method 2: Try finding buttons with specific text
-    const buttons = Array.from(document.querySelectorAll('button'));
-    const devButton = buttons.find(button => 
-      button.textContent?.toLowerCase().includes('dev mode') || 
-      button.textContent?.toLowerCase().includes('code') ||
-      button.textContent?.toLowerCase().includes('developer')
-    );
-    
-    if (devButton) {
-      devButton.click();
-      return;
-    }
-    
-    // Method 3: Check for keyboard shortcut element
-    const devModeShortcut = document.getElementById('dev-mode-shortcut');
-    if (devModeShortcut) {
-      // Simulate keyboard shortcut
-      const event = new KeyboardEvent('keydown', {
-        key: 'd',
-        code: 'KeyD',
-        ctrlKey: true,
-        shiftKey: true,
-        bubbles: true
-      });
-      document.dispatchEvent(event);
-      return;
-    }
-    
-    // If all methods fail, try dispatching the keyboard shortcut anyway
-    try {
-      const event = new KeyboardEvent('keydown', {
-        key: 'd',
-        code: 'KeyD',
-        ctrlKey: true,
-        shiftKey: true,
-        bubbles: true
-      });
-      document.dispatchEvent(event);
-      
-      toast({
-        title: "Developer Mode",
-        description: "Attempting to open developer mode. If it doesn't open, you can also try pressing Ctrl+Shift+D.",
-      });
-    } catch (error) {
-      console.error("Failed to toggle dev mode:", error);
-      toast({
-        title: "Developer Mode Unavailable",
-        description: "Could not access developer mode. Try pressing Ctrl+Shift+D or check your account permissions.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Safely initialize with default messages if needed
-  useEffect(() => {
-    if (messages.length === 0 || (user && messages[0].content.includes("sign up or log in"))) {
-      const initialMessage: Message = user ? 
-        {
-          content: "Welcome agency partner! I'm here to help you create and improve websites for your clients. Let me know what type of business site you're building, and I'll guide you through template selection and customization.",
-          isUser: false
-        } : 
-        {
-          content: "Welcome! I can help you explore our website templates and answer any questions you might have about our services. To create a website, you'll need to sign up or log in.",
-          isUser: false
-        };
-      
-      setMessages([initialMessage]);
-    }
-  }, [user, showChatHistory]);
-
-  // Update messages based on auth state
-  useEffect(() => {
+  // Update persistence when messages change
+  React.useEffect(() => {
     if (messages.length > 0) {
-      if (user && messages[0].content.includes("To create a website, you'll need to sign up or log in")) {
-        const updatedMessages = [...messages];
-        updatedMessages[0] = {
-          content: "Welcome agency partner! I'm here to help you create and improve websites for your clients. Let me know what type of business site you're building, and I'll guide you through template selection and customization.",
-          isUser: false
-        };
-        setMessages(updatedMessages);
-      } else if (!user && messages[0].content.includes("Welcome agency partner!")) {
-        const updatedMessages = [...messages];
-        updatedMessages[0] = {
-          content: "Welcome! I can help you explore our website templates and answer any questions you might have about our services. To create a website, you'll need to sign up or log in.",
-          isUser: false
-        };
-        setMessages(updatedMessages);
-      }
+      saveMessages(messages);
     }
-  }, [user, messages]);
-  
+  }, [messages, saveMessages]);
+
   const resetChat = () => {
-    sessionStorage.removeItem('companyData');
-    setWebsiteStatus({
-      isCreated: false,
-      template: null,
-      path: null,
-      companyName: null,
-      domainName: null,
-      logo: null,
-      colorScheme: null,
-      secondaryColorScheme: null
-    });
-    
-    const initialMessage: Message = user ? 
-      {
-        content: "Welcome agency partner! What kind of website would you like to create now?",
-        isUser: false
-      } : 
-      {
-        content: "Welcome! How can I help you today?",
-        isUser: false
-      };
-    
-    setMessages([initialMessage]);
-    setShowChatHistory(false);
+    setMessages([]);
+    clearSavedMessages();
   };
-
-  // Save chat state to session storage
-  useEffect(() => {
-    if (isMinimized) {
-      sessionStorage.setItem('chatState', JSON.stringify({
-        messages,
-        isOpen,
-        isMinimized,
-        websiteStatus,
-        showChatHistory
-      }));
-    }
-  }, [isMinimized, messages, isOpen, websiteStatus, showChatHistory]);
-
-  // Restore chat state from session storage
-  useEffect(() => {
-    const savedState = sessionStorage.getItem('chatState');
-    if (savedState) {
-      try {
-        const { 
-          messages: savedMessages, 
-          isOpen: savedIsOpen, 
-          isMinimized: savedIsMinimized, 
-          websiteStatus: savedWebsiteStatus,
-          showChatHistory: savedShowChatHistory
-        } = JSON.parse(savedState);
-        
-        if (savedMessages && Array.isArray(savedMessages)) {
-          setMessages(savedMessages);
-        }
-        setIsOpen(savedIsOpen);
-        setIsMinimized(savedIsMinimized);
-        setWebsiteStatus(savedWebsiteStatus);
-        setShowChatHistory(savedShowChatHistory || false);
-        sessionStorage.removeItem('chatState');
-      } catch (error) {
-        console.error("Error parsing chat state from session storage:", error);
-      }
-    }
-  }, []);
 
   return (
-    <ChatContext.Provider
-      value={{
-        messages,
-        setMessages,
-        input,
-        setInput,
-        isLoading,
-        setIsLoading,
-        isOpen,
+    <ChatContext.Provider 
+      value={{ 
+        messages, 
+        setMessages, 
+        isOpen, 
         setIsOpen,
-        isMinimized,
-        setIsMinimized,
-        websiteStatus,
-        setWebsiteStatus,
-        resetChat,
-        viewCode,
         showChatHistory,
-        setShowChatHistory
+        setShowChatHistory,
+        resetChat
       }}
     >
       {children}

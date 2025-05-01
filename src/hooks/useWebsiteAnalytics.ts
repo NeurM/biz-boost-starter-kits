@@ -14,31 +14,43 @@ export const useWebsiteAnalytics = () => {
   return useQuery({
     queryKey: ['website-analytics'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('website_configs')
-        .select('template_id')
-        .filter('user_id', 'eq', (await supabase.auth.getUser()).data.user?.id);
+      try {
+        const userData = await supabase.auth.getUser();
+        
+        if (!userData?.data?.user?.id) {
+          console.warn('No authenticated user found for analytics');
+          return [];
+        }
+        
+        const { data, error } = await supabase
+          .from('website_configs')
+          .select('template_id')
+          .filter('user_id', 'eq', userData.data.user.id);
 
-      if (error) {
-        toast({
-          title: "Error loading website analytics",
-          description: error.message,
-          variant: "destructive"
-        });
+        if (error) {
+          console.error('Error loading website analytics:', error);
+          return [];
+        }
+
+        const analytics = (data || []).reduce((acc: WebsiteAnalytics[], curr) => {
+          const existing = acc.find(a => a.template_id === curr.template_id);
+          if (existing) {
+            existing.count++;
+          } else {
+            acc.push({ template_id: curr.template_id, count: 1 });
+          }
+          return acc;
+        }, []);
+
+        return analytics;
+      } catch (error) {
+        console.error('Error in website analytics:', error);
         return [];
       }
-
-      const analytics = data.reduce((acc: WebsiteAnalytics[], curr) => {
-        const existing = acc.find(a => a.template_id === curr.template_id);
-        if (existing) {
-          existing.count++;
-        } else {
-          acc.push({ template_id: curr.template_id, count: 1 });
-        }
-        return acc;
-      }, []);
-
-      return analytics;
-    }
+    },
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+    refetchInterval: false,
   });
 };

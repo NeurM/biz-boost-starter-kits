@@ -26,13 +26,28 @@ const WebsiteBuilder = ({ websiteStatus, onReset }: WebsiteBuilderProps) => {
         setSecondaryColor(websiteStatus.secondaryColorScheme);
       }
       
+      // Use defaults for each template if colors aren't specified
+      const getDefaultColors = (template: string | null) => {
+        switch (template) {
+          case 'cleanslate': return { primary: 'black', secondary: 'gray' };
+          case 'tradecraft': return { primary: 'blue', secondary: 'orange' };
+          case 'retail': return { primary: 'purple', secondary: 'pink' };
+          case 'service': return { primary: 'teal', secondary: 'green' };
+          case 'expert': return { primary: 'amber', secondary: 'yellow' };
+          default: return { primary: 'blue', secondary: 'orange' };
+        }
+      };
+      
+      const defaultColors = getDefaultColors(websiteStatus.template);
+      
       // Store the data in sessionStorage so it can be accessed by the template
       sessionStorage.setItem('companyData', JSON.stringify({
         companyName: websiteStatus.companyName, 
         domainName: websiteStatus.domainName, 
         logo: websiteStatus.logo,
-        colorScheme: websiteStatus.colorScheme,
-        secondaryColorScheme: websiteStatus.secondaryColorScheme
+        colorScheme: websiteStatus.colorScheme || defaultColors.primary,
+        secondaryColorScheme: websiteStatus.secondaryColorScheme || defaultColors.secondary,
+        template: websiteStatus.template
       }));
       
       navigate(websiteStatus.path, { 
@@ -40,8 +55,8 @@ const WebsiteBuilder = ({ websiteStatus, onReset }: WebsiteBuilderProps) => {
           companyName: websiteStatus.companyName, 
           domainName: websiteStatus.domainName, 
           logo: websiteStatus.logo,
-          colorScheme: websiteStatus.colorScheme,
-          secondaryColorScheme: websiteStatus.secondaryColorScheme
+          colorScheme: websiteStatus.colorScheme || defaultColors.primary,
+          secondaryColorScheme: websiteStatus.secondaryColorScheme || defaultColors.secondary
         } 
       });
     }
