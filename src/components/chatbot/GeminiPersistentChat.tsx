@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import MessageList from './MessageList';
 import { toast } from '@/hooks/use-toast';
 import { useChat } from '@/context/ChatContext';
+import { useChatPersistence } from '@/hooks/useChatPersistence';
 
 // Chat component with Gemini API integration
 const GeminiPersistentChat: React.FC = () => {
@@ -18,15 +19,27 @@ const GeminiPersistentChat: React.FC = () => {
     setMessages, 
     isOpen, 
     setIsOpen,
-    showChatHistory = false,
-    setShowChatHistory = () => {}
+    showChatHistory,
+    setShowChatHistory,
+    websiteStatus
   } = useChat();
+  
+  const { saveMessages, saveMessagesWithWebsiteData } = useChatPersistence();
   
   const apiKey = "AIzaSyAUQZFNXyvEfsiaFTawgiyNq7aJyV8KzgE";
   
   useEffect(() => {
     // Scroll to bottom when messages change
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    
+    // Save messages to persistence
+    if (messages.length > 0) {
+      if (websiteStatus.isCreated) {
+        saveMessagesWithWebsiteData(messages, websiteStatus);
+      } else {
+        saveMessages(messages);
+      }
+    }
   }, [messages]);
   
   // Toggle chat visibility

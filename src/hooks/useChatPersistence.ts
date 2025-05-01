@@ -1,23 +1,18 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { Message, WebsiteStatus } from '@/components/chatbot/types';
 import { Json } from '@/integrations/supabase/types';
 
-export const useChatPersistence = (
-  messages: Message[],
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
-  websiteStatus: WebsiteStatus,
-  setWebsiteStatus: React.Dispatch<React.SetStateAction<WebsiteStatus>>,
-  showChatHistory: boolean
-) => {
+export const useChatPersistence = () => {
   const { user } = useAuth();
+  const [savedMessages, setSavedMessages] = useState<Message[]>([]);
 
-  // Load messages from Supabase when user logs in or showChatHistory changes
+  // Load messages from Supabase when user logs in
   useEffect(() => {
     const loadMessages = async () => {
-      if (!user || !showChatHistory) return;
+      if (!user) return;
 
       try {
         const { data, error } = await supabase
@@ -28,7 +23,7 @@ export const useChatPersistence = (
 
         if (error) {
           console.error('Error loading chat messages:', error);
-          return;
+          return [];
         }
 
         if (data && data.length > 0) {
@@ -38,75 +33,78 @@ export const useChatPersistence = (
             isUser: record.is_user
           }));
           
-          setMessages(loadedMessages);
-          
-          // If we have website data in the last message, use it
-          const lastMessageWithData = data
-            .filter(msg => msg.website_data)
-            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
-            
-          if (lastMessageWithData && lastMessageWithData.website_data) {
-            // Cast to unknown first, then to WebsiteStatus to avoid direct type assignment error
-            const websiteData = lastMessageWithData.website_data as unknown as WebsiteStatus;
-            if (websiteData && typeof websiteData === 'object' && 'isCreated' in websiteData) {
-              setWebsiteStatus(websiteData);
-            }
-          }
-        } else if (showChatHistory) {
-          // If showing history but no messages found, show a message about that
-          setMessages([{
-            content: "No chat history found. Let's start a new conversation!",
-            isUser: false
-          }]);
+          setSavedMessages(loadedMessages);
+          return loadedMessages;
         }
+        return [];
       } catch (err) {
         console.error('Error in loadMessages:', err);
+        return [];
       }
     };
 
-    if (showChatHistory) {
-      loadMessages();
-    } else if (user && (!messages || messages.length === 0)) {
-      // If not showing history, just show welcome message
-      setMessages([{
-        content: "Welcome agency partner! I'm here to help you create and improve websites for your clients. Let me know what type of business site you're building, and I'll guide you through template selection and customization.",
-        isUser: false
-      }]);
-    } else if (!user && (!messages || messages.length === 0)) {
-      setMessages([{
-        content: "Welcome! I can help you explore our website templates and answer any questions you might have about our services. To create a website, you'll need to sign up or log in.",
-        isUser: false
-      }]);
+    loadMessages();
+  }, [user]);
+
+  // Function to save messages to Supabase
+  const saveMessages = async (messages: Message[]) => {
+    if (!user || !messages || messages.length === 0) return;
+
+    const lastMessage = messages[messages.length - 1];
+    
+    try {
+      await supabase.from('chat_messages').insert({
+        user_id: user.id,
+        content: lastMessage.content,
+        is_user: lastMessage.isUser
+      });
+    } catch (err) {
+      console.error('Error saving chat message:', err);
     }
-  }, [user, showChatHistory]);
+  };
 
-  // Save messages to Supabase when they change
-  useEffect(() => {
-    const saveMessages = async () => {
-      if (!user || !messages || messages.length === 0) return;
+  // Function to save messages with website data
+  const saveMessagesWithWebsiteData = async (messages: Message[], websiteStatus: WebsiteStatus) => {
+    if (!user || !messages || messages.length === 0) return;
 
-      const lastMessage = messages[messages.length - 1];
-      
-      try {
-        const websiteData = websiteStatus.isCreated ? 
-          JSON.parse(JSON.stringify(websiteStatus)) as Json : 
-          null;
-          
-        await supabase.from('chat_messages').insert({
-          user_id: user.id,
-          content: lastMessage.content,
-          is_user: lastMessage.isUser,
-          website_data: websiteData
-        });
-      } catch (err) {
-        console.error('Error saving chat message:', err);
-      }
-    };
-
-    if (user && messages && messages.length > 0) {
-      saveMessages();
+    const lastMessage = messages[messages.length - 1];
+    
+    try {
+      const websiteData = websiteStatus.isCreated ? 
+        JSON.parse(JSON.stringify(websiteStatus)) as Json : 
+        null;
+        
+      await supabase.from('chat_messages').insert({
+        user_id: user.id,
+        content: lastMessage.content,
+        is_user: lastMessage.isUser,
+        website_data: websiteData
+      });
+    } catch (err) {
+      console.error('Error saving chat message with website data:', err);
     }
-  }, [messages?.length]);
+  };
 
-  return null;
+  // Clear saved messages
+  const clearSavedMessages = async () => {
+    if (!user) return;
+    
+    try {
+      await supabase
+        .from('chat_messages')
+        .delete()
+        .eq('user_id', user.id);
+        
+      setSavedMessages([]);
+    } catch (err) {
+      console.error('Error clearing chat messages:', err);
+    }
+  };
+
+  return {
+    savedMessages,
+    saveMessages,
+    saveMessagesWithWebsiteData,
+    clearSavedMessages
+  };
 };

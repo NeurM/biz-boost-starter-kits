@@ -1,7 +1,6 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Message } from '../components/chatbot/types';
-import { useChatPersistence } from '@/hooks/useChatPersistence';
+import { Message, WebsiteStatus } from '../components/chatbot/types';
 
 interface ChatContextType {
   messages: Message[];
@@ -11,6 +10,8 @@ interface ChatContextType {
   showChatHistory: boolean;
   setShowChatHistory: React.Dispatch<React.SetStateAction<boolean>>;
   resetChat: () => void;
+  websiteStatus: WebsiteStatus;
+  setWebsiteStatus: React.Dispatch<React.SetStateAction<WebsiteStatus>>;
 }
 
 const defaultContext: ChatContextType = {
@@ -21,6 +22,17 @@ const defaultContext: ChatContextType = {
   showChatHistory: false,
   setShowChatHistory: () => {},
   resetChat: () => {},
+  websiteStatus: {
+    isCreated: false,
+    template: null,
+    path: null,
+    companyName: null,
+    domainName: null,
+    logo: null,
+    colorScheme: null,
+    secondaryColorScheme: null
+  },
+  setWebsiteStatus: () => {}
 };
 
 const ChatContext = createContext<ChatContextType>(defaultContext);
@@ -28,22 +40,44 @@ const ChatContext = createContext<ChatContextType>(defaultContext);
 export const useChat = () => useContext(ChatContext);
 
 export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { savedMessages, saveMessages, clearSavedMessages } = useChatPersistence();
-  const [messages, setMessages] = useState<Message[]>(savedMessages || []);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [showChatHistory, setShowChatHistory] = useState(false);
+  const [websiteStatus, setWebsiteStatus] = useState<WebsiteStatus>({
+    isCreated: false,
+    template: null,
+    path: null,
+    companyName: null,
+    domainName: null,
+    logo: null,
+    colorScheme: null,
+    secondaryColorScheme: null
+  });
 
-  // Update persistence when messages change
-  React.useEffect(() => {
-    if (messages.length > 0) {
-      saveMessages(messages);
-    }
-  }, [messages, saveMessages]);
-
+  // Create a simple function to reset the chat
   const resetChat = () => {
     setMessages([]);
-    clearSavedMessages();
+    setWebsiteStatus({
+      isCreated: false,
+      template: null,
+      path: null,
+      companyName: null,
+      domainName: null,
+      logo: null,
+      colorScheme: null,
+      secondaryColorScheme: null
+    });
   };
+
+  // Initialize with welcome message if no messages
+  React.useEffect(() => {
+    if (messages.length === 0) {
+      setMessages([{
+        content: "Welcome! I'm here to help you create and improve websites for your clients. Let me know what type of business site you're building.",
+        isUser: false
+      }]);
+    }
+  }, []);
 
   return (
     <ChatContext.Provider 
@@ -54,7 +88,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setIsOpen,
         showChatHistory,
         setShowChatHistory,
-        resetChat
+        resetChat,
+        websiteStatus,
+        setWebsiteStatus
       }}
     >
       {children}
