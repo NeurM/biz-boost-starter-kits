@@ -21,18 +21,27 @@ function App() {
         </div>
       </AnalyticsTracker>
       
-      {/* Remove any Lovable badge or attribution that might be here */}
+      {/* Remove Lovable badge from the entire app */}
       <style>{`
         /* Hide any Lovable badges that might be injected */
         .lovable-badge, 
-        [class*="lovable-badge"],
-        [id*="lovable-badge"],
-        [data-lovable-badge],
-        a[href*="lovable.app"] {
+        [class*="lovable"],
+        [id*="lovable"],
+        [data-lovable],
+        a[href*="lovable.app"],
+        div[class*="lovable"],
+        span[class*="lovable"],
+        iframe[src*="lovable"],
+        .lovable-root,
+        #lovable-badge {
           display: none !important;
           visibility: hidden !important;
           opacity: 0 !important;
           pointer-events: none !important;
+          width: 0 !important;
+          height: 0 !important;
+          position: absolute !important;
+          z-index: -9999 !important;
         }
       `}</style>
     </div>

@@ -35,6 +35,33 @@ const GeminiChatAssistant = () => {
     resetWebsite
   } = useGeminiChat();
 
+  // Prevent any potential React suspense issues by not rendering child components
+  // until they are needed
+  const renderChatContent = () => {
+    if (!isOpen) return null;
+    if (isMinimized) return null;
+    
+    return (
+      <CardContent>
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <div>
+            <MessageList messages={messages} isLoading={isLoading || isPending} />
+            <WebsiteBuilder 
+              websiteStatus={websiteStatus}
+              onReset={resetWebsite}
+            />
+            <ChatInput
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onSubmit={handleSubmit}
+              disabled={isLoading || isPending}
+            />
+          </div>
+        </ErrorBoundary>
+      </CardContent>
+    );
+  };
+
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       {!isOpen ? (
@@ -56,25 +83,7 @@ const GeminiChatAssistant = () => {
               onClose={() => startTransition(() => setIsOpen(false))}
             />
           </CardHeader>
-          {!isMinimized && (
-            <CardContent>
-              <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <div>
-                  <MessageList messages={messages} isLoading={isLoading || isPending} />
-                  <WebsiteBuilder 
-                    websiteStatus={websiteStatus}
-                    onReset={resetWebsite}
-                  />
-                  <ChatInput
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onSubmit={handleSubmit}
-                    disabled={isLoading || isPending}
-                  />
-                </div>
-              </ErrorBoundary>
-            </CardContent>
-          )}
+          {renderChatContent()}
         </Card>
       )}
     </ErrorBoundary>
