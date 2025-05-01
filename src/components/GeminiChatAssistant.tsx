@@ -1,5 +1,4 @@
-
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, Suspense } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
