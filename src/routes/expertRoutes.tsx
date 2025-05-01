@@ -1,5 +1,5 @@
 
-import { lazy } from "react";
+import { lazy, Suspense } from "react";
 import { RouteConfig } from "../types/template";
 import { expertData } from "../data/expertData";
 import { 
@@ -9,67 +9,89 @@ import {
   ContactPageGenericComponent 
 } from "../components/generic/GenericTemplatePages";
 
+// Loading fallback
+const Loading = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
+  </div>
+);
+
 // Lazy load templates
 const ExpertHome = lazy(() => import("../templates/expert/Home"));
 const ExpertAuth = lazy(() => import("../pages/Auth")); // Reuse main Auth component for now
 
+// Wrap components with Suspense
+const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
+  <Suspense fallback={<Loading />}>
+    {children}
+  </Suspense>
+);
+
 export const ExpertAbout = () => (
-  <AboutPageComponent
-    template="LocalExpert"
-    title="About LocalExpert"
-    description={expertData.description}
-    logo={expertData.logo}
-    basePath={expertData.basePath}
-    navItems={expertData.navItems}
-    contactInfo={expertData.contactInfo}
-    primaryColor="amber"
-  />
+  <SuspenseWrapper>
+    <AboutPageComponent
+      template="LocalExpert"
+      title="About LocalExpert"
+      description={expertData.description}
+      logo={expertData.logo}
+      basePath={expertData.basePath}
+      navItems={expertData.navItems}
+      contactInfo={expertData.contactInfo}
+      primaryColor="amber"
+    />
+  </SuspenseWrapper>
 );
 
 export const ExpertServices = () => (
-  <ServicesPageComponent
-    template="LocalExpert"
-    title="Our Services"
-    serviceType="Services"
-    description={expertData.description}
-    logo={expertData.logo}
-    basePath={expertData.basePath}
-    navItems={expertData.navItems}
-    contactInfo={expertData.contactInfo}
-    primaryColor="amber"
-  />
+  <SuspenseWrapper>
+    <ServicesPageComponent
+      template="LocalExpert"
+      title="Our Services"
+      serviceType="Services"
+      description={expertData.description}
+      logo={expertData.logo}
+      basePath={expertData.basePath}
+      navItems={expertData.navItems}
+      contactInfo={expertData.contactInfo}
+      primaryColor="amber"
+    />
+  </SuspenseWrapper>
 );
 
 export const ExpertBlog = () => (
-  <BlogPageComponent
-    template="LocalExpert"
-    title="LocalExpert Blog"
-    description={expertData.description}
-    logo={expertData.logo}
-    basePath={expertData.basePath}
-    navItems={expertData.navItems}
-    contactInfo={expertData.contactInfo}
-    primaryColor="amber"
-  />
+  <SuspenseWrapper>
+    <BlogPageComponent
+      template="LocalExpert"
+      title="LocalExpert Blog"
+      description={expertData.description}
+      logo={expertData.logo}
+      basePath={expertData.basePath}
+      navItems={expertData.navItems}
+      contactInfo={expertData.contactInfo}
+      primaryColor="amber"
+    />
+  </SuspenseWrapper>
 );
 
 export const ExpertContact = () => (
-  <ContactPageGenericComponent
-    template="LocalExpert"
-    title="Contact LocalExpert"
-    description={expertData.description}
-    logo={expertData.logo}
-    basePath={expertData.basePath}
-    navItems={expertData.navItems}
-    contactInfo={expertData.contactInfo}
-    primaryColor="amber"
-  />
+  <SuspenseWrapper>
+    <ContactPageGenericComponent
+      template="LocalExpert"
+      title="Contact LocalExpert"
+      description={expertData.description}
+      logo={expertData.logo}
+      basePath={expertData.basePath}
+      navItems={expertData.navItems}
+      contactInfo={expertData.contactInfo}
+      primaryColor="amber"
+    />
+  </SuspenseWrapper>
 );
 
 export const expertRoutes: RouteConfig[] = [
   {
     path: "/expert",
-    element: <ExpertHome />,
+    element: <SuspenseWrapper><ExpertHome /></SuspenseWrapper>,
   },
   {
     path: "/expert/about",
@@ -89,6 +111,6 @@ export const expertRoutes: RouteConfig[] = [
   },
   {
     path: "/expert/auth",
-    element: <ExpertAuth />,
+    element: <SuspenseWrapper><ExpertAuth /></SuspenseWrapper>,
   },
 ];

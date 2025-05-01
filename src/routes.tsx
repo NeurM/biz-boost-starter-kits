@@ -23,36 +23,62 @@ const Loading = () => (
   </div>
 );
 
+// Error fallback
+const ErrorFallback = () => (
+  <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-red-50">
+    <h2 className="text-2xl font-bold text-red-600 mb-4">Something went wrong</h2>
+    <p className="text-gray-700 mb-4">We've encountered an error while loading this page.</p>
+    <a href="/" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+      Return to Home
+    </a>
+  </div>
+);
+
 // Website Editor Wrapper component that gets the template from URL params
 const EditorWrapper: React.FC = () => {
   const { template } = useParams<{ template: string }>();
   return <WebsiteEditor template={template || ''} />;
 };
 
+// Wrap all routes with Suspense and ErrorBoundary
+const withSuspense = (Component: React.ComponentType<any>) => {
+  return (
+    <Suspense fallback={<Loading />}>
+      <Component />
+    </Suspense>
+  );
+};
+
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <Index />,
+    element: withSuspense(Index),
+    errorElement: <ErrorFallback />
   },
   {
     path: '/auth',
-    element: <Auth />,
+    element: withSuspense(Auth),
+    errorElement: <ErrorFallback />
   },
   {
     path: '/dashboard',
-    element: <Dashboard />,
+    element: withSuspense(Dashboard),
+    errorElement: <ErrorFallback />
   },
   {
     path: '/templates',
-    element: <Templates />,
+    element: withSuspense(Templates),
+    errorElement: <ErrorFallback />
   },
   {
     path: '/editor/:template',
-    element: <EditorWrapper />,
+    element: withSuspense(EditorWrapper),
+    errorElement: <ErrorFallback />
   },
   {
     path: '/saved-websites',
-    element: <SavedWebsites />,
+    element: withSuspense(SavedWebsites),
+    errorElement: <ErrorFallback />
   },
   {
     path: '/websites',
@@ -60,7 +86,8 @@ export const router = createBrowserRouter([
   },
   {
     path: '/cleanslate/*',
-    element: <CleanSlate />,
+    element: withSuspense(CleanSlate),
+    errorElement: <ErrorFallback />
   },
   ...expertRoutes,
   ...tradecraftRoutes,
@@ -68,7 +95,8 @@ export const router = createBrowserRouter([
   ...serviceRoutes,
   {
     path: '*',
-    element: <NotFound />
+    element: <NotFound />,
+    errorElement: <ErrorFallback />
   }
 ]);
 

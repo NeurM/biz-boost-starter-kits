@@ -1,6 +1,7 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useTransition, useEffect } from 'react';
 import { Message, WebsiteStatus } from '../components/chatbot/types';
+import { useChatPersistence } from '../hooks/useChatPersistence';
 
 interface ChatContextType {
   messages: Message[];
@@ -43,6 +44,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [messages, setMessages] = useState<Message[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [showChatHistory, setShowChatHistory] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [websiteStatus, setWebsiteStatus] = useState<WebsiteStatus>({
     isCreated: false,
     template: null,
@@ -54,30 +56,58 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     secondaryColorScheme: null
   });
 
+  const { savedMessages, saveMessages, saveMessagesWithWebsiteData, clearSavedMessages } = useChatPersistence();
+
   // Create a simple function to reset the chat
   const resetChat = () => {
-    setMessages([]);
-    setWebsiteStatus({
-      isCreated: false,
-      template: null,
-      path: null,
-      companyName: null,
-      domainName: null,
-      logo: null,
-      colorScheme: null,
-      secondaryColorScheme: null
+    startTransition(() => {
+      setMessages([]);
+      setWebsiteStatus({
+        isCreated: false,
+        template: null,
+        path: null,
+        companyName: null,
+        domainName: null,
+        logo: null,
+        colorScheme: null,
+        secondaryColorScheme: null
+      });
+      clearSavedMessages();
     });
   };
 
-  // Initialize with welcome message if no messages
-  React.useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([{
-        content: "Welcome! I'm here to help you create and improve websites for your clients. Let me know what type of business site you're building.",
-        isUser: false
-      }]);
+  // Load saved messages from persistence hook
+  useEffect(() => {
+    if (savedMessages.length > 0 && messages.length === 0) {
+      startTransition(() => {
+        setMessages(savedMessages);
+      });
     }
-  }, []);
+  }, [savedMessages, messages.length]);
+
+  // Initialize with welcome message if no messages
+  useEffect(() => {
+    if (messages.length === 0 && savedMessages.length === 0) {
+      startTransition(() => {
+        setMessages([{
+          content: "Welcome! I'm here to help you create and improve websites for your clients. Let me know what type of business site you're building.",
+          isUser: false
+        }]);
+      });
+    }
+  }, [messages, savedMessages]);
+
+  // Save messages when they change
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (websiteStatus.isCreated) {
+        saveMessagesWithWebsiteData(messages, websiteStatus);
+      } else {
+        saveMessages(messages);
+      }
+    }
+  }, [messages, websiteStatus, saveMessages, saveMessagesWithWebsiteData]);
 
   return (
     <ChatContext.Provider 

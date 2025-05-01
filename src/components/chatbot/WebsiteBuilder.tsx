@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useTransition } from 'react';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { WebsiteStatus } from './types';
@@ -14,17 +14,20 @@ interface WebsiteBuilderProps {
 const WebsiteBuilder = ({ websiteStatus, onReset }: WebsiteBuilderProps) => {
   const navigate = useNavigate();
   const { setTemplateColor, setSecondaryColor } = useTemplateTheme();
+  const [isPending, startTransition] = useTransition();
   
   const handleViewWebsite = () => {
     if (websiteStatus.path) {
       // Apply color schemes if available
-      if (websiteStatus.colorScheme) {
-        setTemplateColor(websiteStatus.colorScheme);
-      }
-      
-      if (websiteStatus.secondaryColorScheme) {
-        setSecondaryColor(websiteStatus.secondaryColorScheme);
-      }
+      startTransition(() => {
+        if (websiteStatus.colorScheme) {
+          setTemplateColor(websiteStatus.colorScheme);
+        }
+        
+        if (websiteStatus.secondaryColorScheme) {
+          setSecondaryColor(websiteStatus.secondaryColorScheme);
+        }
+      });
       
       // Use defaults for each template if colors aren't specified
       const getDefaultColors = (template: string | null) => {
@@ -41,14 +44,18 @@ const WebsiteBuilder = ({ websiteStatus, onReset }: WebsiteBuilderProps) => {
       const defaultColors = getDefaultColors(websiteStatus.template);
       
       // Store the data in sessionStorage so it can be accessed by the template
-      sessionStorage.setItem('companyData', JSON.stringify({
-        companyName: websiteStatus.companyName, 
-        domainName: websiteStatus.domainName, 
-        logo: websiteStatus.logo,
-        colorScheme: websiteStatus.colorScheme || defaultColors.primary,
-        secondaryColorScheme: websiteStatus.secondaryColorScheme || defaultColors.secondary,
-        template: websiteStatus.template
-      }));
+      try {
+        sessionStorage.setItem('companyData', JSON.stringify({
+          companyName: websiteStatus.companyName, 
+          domainName: websiteStatus.domainName, 
+          logo: websiteStatus.logo,
+          colorScheme: websiteStatus.colorScheme || defaultColors.primary,
+          secondaryColorScheme: websiteStatus.secondaryColorScheme || defaultColors.secondary,
+          template: websiteStatus.template
+        }));
+      } catch (error) {
+        console.error('Error saving to session storage:', error);
+      }
       
       navigate(websiteStatus.path, { 
         state: { 
@@ -93,13 +100,15 @@ const WebsiteBuilder = ({ websiteStatus, onReset }: WebsiteBuilderProps) => {
             variant="default"
             className="w-full"
             onClick={handleViewWebsite}
+            disabled={isPending}
           >
-            View Website
+            {isPending ? 'Loading...' : 'View Website'}
           </Button>
           <Button
             variant="secondary"
             className="w-full"
             onClick={handleEditWebsite}
+            disabled={isPending}
           >
             Edit Website
           </Button>
@@ -107,6 +116,7 @@ const WebsiteBuilder = ({ websiteStatus, onReset }: WebsiteBuilderProps) => {
             variant="outline"
             className="w-full"
             onClick={onReset}
+            disabled={isPending}
           >
             Start Over
           </Button>
