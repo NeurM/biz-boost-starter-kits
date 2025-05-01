@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from "react-router-dom";
 
@@ -20,9 +19,14 @@ const NavLink = ({
   companyName,
   forceTemplateName = false
 }: NavLinkProps) => {
-  // Always show template page names, regardless of login status
-  const getPageTitle = (itemName: string) => {
-    return itemName;
+  // Process path to handle both absolute and hash links
+  const getPath = (path: string) => {
+    // If path is a hash link, return it as is
+    if (path.startsWith('#')) {
+      return path;
+    }
+    // Otherwise, return the path as is (should already be processed with proper prefix)
+    return path;
   };
 
   const linkClasses = `px-3 py-2 text-sm font-medium transition-colors ${
@@ -35,11 +39,11 @@ const NavLink = ({
   if (item.path.startsWith('#')) {
     return (
       <a
-        href={item.path}
+        href={getPath(item.path)}
         className={linkClasses}
         onClick={onClick}
       >
-        {getPageTitle(item.name)}
+        {item.name}
       </a>
     );
   }
@@ -47,11 +51,11 @@ const NavLink = ({
   // For regular page links
   return (
     <Link
-      to={item.path}
+      to={getPath(item.path)}
       className={linkClasses}
       onClick={onClick}
     >
-      {getPageTitle(item.name)}
+      {item.name}
     </Link>
   );
 };

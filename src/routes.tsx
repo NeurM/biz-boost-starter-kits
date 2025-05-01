@@ -61,7 +61,8 @@ const withSuspense = (Component: React.ComponentType<any>) => {
   );
 };
 
-export const router = createBrowserRouter([
+// Main app routes (higher z-index navbars)
+const mainRoutes = [
   {
     path: '/',
     element: withSuspense(Index),
@@ -96,6 +97,10 @@ export const router = createBrowserRouter([
     path: '/websites',
     element: <Navigate to="/saved-websites" replace />,
   },
+];
+
+// Template routes (lower z-index navbars)
+const templateRoutes = [
   {
     path: '/cleanslate/*',
     element: withSuspense(CleanSlate),
@@ -105,6 +110,11 @@ export const router = createBrowserRouter([
   ...tradecraftRoutes,
   ...retailRoutes,
   ...serviceRoutes,
+];
+
+export const router = createBrowserRouter([
+  ...mainRoutes,
+  ...templateRoutes,
   {
     path: '*',
     element: withSuspense(NotFound),

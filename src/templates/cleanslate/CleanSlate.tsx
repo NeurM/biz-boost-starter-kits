@@ -100,6 +100,12 @@ const CleanSlate = () => {
     return "Clean Slate";
   };
 
+  // Check if we're in the main website view vs editor/preview
+  const isMainWebsiteView = () => {
+    // If path starts with /cleanslate, we're in the main website view
+    return location.pathname.startsWith('/cleanslate');
+  };
+
   // Services data
   const services = [
     {
@@ -144,16 +150,18 @@ const CleanSlate = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      {/* Navbar using the reusable component */}
-      <Navbar 
-        logo={getCompanyName()}
-        basePath="cleanslate"
-        navItems={navItems}
-        ctaText="Get Started"
-        ctaLink="#contact"
-        className="sticky top-0 z-50"
-        forceTemplateName={isTemplatePreview()}
-      />
+      {/* Only render the template navbar if we're in the main website view */}
+      {isMainWebsiteView() && (
+        <Navbar 
+          logo={getCompanyName()}
+          basePath="cleanslate"
+          navItems={navItems}
+          ctaText="Get Started"
+          ctaLink="#contact"
+          className="sticky top-0 z-40"
+          forceTemplateName={isTemplatePreview()}
+        />
+      )}
 
       {/* Main content */}
       <main className="flex-grow">
@@ -356,20 +364,22 @@ const CleanSlate = () => {
         </section>
       </main>
 
-      {/* Footer */}
-      <Footer 
-        logo={getCompanyName()}
-        description="Your foundation for building amazing web applications."
-        basePath="cleanslate"
-        navItems={navItems}
-        contactInfo={{
-          address: "123 Business Ave, Suite 100, San Francisco, CA 94107",
-          phone: "(123) 456-7890",
-          email: companyData && companyData.domainName ? 
-            `contact@${companyData.domainName}` : 
-            "contact@cleanslate.com"
-        }}
-      />
+      {/* Only render the template footer if we're in the main website view */}
+      {isMainWebsiteView() && (
+        <Footer 
+          logo={getCompanyName()}
+          description="Your foundation for building amazing web applications."
+          basePath="cleanslate"
+          navItems={navItems}
+          contactInfo={{
+            address: "123 Business Ave, Suite 100, San Francisco, CA 94107",
+            phone: "(123) 456-7890",
+            email: companyData && companyData.domainName ? 
+              `contact@${companyData.domainName}` : 
+              "contact@cleanslate.com"
+          }}
+        />
+      )}
     </div>
   );
 };

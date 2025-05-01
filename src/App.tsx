@@ -1,6 +1,6 @@
 
 import React, { useTransition } from "react";
-import GeminiPersistentChat from "./components/chatbot/GeminiPersistentChat";
+import GeminiChatAssistant from "./components/GeminiChatAssistant";
 import AnalyticsTracker from "./components/AnalyticsTracker";
 
 function App() {
@@ -18,7 +18,7 @@ function App() {
         </main>
         {/* Always render the chat component */}
         <div className="fixed bottom-4 right-4 z-50">
-          <GeminiPersistentChat />
+          <GeminiChatAssistant />
         </div>
       </AnalyticsTracker>
     </div>
