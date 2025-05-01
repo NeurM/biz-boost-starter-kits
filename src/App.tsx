@@ -20,6 +20,21 @@ function App() {
           <GeminiChatAssistant />
         </div>
       </AnalyticsTracker>
+      
+      {/* Remove any Lovable badge or attribution that might be here */}
+      <style jsx global>{`
+        /* Hide any Lovable badges that might be injected */
+        .lovable-badge, 
+        [class*="lovable-badge"],
+        [id*="lovable-badge"],
+        [data-lovable-badge],
+        a[href*="lovable.app"] {
+          display: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+        }
+      `}</style>
     </div>
   );
 }
