@@ -5,6 +5,7 @@ import { expertRoutes } from './routes/expertRoutes';
 import { tradecraftRoutes } from './routes/tradecraftRoutes';
 import { retailRoutes } from './routes/retailRoutes';
 import { serviceRoutes } from './routes/serviceRoutes';
+import { ErrorBoundary } from 'react-error-boundary';
 
 // Use direct imports instead of dynamic imports for core pages
 import Index from './pages/Index';
@@ -24,10 +25,15 @@ const Loading = () => (
 );
 
 // Error fallback
-const ErrorFallback = () => (
+const ErrorFallback = ({error}: {error?: Error}) => (
   <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-red-50">
     <h2 className="text-2xl font-bold text-red-600 mb-4">Something went wrong</h2>
     <p className="text-gray-700 mb-4">We've encountered an error while loading this page.</p>
+    {error && (
+      <div className="mb-4 p-4 bg-red-100 rounded max-w-md overflow-auto">
+        <p className="font-medium text-red-800">{error.message}</p>
+      </div>
+    )}
     <a href="/" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
       Return to Home
     </a>
@@ -43,9 +49,11 @@ const EditorWrapper: React.FC = () => {
 // Wrap all routes with Suspense and ErrorBoundary
 const withSuspense = (Component: React.ComponentType<any>) => {
   return (
-    <Suspense fallback={<Loading />}>
-      <Component />
-    </Suspense>
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <Suspense fallback={<Loading />}>
+        <Component />
+      </Suspense>
+    </ErrorBoundary>
   );
 };
 

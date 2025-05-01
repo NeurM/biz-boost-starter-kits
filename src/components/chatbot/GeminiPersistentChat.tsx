@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useTransition } from 'react';
 import { Button } from "@/components/ui/button";
 import { MessageSquare, X } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -8,11 +8,20 @@ import MessageList from './MessageList';
 import { toast } from '@/hooks/use-toast';
 import { useChat } from '@/context/ChatContext';
 import { useChatPersistence } from '@/hooks/useChatPersistence';
+import { ErrorBoundary } from 'react-error-boundary';
+
+const ErrorFallback = () => (
+  <div className="p-4 text-red-500 bg-red-50 rounded-md">
+    <h4 className="font-medium mb-2">Something went wrong with the chat</h4>
+    <p className="text-sm">Please try refreshing the page</p>
+  </div>
+);
 
 // Chat component with Gemini API integration
 const GeminiPersistentChat: React.FC = () => {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { 
     messages, 
@@ -30,21 +39,29 @@ const GeminiPersistentChat: React.FC = () => {
   
   useEffect(() => {
     // Scroll to bottom when messages change
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current) {
+      startTransition(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      });
+    }
     
     // Save messages to persistence
     if (messages.length > 0) {
-      if (websiteStatus.isCreated) {
-        saveMessagesWithWebsiteData(messages, websiteStatus);
-      } else {
-        saveMessages(messages);
-      }
+      startTransition(() => {
+        if (websiteStatus.isCreated) {
+          saveMessagesWithWebsiteData(messages, websiteStatus);
+        } else {
+          saveMessages(messages);
+        }
+      });
     }
-  }, [messages]);
+  }, [messages, saveMessages, saveMessagesWithWebsiteData, websiteStatus]);
   
   // Toggle chat visibility
   const toggleChat = () => {
-    setIsOpen(!isOpen);
+    startTransition(() => {
+      setIsOpen(!isOpen);
+    });
   };
   
   // Handle form submission
@@ -53,7 +70,9 @@ const GeminiPersistentChat: React.FC = () => {
     if (!message.trim()) return;
 
     const userMessage = { content: message.trim(), isUser: true };
-    setMessages(prev => [...prev, userMessage]);
+    startTransition(() => {
+      setMessages(prev => [...prev, userMessage]);
+    });
     setMessage("");
     setIsLoading(true);
 
@@ -102,7 +121,9 @@ Guide users through template selection, customization, and branding.`;
       }
 
       const aiMessage = { content: generatedText, isUser: false };
-      setMessages(prev => [...prev, aiMessage]);
+      startTransition(() => {
+        setMessages(prev => [...prev, aiMessage]);
+      });
       
       toast({
         title: "Response received",
@@ -116,17 +137,19 @@ Guide users through template selection, customization, and branding.`;
         variant: "destructive"
       });
       
-      setMessages(prev => [...prev, {
-        content: "Sorry, I'm having trouble connecting to the AI service. Please try again later.",
-        isUser: false
-      }]);
+      startTransition(() => {
+        setMessages(prev => [...prev, {
+          content: "Sorry, I'm having trouble connecting to the AI service. Please try again later.",
+          isUser: false
+        }]);
+      });
     } finally {
       setIsLoading(false);
     }
   };
   
   return (
-    <>
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
       {isOpen ? (
         <Card className="w-[350px] shadow-lg border-primary z-50">
           <CardHeader className="flex flex-row items-center justify-between p-4">
@@ -137,7 +160,7 @@ Guide users through template selection, customization, and branding.`;
                   variant="ghost" 
                   size="sm" 
                   className="text-xs"
-                  onClick={() => setShowChatHistory(!showChatHistory)}
+                  onClick={() => startTransition(() => setShowChatHistory(!showChatHistory))}
                 >
                   {showChatHistory ? "New Chat" : "History"}
                 </Button>
@@ -150,7 +173,7 @@ Guide users through template selection, customization, and branding.`;
           <CardContent className="p-4 h-[400px] overflow-y-auto">
             <MessageList 
               messages={messages} 
-              isLoading={isLoading} 
+              isLoading={isLoading || isPending} 
             />
             <div ref={messagesEndRef} />
           </CardContent>
@@ -161,8 +184,9 @@ Guide users through template selection, customization, and branding.`;
                 className="min-h-[40px] flex-1"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
+                disabled={isLoading || isPending}
               />
-              <Button type="submit" size="icon" disabled={isLoading}>
+              <Button type="submit" size="icon" disabled={isLoading || isPending}>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                   <path d="m22 2-7 20-4-9-9-4Z" />
                   <path d="M22 2 11 13" />
@@ -179,7 +203,7 @@ Guide users through template selection, customization, and branding.`;
           <MessageSquare className="h-6 w-6" />
         </Button>
       )}
-    </>
+    </ErrorBoundary>
   );
 };
 

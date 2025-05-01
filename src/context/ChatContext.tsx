@@ -100,12 +100,13 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Save messages when they change
   useEffect(() => {
     if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      if (websiteStatus.isCreated) {
-        saveMessagesWithWebsiteData(messages, websiteStatus);
-      } else {
-        saveMessages(messages);
-      }
+      startTransition(() => {
+        if (websiteStatus.isCreated) {
+          saveMessagesWithWebsiteData(messages, websiteStatus);
+        } else {
+          saveMessages(messages);
+        }
+      });
     }
   }, [messages, websiteStatus, saveMessages, saveMessagesWithWebsiteData]);
 
