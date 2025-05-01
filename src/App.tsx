@@ -22,7 +22,7 @@ function App() {
       </AnalyticsTracker>
       
       {/* Remove any Lovable badge or attribution that might be here */}
-      <style jsx global>{`
+      <style>{`
         /* Hide any Lovable badges that might be injected */
         .lovable-badge, 
         [class*="lovable-badge"],
