@@ -1,14 +1,11 @@
 
-// Update the DeploymentInfo component to fix the type error
-
-// This is a new file, so I'll implement it from scratch based on the context of the errors
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Download, Github } from "lucide-react";
 import { useTemplateTheme } from '@/context/TemplateThemeContext';
-import { generateGithubWorkflow } from '@/utils/supabase';
+import { getWorkflowYaml } from '@/utils/cicdService';
 
 interface DeploymentInfoProps {
   websiteConfig: {
@@ -93,13 +90,13 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
       const deployUrl = `https://${websiteConfig.domain_name}`;
       
       // Generate GitHub workflow file
-      const workflowYaml = generateGithubWorkflow({
-        repository: `${websiteConfig.company_name.replace(/\s+/g, '-').toLowerCase()}/website`,
-        branch: 'main',
-        buildCommand: 'npm run build',
-        deployCommand: 'npm run deploy',
-        deployUrl
-      });
+      const workflowYaml = await getWorkflowYaml(
+        websiteConfig.template_id,
+        `${websiteConfig.company_name.replace(/\s+/g, '-').toLowerCase()}/website`,
+        'main',
+        'npm run build',
+        'npm run deploy'
+      );
       
       // Create a zip file containing GitHub workflow file
       const zip = await createZip({

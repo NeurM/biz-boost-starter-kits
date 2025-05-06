@@ -82,7 +82,6 @@ export const signOut = async () => {
       throw response.error;
     }
     
-    // Fixed: Only access response.data if there's no error
     await logApiCall('/auth/sign-out', 'POST', null, response, null);
     return response;
   } catch (error) {
@@ -100,7 +99,6 @@ export const getCurrentUser = async () => {
       throw response.error;
     }
     
-    // Fixed: Only access response.data if there's no error
     await logApiCall('/auth/user', 'GET', null, response.data, null);
     return response;
   } catch (error) {
@@ -207,230 +205,27 @@ export const getAllWebsiteConfigs = async () => {
   }
 };
 
-// Webhook Management Functions
-// Since the 'webhooks' table doesn't exist in the database schema,
-// we'll use the generic database functions instead of direct table access
-export const createWebhook = async (
-  name: string, 
-  url: string, 
-  events: string[],
-  headers?: Record<string, string>,
-  isActive: boolean = true
-) => {
+export const deleteWebsiteConfig = async (websiteId: string) => {
   try {
-    const { data: user } = await supabase.auth.getUser();
-    
-    if (!user.user) {
-      throw new Error("User must be logged in to create webhooks");
-    }
-    
-    // Use insertData instead of direct table access
-    const response = await insertData('webhooks', {
-      user_id: user.user.id,
-      name,
-      url,
-      events,
-      headers: headers || {},
-      is_active: isActive
-    });
-      
-    await logApiCall(
-      '/webhooks', 
-      'POST', 
-      { name, url, events, headers }, 
-      response.data, 
-      response.error
-    );
-      
-    return response;
-  } catch (error) {
-    await logApiCall('/webhooks', 'POST', { name, url, events, headers }, null, error as Error);
-    throw error;
-  }
-};
-
-export const getWebhooks = async () => {
-  try {
-    const { data: user } = await supabase.auth.getUser();
-    
-    if (!user.user) {
-      return { data: null, error: null };
-    }
-    
-    // Use fetchData with filtering in memory
-    const response = await fetchData('webhooks');
+    const response = await supabase
+      .from('website_configs')
+      .delete()
+      .eq('id', websiteId);
     
     if (response.error) {
-      await logApiCall('/webhooks', 'GET', null, null, response.error);
-      return response;
+      await logApiCall(`/website-configs/${websiteId}`, 'DELETE', { websiteId }, null, response.error);
+      throw response.error;
     }
     
-    // Filter data for the current user
-    const filteredData = response.data?.filter(webhook => webhook.user_id === user.user.id) || [];
-    
-    await logApiCall('/webhooks', 'GET', null, filteredData, null);
-    return { data: filteredData, error: null };
-  } catch (error) {
-    await logApiCall('/webhooks', 'GET', null, null, error as Error);
-    throw error;
-  }
-};
-
-export const updateWebhook = async (
-  webhookId: string,
-  updates: {
-    name?: string;
-    url?: string;
-    events?: string[];
-    headers?: Record<string, string>;
-    is_active?: boolean;
-  }
-) => {
-  try {
-    // Use updateData instead of direct table access
-    const response = await updateData('webhooks', webhookId, updates);
-      
-    await logApiCall(
-      `/webhooks/${webhookId}`, 
-      'PATCH', 
-      updates, 
-      response.data, 
-      response.error
-    );
-      
+    await logApiCall(`/website-configs/${websiteId}`, 'DELETE', { websiteId }, response.data, null);
     return response;
   } catch (error) {
-    await logApiCall(`/webhooks/${webhookId}`, 'PATCH', updates, null, error as Error);
+    await logApiCall(`/website-configs/${websiteId}`, 'DELETE', { websiteId }, null, error as Error);
     throw error;
   }
 };
 
-export const deleteWebhook = async (webhookId: string) => {
-  try {
-    // Use deleteData instead of direct table access
-    const response = await deleteData('webhooks', webhookId);
-      
-    await logApiCall(`/webhooks/${webhookId}`, 'DELETE', { webhookId }, response.data, response.error);
-    return response;
-  } catch (error) {
-    await logApiCall(`/webhooks/${webhookId}`, 'DELETE', { webhookId }, null, error as Error);
-    throw error;
-  }
-};
-
-// CI/CD Pipeline Functions
-export const createCiCdConfig = async (
-  templateId: string,
-  repository: string,
-  branch: string = 'main',
-  buildCommand: string = 'npm run build',
-  deployCommand: string = 'npm run deploy'
-) => {
-  try {
-    const { data: user } = await supabase.auth.getUser();
-    
-    if (!user.user) {
-      throw new Error("User must be logged in to create CI/CD configurations");
-    }
-    
-    // Use insertData instead of direct table access
-    const response = await insertData('cicd_configs', {
-      user_id: user.user.id,
-      template_id: templateId,
-      repository,
-      branch,
-      build_command: buildCommand,
-      deploy_command: deployCommand
-    });
-      
-    await logApiCall(
-      '/cicd-configs', 
-      'POST', 
-      { templateId, repository, branch, buildCommand, deployCommand }, 
-      response.data, 
-      response.error
-    );
-      
-    return response;
-  } catch (error) {
-    await logApiCall('/cicd-configs', 'POST', { templateId, repository, branch }, null, error as Error);
-    throw error;
-  }
-};
-
-export const getCiCdConfigs = async (templateId?: string) => {
-  try {
-    const { data: user } = await supabase.auth.getUser();
-    
-    if (!user.user) {
-      return { data: null, error: null };
-    }
-    
-    // Use fetchData with filtering in memory
-    const response = await fetchData('cicd_configs');
-    
-    if (response.error) {
-      await logApiCall('/cicd-configs', 'GET', { templateId }, null, response.error);
-      return response;
-    }
-    
-    // Filter data for the current user and templateId if provided
-    let filteredData = response.data?.filter(config => config.user_id === user.user.id) || [];
-    
-    if (templateId) {
-      filteredData = filteredData.filter(config => config.template_id === templateId);
-    }
-    
-    await logApiCall('/cicd-configs', 'GET', { templateId }, filteredData, null);
-    return { data: filteredData, error: null };
-  } catch (error) {
-    await logApiCall('/cicd-configs', 'GET', { templateId }, null, error as Error);
-    throw error;
-  }
-};
-
-export const updateCiCdConfig = async (
-  configId: string,
-  updates: {
-    repository?: string;
-    branch?: string;
-    build_command?: string;
-    deploy_command?: string;
-  }
-) => {
-  try {
-    // Use updateData instead of direct table access
-    const response = await updateData('cicd_configs', configId, updates);
-      
-    await logApiCall(
-      `/cicd-configs/${configId}`, 
-      'PATCH', 
-      updates, 
-      response.data, 
-      response.error
-    );
-      
-    return response;
-  } catch (error) {
-    await logApiCall(`/cicd-configs/${configId}`, 'PATCH', updates, null, error as Error);
-    throw error;
-  }
-};
-
-export const deleteCiCdConfig = async (configId: string) => {
-  try {
-    // Use deleteData instead of direct table access
-    const response = await deleteData('cicd_configs', configId);
-      
-    await logApiCall(`/cicd-configs/${configId}`, 'DELETE', { configId }, response.data, response.error);
-    return response;
-  } catch (error) {
-    await logApiCall(`/cicd-configs/${configId}`, 'DELETE', { configId }, null, error as Error);
-    throw error;
-  }
-};
-
-// Generate GitHub Workflow file
+// Generate GitHub Workflow file - Fixed to escape string properly
 export const generateGithubWorkflow = (
   config: {
     repository: string;
@@ -440,7 +235,6 @@ export const generateGithubWorkflow = (
     deployUrl: string;
   }
 ) => {
-  // Escape the curly braces in the GitHub expressions by using a backslash before "$"
   return `name: Deploy Website
 
 on:
@@ -477,133 +271,85 @@ jobs:
         if: success()
         run: |
           curl -X POST -H "Content-Type: application/json" \\
-            -d '{"status":"success","repository":"\\${{github.repository}}","branch":"${config.branch}"}' \\
+            -d '{"status":"success","repository":"\\\${github.repository}","branch":"${config.branch}"}' \\
             ${config.deployUrl}/deployment-webhooks/status
             
       - name: Notify deployment failure
         if: failure()
         run: |
           curl -X POST -H "Content-Type: application/json" \\
-            -d '{"status":"failure","repository":"\\${{github.repository}}","branch":"${config.branch}"}' \\
+            -d '{"status":"failure","repository":"\\\${github.repository}","branch":"${config.branch}"}' \\
             ${config.deployUrl}/deployment-webhooks/status`;
 };
 
-// Generic database functions for flexible table access
-type TableNames = 'website_configs' | 'webhooks' | 'cicd_configs' | string;
+// Break out database types into a separate file for clarity - this will be imported by the other files
+export type TableNames = 'website_configs' | 'webhooks' | 'cicd_configs' | 'api_logs' | 'chat_messages' | 'website_analytics';
 
-interface TableRow {
+export interface TableRow {
   [key: string]: any;
 }
 
-export const fetchData = async (tableName: TableNames) => {
+// Generic database functions for basic CRUD operations
+export const fetchData = async (tableName: string) => {
   try {
-    // For tables that exist in the database schema
-    if (tableName === 'website_configs' || tableName === 'api_logs' || 
-        tableName === 'chat_messages' || tableName === 'website_analytics') {
-      const response = await supabase
-        .from(tableName)
-        .select('*');
-      await logApiCall(`/${tableName}`, 'GET', null, response.data, response.error);
-      return response;
-    }
+    // Use type casting to avoid TypeScript errors with dynamic table names
+    const response = await supabase
+      .from(tableName as any)
+      .select('*');
     
-    // For tables that don't exist yet, return empty array
-    await logApiCall(`/${tableName}`, 'GET', null, [], null);
-    return { data: [], error: null };
+    await logApiCall(`/${tableName}`, 'GET', null, response.data, response.error);
+    return response;
   } catch (error) {
     await logApiCall(`/${tableName}`, 'GET', null, null, error as Error);
     throw error;
   }
 };
 
-export const insertData = async <T extends TableRow>(tableName: TableNames, data: T) => {
+export const insertData = async <T extends TableRow>(tableName: string, data: T) => {
   try {
-    // For tables that exist in the database schema
-    if (tableName === 'website_configs' || tableName === 'api_logs' || 
-        tableName === 'chat_messages' || tableName === 'website_analytics') {
-      const response = await supabase
-        .from(tableName)
-        .insert(data)
-        .select()
-        .maybeSingle();
-      await logApiCall(`/${tableName}`, 'POST', data, response.data, response.error);
-      return response;
-    }
-    
-    // For tables that don't exist yet, simulate success
-    const mockResponse = { data, error: null };
-    await logApiCall(`/${tableName}`, 'POST', data, data, null);
-    return mockResponse;
+    // Use type casting to avoid TypeScript errors with dynamic table names
+    const response = await supabase
+      .from(tableName as any)
+      .insert(data)
+      .select();
+      
+    await logApiCall(`/${tableName}`, 'POST', data, response.data, response.error);
+    return response;
   } catch (error) {
     await logApiCall(`/${tableName}`, 'POST', data, null, error as Error);
     throw error;
   }
 };
 
-export const updateData = async <T extends TableRow>(tableName: TableNames, id: string, data: Partial<T>) => {
+export const updateData = async <T extends TableRow>(tableName: string, id: string, data: Partial<T>) => {
   try {
-    // For tables that exist in the database schema
-    if (tableName === 'website_configs' || tableName === 'api_logs' || 
-        tableName === 'chat_messages' || tableName === 'website_analytics') {
-      const response = await supabase
-        .from(tableName)
-        .update(data)
-        .eq('id', id)
-        .select()
-        .maybeSingle();
-      await logApiCall(`/${tableName}/${id}`, 'PATCH', data, response.data, response.error);
-      return response;
-    }
-    
-    // For tables that don't exist yet, simulate success
-    const mockResponse = { data: { id, ...data }, error: null };
-    await logApiCall(`/${tableName}/${id}`, 'PATCH', data, mockResponse.data, null);
-    return mockResponse;
+    // Use type casting to avoid TypeScript errors with dynamic table names
+    const response = await supabase
+      .from(tableName as any)
+      .update(data)
+      .eq('id', id)
+      .select();
+      
+    await logApiCall(`/${tableName}/${id}`, 'PATCH', data, response.data, response.error);
+    return response;
   } catch (error) {
     await logApiCall(`/${tableName}/${id}`, 'PATCH', data, null, error as Error);
     throw error;
   }
 };
 
-export const deleteData = async (tableName: TableNames, id: string) => {
+export const deleteData = async (tableName: string, id: string) => {
   try {
-    // For tables that exist in the database schema
-    if (tableName === 'website_configs' || tableName === 'api_logs' || 
-        tableName === 'chat_messages' || tableName === 'website_analytics') {
-      const response = await supabase
-        .from(tableName)
-        .delete()
-        .eq('id', id);
-      await logApiCall(`/${tableName}/${id}`, 'DELETE', { id }, response.data, response.error);
-      return response;
-    }
-    
-    // For tables that don't exist yet, simulate success
-    const mockResponse = { data: null, error: null };
-    await logApiCall(`/${tableName}/${id}`, 'DELETE', { id }, null, null);
-    return mockResponse;
-  } catch (error) {
-    await logApiCall(`/${tableName}/${id}`, 'DELETE', { id }, null, error as Error);
-    throw error;
-  }
-};
-
-export const deleteWebsiteConfig = async (websiteId: string) => {
-  try {
+    // Use type casting to avoid TypeScript errors with dynamic table names
     const response = await supabase
-      .from('website_configs')
+      .from(tableName as any)
       .delete()
-      .eq('id', websiteId);
-    
-    if (response.error) {
-      await logApiCall(`/website-configs/${websiteId}`, 'DELETE', { websiteId }, null, response.error);
-      throw response.error;
-    }
-    
-    await logApiCall(`/website-configs/${websiteId}`, 'DELETE', { websiteId }, response.data, null);
+      .eq('id', id);
+      
+    await logApiCall(`/${tableName}/${id}`, 'DELETE', { id }, response.data, response.error);
     return response;
   } catch (error) {
-    await logApiCall(`/website-configs/${websiteId}`, 'DELETE', { websiteId }, null, error as Error);
+    await logApiCall(`/${tableName}/${id}`, 'DELETE', { id }, null, error as Error);
     throw error;
   }
 };

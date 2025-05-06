@@ -1,8 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
@@ -16,6 +14,8 @@ import { tradecraftData } from '@/data/tradecraftData';
 import { retailData } from '@/data/retailData';
 import { serviceProData } from '@/data/serviceProData';
 import { expertData } from '@/data/expertData';
+import { TemplateCard } from '@/components/templates/TemplateCard';
+import { FeatureSection } from '@/components/templates/FeatureSection';
 
 const Templates = () => {
   const { user } = useAuth();
@@ -102,6 +102,21 @@ const Templates = () => {
   const colors = [
     'blue', 'purple', 'teal', 'green', 'red', 'pink',
     'orange', 'amber', 'indigo', 'gray', 'black', 'yellow'
+  ];
+  
+  const features = [
+    {
+      title: t('why.design.title') || "Professionally Designed",
+      description: t('why.design.desc') || "Templates created by experienced designers"
+    },
+    {
+      title: t('why.responsive.title') || "Fully Responsive",
+      description: t('why.responsive.desc') || "Look great on all devices, from mobile to desktop"
+    },
+    {
+      title: t('why.custom.title') || "Easy Customization",
+      description: t('why.custom.desc') || "Simple tools to match your brand and needs"
+    }
   ];
 
   const handleTemplateClick = (template: any) => {
@@ -205,83 +220,6 @@ const Templates = () => {
     }
   };
 
-  const getColorHex = (color: string, shade: number): string => {
-    const colorMap: Record<string, Record<number, string>> = {
-      blue: {
-        500: '#3b82f6',
-        400: '#60a5fa',
-        600: '#2563eb',
-      },
-      red: {
-        500: '#ef4444',
-        400: '#f87171',
-        600: '#dc2626',
-      },
-      green: {
-        500: '#22c55e',
-        400: '#4ade80',
-        600: '#16a34a',
-      },
-      purple: {
-        500: '#a855f7',
-        400: '#c084fc',
-        600: '#9333ea',
-      },
-      pink: {
-        500: '#ec4899',
-        400: '#f472b6',
-        600: '#db2777',
-      },
-      yellow: {
-        500: '#eab308',
-        400: '#facc15',
-        600: '#ca8a04',
-      },
-      orange: {
-        500: '#f97316',
-        400: '#fb923c',
-        600: '#ea580c',
-      },
-      teal: {
-        500: '#14b8a6',
-        400: '#2dd4bf',
-        600: '#0d9488',
-      },
-      cyan: {
-        500: '#06b6d4',
-        400: '#22d3ee',
-        600: '#0891b2',
-      },
-      gray: {
-        500: '#6b7280',
-        400: '#9ca3af',
-        600: '#4b5563',
-      },
-      black: {
-        500: '#000000',
-        400: '#333333',
-        600: '#000000',
-      },
-      white: {
-        500: '#ffffff',
-        400: '#ffffff',
-        600: '#f9fafb',
-      },
-      amber: {
-        500: '#f59e0b',
-        400: '#fbbf24',
-        600: '#d97706',
-      },
-      indigo: {
-        500: '#6366f1',
-        400: '#818cf8',
-        600: '#4f46e5',
-      },
-    };
-
-    return colorMap[color]?.[shade] || `#6b7280`;
-  };
-
   const handleTemplateColorChange = (
     template: any,
     type: 'primary' | 'secondary',
@@ -332,160 +270,32 @@ const Templates = () => {
           <h2 className="text-2xl font-bold mb-6 text-center">{t('templates.ourTemplates') || "Our Templates"}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {templates.map((template, i) => (
-              <Card key={i} className={`overflow-hidden hover:shadow-lg transition-all ${selectedTemplate === template.path ? 'ring-2 ring-primary' : ''}`}>
-                <CardContent className="p-0">
-                  <div className={`${template.bg} aspect-video flex items-center justify-center`}>
-                    <span className="font-medium text-xl">{template.name}</span>
-                  </div>
-                  <div className="p-6">
-                    <h3 className="text-xl font-semibold mb-2">{template.name}</h3>
-                    <p className="text-gray-600 mb-4">{template.desc}</p>
-                    
-                    {selectedTemplate === template.path ? (
-                      <div className="space-y-4">
-                        <Input
-                          placeholder={t('form.companyName') || "Company Name"}
-                          value={companyName}
-                          onChange={(e) => setCompanyName(e.target.value)}
-                        />
-                        <Input
-                          placeholder={t('form.domainName') || "Domain Name"}
-                          value={domainName}
-                          onChange={(e) => setDomainName(e.target.value)}
-                        />
-                        <Input
-                          placeholder={t('form.logo') || "Logo URL (optional)"}
-                          value={logoUrl}
-                          onChange={(e) => setLogoUrl(e.target.value)}
-                        />
-                        
-                        <div className="space-y-2">
-                          <label className="block text-sm font-medium">
-                            {t('form.primaryColor') || "Primary Color"}
-                          </label>
-                          <div className="flex flex-wrap gap-2 p-2 border rounded-md bg-white max-h-32 overflow-y-auto">
-                            {colors.map((color) => (
-                              <button
-                                key={color}
-                                type="button"
-                                className={`w-8 h-8 rounded-full hover:ring-2 transition-all ${
-                                  (selectedPrimaryColor || template.primaryColor) === color 
-                                    ? 'ring-2 ring-black scale-110' 
-                                    : ''
-                                }`}
-                                style={{
-                                  backgroundColor: color.includes('#') 
-                                    ? color 
-                                    : `var(--${color}-500, ${getColorHex(color, 500)})`
-                                }}
-                                onClick={() => handleTemplateColorChange(template, 'primary', color)}
-                                title={color}
-                                aria-label={`Select ${color} as primary color`}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <label className="block text-sm font-medium">
-                            {t('form.secondaryColor') || "Secondary Color"}
-                          </label>
-                          <div className="flex flex-wrap gap-2 p-2 border rounded-md bg-white max-h-32 overflow-y-auto">
-                            {colors.map((color) => (
-                              <button
-                                key={color}
-                                type="button"
-                                className={`w-8 h-8 rounded-full hover:ring-2 transition-all ${
-                                  (selectedSecondaryColor || template.secondaryColor) === color 
-                                    ? 'ring-2 ring-black scale-110' 
-                                    : ''
-                                }`}
-                                style={{
-                                  backgroundColor: color.includes('#') 
-                                    ? color 
-                                    : `var(--${color}-500, ${getColorHex(color, 500)})`
-                                }}
-                                onClick={() => handleTemplateColorChange(template, 'secondary', color)}
-                                title={color}
-                                aria-label={`Select ${color} as secondary color`}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                        
-                        <div className="flex gap-2 mt-4">
-                          <Button
-                            className="w-full"
-                            onClick={() => handleCreateWebsite(template)}
-                            disabled={isSaving}
-                          >
-                            {isSaving ? 
-                              (t('buttons.creating') || "Creating...") : 
-                              (t('buttons.createWebsite') || "Create Website")}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            onClick={() => setSelectedTemplate(null)}
-                          >
-                            {t('buttons.cancel') || "Cancel"}
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col gap-2">
-                        <Button 
-                          className="w-full mb-2"
-                          onClick={() => handleTemplateClick(template)}
-                        >
-                          {t('buttons.selectTemplate') || "Select Template"}
-                        </Button>
-                        <Button 
-                          variant="outline"
-                          className="w-full"
-                          onClick={() => handlePreviewTemplate(template)}
-                        >
-                          {t('buttons.previewTemplate') || "Preview Template"}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+              <TemplateCard
+                key={i}
+                template={template}
+                selectedTemplate={selectedTemplate}
+                onSelectTemplate={handleTemplateClick}
+                onPreviewTemplate={handlePreviewTemplate}
+                onCreateWebsite={handleCreateWebsite}
+                companyName={companyName}
+                setCompanyName={setCompanyName}
+                domainName={domainName}
+                setDomainName={setDomainName}
+                logoUrl={logoUrl}
+                setLogoUrl={setLogoUrl}
+                isSaving={isSaving}
+                selectedPrimaryColor={selectedPrimaryColor}
+                selectedSecondaryColor={selectedSecondaryColor}
+                onColorChange={handleTemplateColorChange}
+                colors={colors}
+                t={t}
+              />
             ))}
           </div>
         </div>
       </section>
 
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-10 text-center">{t('why.title') || "Why Choose Our Platform"}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-xl font-bold">1</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">{t('why.design.title') || "Professionally Designed"}</h3>
-              <p className="text-gray-600">{t('why.design.desc') || "Templates created by experienced designers"}</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-xl font-bold">2</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">{t('why.responsive.title') || "Fully Responsive"}</h3>
-              <p className="text-gray-600">{t('why.responsive.desc') || "Look great on all devices, from mobile to desktop"}</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-xl font-bold">3</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">{t('why.custom.title') || "Easy Customization"}</h3>
-              <p className="text-gray-600">{t('why.custom.desc') || "Simple tools to match your brand and needs"}</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      <FeatureSection features={features} t={t} />
 
       <Footer 
         logo={t('app.name') || "TemplateBuilder"}
