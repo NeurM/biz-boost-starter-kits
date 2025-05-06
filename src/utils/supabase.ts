@@ -446,6 +446,7 @@ export const generateGithubWorkflow = (
     deployUrl: string;
   }
 ) => {
+  // The key fix: Escape the curly braces in the GitHub expressions by doubling the curly braces
   return `name: Deploy Website
 
 on:
@@ -482,14 +483,14 @@ jobs:
         if: success()
         run: |
           curl -X POST -H "Content-Type: application/json" \\
-            -d '{"status":"success","repository":"${{ github.repository }}","branch":"${config.branch}"}' \\
+            -d '{"status":"success","repository":"\${{github.repository}}","branch":"${config.branch}"}' \\
             ${config.deployUrl}/deployment-webhooks/status
             
       - name: Notify deployment failure
         if: failure()
         run: |
           curl -X POST -H "Content-Type: application/json" \\
-            -d '{"status":"failure","repository":"${{ github.repository }}","branch":"${config.branch}"}' \\
+            -d '{"status":"failure","repository":"\${{github.repository}}","branch":"${config.branch}"}' \\
             ${config.deployUrl}/deployment-webhooks/status`;
 };
 
