@@ -67,13 +67,13 @@ const GeminiChatAssistant = () => {
       {!isOpen ? (
         <Button
           onClick={() => startTransition(() => setIsOpen(true))}
-          className="fixed bottom-4 right-4 rounded-full w-12 h-12 p-0 bg-primary hover:bg-primary/90 shadow-lg z-40"
+          className="fixed bottom-4 right-4 rounded-full w-12 h-12 p-0 bg-primary hover:bg-primary/90 shadow-lg z-50"
           aria-label="Open chat assistant"
         >
           <MessageCircle className="h-6 w-6" />
         </Button>
       ) : (
-        <Card className={`fixed bottom-4 right-4 shadow-lg transition-all duration-300 z-40 ${
+        <Card className={`fixed bottom-4 right-4 shadow-lg transition-all duration-300 z-50 ${
           isMinimized ? 'w-72' : 'w-full max-w-md'
         }`}>
           <CardHeader className="pb-3">

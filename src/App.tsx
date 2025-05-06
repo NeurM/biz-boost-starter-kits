@@ -21,19 +21,24 @@ function App() {
         </div>
       </AnalyticsTracker>
       
-      {/* Remove Lovable badge from the entire app */}
-      <style>{`
-        /* Hide any Lovable badges that might be injected */
+      {/* Complete and comprehensive removal of Lovable badges */}
+      <style dangerouslySetInnerHTML={{ __html: `
         .lovable-badge, 
         [class*="lovable"],
         [id*="lovable"],
         [data-lovable],
-        a[href*="lovable.app"],
+        a[href*="lovable"],
         div[class*="lovable"],
         span[class*="lovable"],
         iframe[src*="lovable"],
         .lovable-root,
-        #lovable-badge {
+        #lovable-badge,
+        .lovable-attribution,
+        [data-powered-by="lovable"],
+        #lovable-powered-by,
+        .lovable-powered-by,
+        .lovable-watermark,
+        .lovable-branding {
           display: none !important;
           visibility: hidden !important;
           opacity: 0 !important;
@@ -42,8 +47,9 @@ function App() {
           height: 0 !important;
           position: absolute !important;
           z-index: -9999 !important;
+          transform: scale(0) !important;
         }
-      `}</style>
+      ` }} />
     </div>
   );
 }
