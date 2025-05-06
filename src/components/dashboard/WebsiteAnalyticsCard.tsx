@@ -6,13 +6,13 @@ import { WebsiteAnalyticsChart } from "@/components/analytics/WebsiteAnalyticsCh
 const WebsiteAnalyticsCard = () => {
   return (
     <Card className="overflow-hidden">
-      <CardHeader>
-        <CardTitle>Website Traffic</CardTitle>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xl">Website Traffic</CardTitle>
         <CardDescription>
           Visits to your websites in the last 30 days
         </CardDescription>
       </CardHeader>
-      <CardContent className="h-[300px] p-0 px-2">
+      <CardContent className="h-[300px] pt-0 px-4">
         <WebsiteAnalyticsChart />
       </CardContent>
     </Card>

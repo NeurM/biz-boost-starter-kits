@@ -21,8 +21,9 @@ function App() {
         </div>
       </AnalyticsTracker>
       
-      {/* Complete and comprehensive removal of Lovable badges */}
+      {/* Comprehensive removal of Lovable badges */}
       <style dangerouslySetInnerHTML={{ __html: `
+        /* Hide all Lovable branding elements */
         .lovable-badge, 
         [class*="lovable"],
         [id*="lovable"],
@@ -38,7 +39,23 @@ function App() {
         #lovable-powered-by,
         .lovable-powered-by,
         .lovable-watermark,
-        .lovable-branding {
+        .lovable-branding,
+        div[role="complementary"][class*="lg:block"],
+        div[style*="z-index: 100"][class*="fixed"][class*="bottom-"],
+        /* Target any fixed positioned elements in bottom corners */
+        div[class*="fixed"][class*="bottom-0"][class*="right-0"],
+        div[class*="fixed"][class*="bottom-0"][class*="left-0"],
+        div[class*="fixed"][class*="bottom-1"][class*="right-1"],
+        div[class*="fixed"][class*="bottom-1"][class*="left-1"],
+        div[class*="fixed"][class*="bottom-2"][class*="right-2"],
+        div[class*="fixed"][class*="bottom-2"][class*="left-2"],
+        div[class*="fixed"][class*="bottom-3"][class*="right-3"],
+        div[class*="fixed"][class*="bottom-3"][class*="left-3"],
+        div[class*="fixed"][class*="bottom-4"][class*="right-4"]:not(:has(> div > button)),
+        div[class*="fixed"][class*="bottom-4"][class*="left-4"],
+        a[title*="lovable"],
+        a[title*="Lovable"],
+        a[title*="LOVABLE"] {
           display: none !important;
           visibility: hidden !important;
           opacity: 0 !important;
@@ -48,6 +65,11 @@ function App() {
           position: absolute !important;
           z-index: -9999 !important;
           transform: scale(0) !important;
+          max-width: 0 !important;
+          max-height: 0 !important;
+          overflow: hidden !important;
+          border: none !important;
+          background: none !important;
         }
       ` }} />
     </div>
