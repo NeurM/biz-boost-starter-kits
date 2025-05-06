@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -14,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLanguage, Language } from '@/context/LanguageContext';
-import { useTemplateTheme } from '@/context/TemplateTheme Context';
+import { useTemplateTheme } from '@/context/TemplateThemeContext';
 
 const TemplatesNavigation = () => {
   const { user } = useAuth();
