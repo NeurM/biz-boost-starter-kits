@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLanguage, Language } from '@/context/LanguageContext';
-import { useTemplateTheme } from '@/context/TemplateThemeContext';
+import { useTemplateTheme } from '@/context/TemplateTheme Context';
 
 const TemplatesNavigation = () => {
   const { user } = useAuth();

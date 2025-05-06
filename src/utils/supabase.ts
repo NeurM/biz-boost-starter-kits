@@ -206,6 +206,293 @@ export const getAllWebsiteConfigs = async () => {
   }
 };
 
+// Webhook Management Functions
+export const createWebhook = async (
+  name: string, 
+  url: string, 
+  events: string[],
+  headers?: Record<string, string>,
+  isActive: boolean = true
+) => {
+  try {
+    const { data: user } = await supabase.auth.getUser();
+    
+    if (!user.user) {
+      throw new Error("User must be logged in to create webhooks");
+    }
+    
+    const { data, error } = await supabase
+      .from('webhooks')
+      .insert({
+        user_id: user.user.id,
+        name,
+        url,
+        events: events,
+        headers: headers || {},
+        is_active: isActive
+      })
+      .select()
+      .single();
+      
+    await logApiCall(
+      '/webhooks', 
+      'POST', 
+      { name, url, events, headers }, 
+      data, 
+      error
+    );
+      
+    return { data, error };
+  } catch (error) {
+    await logApiCall('/webhooks', 'POST', { name, url, events, headers }, null, error as Error);
+    throw error;
+  }
+};
+
+export const getWebhooks = async () => {
+  try {
+    const { data: user } = await supabase.auth.getUser();
+    
+    if (!user.user) {
+      return { data: null, error: null };
+    }
+    
+    const { data, error } = await supabase
+      .from('webhooks')
+      .select()
+      .eq('user_id', user.user.id)
+      .order('created_at', { ascending: false });
+      
+    await logApiCall('/webhooks', 'GET', null, data, error);
+    return { data, error };
+  } catch (error) {
+    await logApiCall('/webhooks', 'GET', null, null, error as Error);
+    throw error;
+  }
+};
+
+export const updateWebhook = async (
+  webhookId: string,
+  updates: {
+    name?: string;
+    url?: string;
+    events?: string[];
+    headers?: Record<string, string>;
+    is_active?: boolean;
+  }
+) => {
+  try {
+    const { data, error } = await supabase
+      .from('webhooks')
+      .update(updates)
+      .eq('id', webhookId)
+      .select()
+      .single();
+      
+    await logApiCall(
+      `/webhooks/${webhookId}`, 
+      'PATCH', 
+      updates, 
+      data, 
+      error
+    );
+      
+    return { data, error };
+  } catch (error) {
+    await logApiCall(`/webhooks/${webhookId}`, 'PATCH', updates, null, error as Error);
+    throw error;
+  }
+};
+
+export const deleteWebhook = async (webhookId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('webhooks')
+      .delete()
+      .eq('id', webhookId);
+      
+    await logApiCall(`/webhooks/${webhookId}`, 'DELETE', { webhookId }, data, error);
+    return { data, error };
+  } catch (error) {
+    await logApiCall(`/webhooks/${webhookId}`, 'DELETE', { webhookId }, null, error as Error);
+    throw error;
+  }
+};
+
+// CI/CD Pipeline Functions
+export const createCiCdConfig = async (
+  templateId: string,
+  repository: string,
+  branch: string = 'main',
+  buildCommand: string = 'npm run build',
+  deployCommand: string = 'npm run deploy'
+) => {
+  try {
+    const { data: user } = await supabase.auth.getUser();
+    
+    if (!user.user) {
+      throw new Error("User must be logged in to create CI/CD configurations");
+    }
+    
+    const { data, error } = await supabase
+      .from('cicd_configs')
+      .insert({
+        user_id: user.user.id,
+        template_id: templateId,
+        repository,
+        branch,
+        build_command: buildCommand,
+        deploy_command: deployCommand
+      })
+      .select()
+      .single();
+      
+    await logApiCall(
+      '/cicd-configs', 
+      'POST', 
+      { templateId, repository, branch, buildCommand, deployCommand }, 
+      data, 
+      error
+    );
+      
+    return { data, error };
+  } catch (error) {
+    await logApiCall('/cicd-configs', 'POST', { templateId, repository, branch }, null, error as Error);
+    throw error;
+  }
+};
+
+export const getCiCdConfigs = async (templateId?: string) => {
+  try {
+    const { data: user } = await supabase.auth.getUser();
+    
+    if (!user.user) {
+      return { data: null, error: null };
+    }
+    
+    let query = supabase
+      .from('cicd_configs')
+      .select()
+      .eq('user_id', user.user.id);
+      
+    if (templateId) {
+      query = query.eq('template_id', templateId);
+    }
+    
+    const { data, error } = await query.order('created_at', { ascending: false });
+      
+    await logApiCall('/cicd-configs', 'GET', { templateId }, data, error);
+    return { data, error };
+  } catch (error) {
+    await logApiCall('/cicd-configs', 'GET', { templateId }, null, error as Error);
+    throw error;
+  }
+};
+
+export const updateCiCdConfig = async (
+  configId: string,
+  updates: {
+    repository?: string;
+    branch?: string;
+    build_command?: string;
+    deploy_command?: string;
+  }
+) => {
+  try {
+    const { data, error } = await supabase
+      .from('cicd_configs')
+      .update(updates)
+      .eq('id', configId)
+      .select()
+      .single();
+      
+    await logApiCall(
+      `/cicd-configs/${configId}`, 
+      'PATCH', 
+      updates, 
+      data, 
+      error
+    );
+      
+    return { data, error };
+  } catch (error) {
+    await logApiCall(`/cicd-configs/${configId}`, 'PATCH', updates, null, error as Error);
+    throw error;
+  }
+};
+
+export const deleteCiCdConfig = async (configId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('cicd_configs')
+      .delete()
+      .eq('id', configId);
+      
+    await logApiCall(`/cicd-configs/${configId}`, 'DELETE', { configId }, data, error);
+    return { data, error };
+  } catch (error) {
+    await logApiCall(`/cicd-configs/${configId}`, 'DELETE', { configId }, null, error as Error);
+    throw error;
+  }
+};
+
+// Generate GitHub Workflow file
+export const generateGithubWorkflow = (
+  config: {
+    repository: string;
+    branch: string;
+    buildCommand: string;
+    deployCommand: string;
+    deployUrl: string;
+  }
+) => {
+  return `name: Deploy Website
+
+on:
+  push:
+    branches: [${config.branch}]
+  pull_request:
+    branches: [${config.branch}]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build website
+        run: ${config.buildCommand}
+      
+      - name: Deploy to production
+        run: ${config.deployCommand}
+        env:
+          DEPLOY_URL: ${config.deployUrl}
+          
+      - name: Notify deployment success
+        if: success()
+        run: |
+          curl -X POST -H "Content-Type: application/json" \\
+            -d '{"status":"success","repository":"${{ github.repository }}","branch":"${config.branch}"}' \\
+            ${config.deployUrl}/deployment-webhooks/status
+            
+      - name: Notify deployment failure
+        if: failure()
+        run: |
+          curl -X POST -H "Content-Type: application/json" \\
+            -d '{"status":"failure","repository":"${{ github.repository }}","branch":"${config.branch}"}' \\
+            ${config.deployUrl}/deployment-webhooks/status`;
+};
+
 // Generic database functions for flexible table access
 type TableNames = 'website_configs' | string; // Add other table names as needed
 
