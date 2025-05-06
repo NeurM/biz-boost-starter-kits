@@ -1,320 +1,332 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { 
+  GitBranch, 
+  GitCommit, 
+  Github, 
+  GitCompare, 
+  Rocket, 
+  Settings, 
+  DownloadCloud 
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Download, Github } from "lucide-react";
-import { useTemplateTheme } from '@/context/TemplateThemeContext';
-import { getWorkflowYaml } from '@/utils/cicdService';
+import { useAuth } from "@/context/AuthContext";
+import { createCiCdConfig, getCiCdConfigs, updateCiCdConfig, getWorkflowYaml } from "@/utils/cicdService";
+import { getWebsiteConfig, saveWebsiteConfig } from "@/utils/websiteService";
 
 interface DeploymentInfoProps {
-  websiteConfig: {
+  websiteConfig?: {
     id: string;
     template_id: string;
-    company_name: string;
-    domain_name: string;
-    logo: string;
-    color_scheme?: string;
-    secondary_color_scheme?: string;
+    deployment_status?: string;
+    deployment_url?: string;
+    last_deployed_at?: string;
   };
 }
 
 const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [isSettingUpGithub, setIsSettingUpGithub] = useState(false);
   const { toast } = useToast();
-  const { templateColor, secondaryColor } = useTemplateTheme();
-
-  const handleDownloadCode = async () => {
+  const { user } = useAuth();
+  
+  const [activeTemplate, setActiveTemplate] = useState<string | null>(null);
+  const [repository, setRepository] = useState('');
+  const [branch, setBranch] = useState('main');
+  const [buildCommand, setBuildCommand] = useState('npm run build');
+  const [deployCommand, setDeployCommand] = useState('npm run deploy');
+  const [cicdConfig, setCicdConfig] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [workflowYaml, setWorkflowYaml] = useState<string | null>(null);
+  const [showYaml, setShowYaml] = useState(false);
+  
+  useEffect(() => {
+    if (!user) return;
+    
+    const loadTemplateData = async () => {
+      try {
+        // Get first website config if none provided
+        let config = websiteConfig;
+        
+        if (!config) {
+          const { data, error } = await getWebsiteConfig('cleanslate');
+          if (error) throw error;
+          
+          if (data) {
+            config = data;
+            setActiveTemplate(data.template_id);
+          }
+        } else {
+          setActiveTemplate(config.template_id);
+        }
+        
+        // Load CI/CD config if template is available
+        if (config && config.template_id) {
+          const { data, error } = await getCiCdConfigs(config.template_id);
+          if (error) throw error;
+          
+          if (data && data.length > 0) {
+            const latestConfig = data[0];
+            setCicdConfig(latestConfig);
+            setRepository(latestConfig.repository);
+            setBranch(latestConfig.branch);
+            setBuildCommand(latestConfig.build_command);
+            setDeployCommand(latestConfig.deploy_command);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading deployment data:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load deployment configuration.",
+          variant: "destructive"
+        });
+      }
+    };
+    
+    loadTemplateData();
+  }, [user, websiteConfig, toast]);
+  
+  const handleSaveConfig = async () => {
+    if (!activeTemplate) {
+      toast({
+        title: "Error",
+        description: "No active template selected.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsLoading(true);
+    
     try {
-      setIsDownloading(true);
-      
-      // Create a website package with all necessary files
-      const websiteData = {
-        template: websiteConfig.template_id,
-        companyName: websiteConfig.company_name,
-        domainName: websiteConfig.domain_name,
-        logo: websiteConfig.logo,
-        colorScheme: websiteConfig.color_scheme || templateColor,
-        secondaryColorScheme: websiteConfig.secondary_color_scheme || secondaryColor,
-      };
-      
-      // Create HTML file content
-      const htmlContent = generateHTMLTemplate(websiteData);
-      
-      // Create CSS file content
-      const cssContent = generateCSSTemplate(websiteData);
-      
-      // Create JavaScript file content
-      const jsContent = generateJSTemplate(websiteData);
-      
-      // Create package.json content
-      const packageJsonContent = generatePackageJson(websiteData);
-      
-      // Create README content
-      const readmeContent = generateReadme(websiteData);
-      
-      // Create a zip file containing all files
-      const zip = await createZip({
-        'index.html': htmlContent,
-        'styles.css': cssContent,
-        'script.js': jsContent,
-        'package.json': packageJsonContent,
-        'README.md': readmeContent,
-        'assets/placeholder.svg': 'SVG Placeholder',
-      });
-      
-      // Trigger download
-      downloadZip(zip, `${websiteConfig.company_name.replace(/\s+/g, '-').toLowerCase()}-website.zip`);
+      if (cicdConfig) {
+        // Update existing config
+        const { error } = await updateCiCdConfig(cicdConfig.id, {
+          repository,
+          branch,
+          build_command: buildCommand,
+          deploy_command: deployCommand
+        });
+        
+        if (error) throw error;
+      } else {
+        // Create new config
+        const { error } = await createCiCdConfig(
+          activeTemplate,
+          repository,
+          branch,
+          buildCommand,
+          deployCommand
+        );
+        
+        if (error) throw error;
+      }
       
       toast({
-        title: "Download Successful",
-        description: "Your website code has been downloaded successfully.",
+        title: "Configuration Saved",
+        description: "Your deployment configuration has been updated."
       });
+      
+      // Update deployment status in website config
+      if (websiteConfig) {
+        await saveWebsiteConfig({
+          template_id: websiteConfig.template_id,
+          company_name: websiteConfig.id,
+          domain_name: websiteConfig.id,
+          logo: websiteConfig.id,
+          deployment_status: 'configured',
+          deployment_url: `https://${repository.split('/').pop()}.github.io`
+        });
+      }
+      
     } catch (error) {
-      console.error("Error downloading website code:", error);
+      console.error('Error saving deployment config:', error);
       toast({
-        title: "Download Failed",
-        description: "There was an error downloading your website code. Please try again.",
-        variant: "destructive",
+        title: "Error",
+        description: "Failed to save deployment configuration.",
+        variant: "destructive"
       });
     } finally {
-      setIsDownloading(false);
+      setIsLoading(false);
     }
   };
-
-  const handleSetupGithub = async () => {
+  
+  const generateWorkflow = async () => {
+    if (!activeTemplate) return;
+    
     try {
-      setIsSettingUpGithub(true);
-      
-      const deployUrl = `https://${websiteConfig.domain_name}`;
-      
-      // Generate GitHub workflow file
-      const workflowYaml = await getWorkflowYaml(
-        websiteConfig.template_id,
-        `${websiteConfig.company_name.replace(/\s+/g, '-').toLowerCase()}/website`,
-        'main',
-        'npm run build',
-        'npm run deploy'
+      const yaml = await getWorkflowYaml(
+        activeTemplate, 
+        repository, 
+        branch, 
+        buildCommand, 
+        deployCommand
       );
       
-      // Create a zip file containing GitHub workflow file
-      const zip = await createZip({
-        '.github/workflows/deploy.yml': workflowYaml
-      });
-      
-      // Trigger download
-      downloadZip(zip, `${websiteConfig.company_name.replace(/\s+/g, '-').toLowerCase()}-github-workflow.zip`);
-      
-      toast({
-        title: "GitHub Setup Files Downloaded",
-        description: "GitHub Actions workflow file has been downloaded. Please add this to your GitHub repository.",
-      });
+      setWorkflowYaml(yaml);
+      setShowYaml(true);
     } catch (error) {
-      console.error("Error setting up GitHub:", error);
+      console.error('Error generating workflow:', error);
       toast({
-        title: "GitHub Setup Failed",
-        description: "There was an error generating the GitHub workflow files. Please try again.",
-        variant: "destructive",
+        title: "Error",
+        description: "Failed to generate workflow file.",
+        variant: "destructive"
       });
-    } finally {
-      setIsSettingUpGithub(false);
     }
   };
-
-  // Helper function to create a zip file
-  const createZip = async (files: Record<string, string>): Promise<Blob> => {
-    // Simulate creating a zip file by just returning a blob with JSON content
-    // In a real implementation, you would use a library like JSZip
-    const filesContent = JSON.stringify(files, null, 2);
-    return new Blob([filesContent], { type: 'application/zip' });
-  };
-
-  // Helper function to trigger download
-  const downloadZip = (blob: Blob, filename: string) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  // Helper function to generate HTML template
-  const generateHTMLTemplate = (data: any): string => {
-    return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${data.companyName}</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <header>
-        <nav>
-            <div class="logo">
-                ${data.logo ? `<img src="${data.logo}" alt="${data.companyName} Logo">` : data.companyName}
-            </div>
-            <ul>
-                <li><a href="#home">Home</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#services">Services</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <main>
-        <section id="home" class="hero">
-            <h1>Welcome to ${data.companyName}</h1>
-            <p>Your trusted partner for quality services</p>
-            <a href="#contact" class="cta-button">Get Started</a>
-        </section>
-
-        <!-- More sections would go here -->
-    </main>
-
-    <footer>
-        <p>&copy; ${new Date().getFullYear()} ${data.companyName}. All rights reserved.</p>
-    </footer>
-
-    <script src="script.js"></script>
-</body>
-</html>
-    `;
-  };
-
-  // Helper function to generate CSS template
-  const generateCSSTemplate = (data: any): string => {
-    return `
-/* Base styles */
-:root {
-    --primary-color: ${data.colorScheme || '#3b82f6'};
-    --secondary-color: ${data.secondaryColorScheme || '#f59e0b'};
-    --text-color: #333;
-    --background-color: #fff;
-}
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    color: var(--text-color);
-    background-color: var(--background-color);
-}
-
-/* More CSS would go here */
-    `;
-  };
-
-  // Helper function to generate JS template
-  const generateJSTemplate = (data: any): string => {
-    return `
-// Main JavaScript file for ${data.companyName} website
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Website loaded successfully!');
+  
+  const copyToClipboard = () => {
+    if (!workflowYaml) return;
     
-    // Add your custom JavaScript here
-});
-    `;
+    navigator.clipboard.writeText(workflowYaml);
+    toast({
+      title: "Copied",
+      description: "Workflow YAML copied to clipboard"
+    });
   };
-
-  // Helper function to generate package.json
-  const generatePackageJson = (data: any): string => {
-    return JSON.stringify({
-      "name": `${data.companyName.toLowerCase().replace(/\s+/g, '-')}`,
-      "version": "1.0.0",
-      "description": `Website for ${data.companyName}`,
-      "main": "index.html",
-      "scripts": {
-        "start": "npx serve",
-        "build": "mkdir -p dist && cp -r * dist/ || true",
-        "deploy": "echo 'Add your deployment logic here'"
-      },
-      "keywords": [
-        "website",
-        data.template
-      ],
-      "author": "",
-      "license": "MIT",
-      "devDependencies": {
-        "serve": "^14.0.0"
-      }
-    }, null, 2);
+  
+  const getDeploymentStatus = () => {
+    if (!websiteConfig || !websiteConfig.deployment_status) {
+      return "Not configured";
+    }
+    
+    return websiteConfig.deployment_status.charAt(0).toUpperCase() + 
+      websiteConfig.deployment_status.slice(1);
   };
-
-  // Helper function to generate README
-  const generateReadme = (data: any): string => {
-    return `# ${data.companyName} Website
-
-This is the website for ${data.companyName}, generated using the ${data.template} template.
-
-## Getting Started
-
-1. Install dependencies: \`npm install\`
-2. Start development server: \`npm start\`
-3. Build for production: \`npm run build\`
-4. Deploy to your server: \`npm run deploy\`
-
-## Customization
-
-Edit the following files to customize your website:
-
-- \`index.html\` - Main HTML structure
-- \`styles.css\` - CSS styles
-- \`script.js\` - JavaScript functionality
-
-## Domain Setup
-
-This website is configured to be hosted at: ${data.domainName}
-    `;
+  
+  const getLastDeployed = () => {
+    if (!websiteConfig || !websiteConfig.last_deployed_at) {
+      return "Never";
+    }
+    
+    return new Date(websiteConfig.last_deployed_at).toLocaleString();
   };
-
+  
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Deployment Options</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
-          <h3 className="text-lg font-medium mb-2">Download Code</h3>
-          <p className="text-gray-500 mb-2">
-            Download the website files to host on your own server.
-          </p>
-          <Button 
-            onClick={handleDownloadCode}
-            disabled={isDownloading}
-            className="flex items-center"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            {isDownloading ? "Downloading..." : "Download Website Code"}
-          </Button>
+          <CardTitle className="text-xl font-bold">Deployment</CardTitle>
+          <CardDescription>Configure CI/CD for your website</CardDescription>
         </div>
-        
-        <div>
-          <h3 className="text-lg font-medium mb-2">GitHub Integration</h3>
-          <p className="text-gray-500 mb-2">
-            Set up CI/CD with GitHub Actions to automatically deploy your website.
-          </p>
-          <Button 
-            onClick={handleSetupGithub}
-            disabled={isSettingUpGithub}
-            variant="outline"
-            className="flex items-center"
-          >
-            <Github className="h-4 w-4 mr-2" />
-            {isSettingUpGithub ? "Setting up..." : "Setup GitHub Integration"}
-          </Button>
+        <Settings className="h-5 w-5 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Status</p>
+            <div className="flex items-center space-x-2">
+              <Rocket className="h-4 w-4 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                {getDeploymentStatus()}
+              </p>
+            </div>
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Last Deployed</p>
+            <div className="flex items-center space-x-2">
+              <DownloadCloud className="h-4 w-4 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                {getLastDeployed()}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="repository">GitHub Repository</Label>
+            <div className="flex items-center space-x-2">
+              <Github className="h-4 w-4" />
+              <Input
+                id="repository"
+                placeholder="username/repository"
+                value={repository}
+                onChange={(e) => setRepository(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="branch">Branch</Label>
+            <div className="flex items-center space-x-2">
+              <GitBranch className="h-4 w-4" />
+              <Input
+                id="branch"
+                placeholder="main"
+                value={branch}
+                onChange={(e) => setBranch(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="build">Build Command</Label>
+            <div className="flex items-center space-x-2">
+              <GitCommit className="h-4 w-4" />
+              <Input
+                id="build"
+                placeholder="npm run build"
+                value={buildCommand}
+                onChange={(e) => setBuildCommand(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="deploy">Deploy Command</Label>
+            <div className="flex items-center space-x-2">
+              <GitCompare className="h-4 w-4" />
+              <Input
+                id="deploy"
+                placeholder="npm run deploy"
+                value={deployCommand}
+                onChange={(e) => setDeployCommand(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <div className="pt-2 flex space-x-2">
+            <Button 
+              onClick={handleSaveConfig} 
+              disabled={isLoading}
+            >
+              {isLoading ? "Saving..." : "Save Configuration"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={generateWorkflow}
+            >
+              Generate Workflow
+            </Button>
+          </div>
+          
+          {showYaml && workflowYaml && (
+            <div className="mt-4 space-y-2">
+              <div className="flex justify-between items-center">
+                <Label>GitHub Workflow YAML</Label>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={copyToClipboard}
+                >
+                  Copy
+                </Button>
+              </div>
+              <Textarea
+                className="font-mono text-xs h-64"
+                value={workflowYaml}
+                readOnly
+              />
+              <p className="text-xs text-muted-foreground">
+                Save this file as <code>.github/workflows/deploy.yml</code> in your repository.
+              </p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

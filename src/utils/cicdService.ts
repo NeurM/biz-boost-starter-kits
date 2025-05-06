@@ -1,6 +1,6 @@
 
-import { fetchData, insertData, updateData, deleteData } from './supabase';
-import { generateGithubWorkflow } from './supabase';
+import { fetchData, insertData, updateData, deleteData } from './dbService';
+import { supabase } from '@/integrations/supabase/client';
 
 // TypeScript interfaces for CI/CD configuration data
 export interface CiCdConfigData {
@@ -67,7 +67,8 @@ export const getCiCdConfigs = async (templateId?: string): Promise<{ data: any[]
   }
     
   // Filter data for the current user and templateId if provided
-  let filteredData = response.data?.filter((config: any) => config.user_id === user.user.id) || [];
+  let filteredData = (response.data || [])
+    .filter((config: any) => config.user_id === user.user.id);
     
   if (templateId) {
     filteredData = filteredData.filter((config: any) => config.template_id === templateId);
@@ -90,8 +91,6 @@ export const deleteCiCdConfig = async (configId: string): Promise<{ data: any, e
 export const getWorkflowYaml = async (templateId: string, repository: string, branch: string, 
                                     buildCommand: string, deployCommand: string): Promise<string> => {
   // Get deployment URL from website config
-  const { supabase } = await import('@/integrations/supabase/client');
-  
   const { data: websiteConfig, error } = await supabase
     .from('website_configs')
     .select('domain_name')
@@ -111,4 +110,53 @@ export const getWorkflowYaml = async (templateId: string, repository: string, br
     deployCommand,
     deployUrl
   });
+};
+
+// Generate GitHub Workflow file - Fixed to escape string properly
+export const generateGithubWorkflow = (config: WorkflowConfig): string => {
+  return `name: Deploy Website
+
+on:
+  push:
+    branches: [${config.branch}]
+  pull_request:
+    branches: [${config.branch}]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build website
+        run: ${config.buildCommand}
+      
+      - name: Deploy to production
+        run: ${config.deployCommand}
+        env:
+          DEPLOY_URL: ${config.deployUrl}
+          
+      - name: Notify deployment success
+        if: success()
+        run: |
+          curl -X POST -H "Content-Type: application/json" \\
+            -d '{"status":"success","repository":"\${github.repository}","branch":"${config.branch}"}' \\
+            ${config.deployUrl}/deployment-webhooks/status
+            
+      - name: Notify deployment failure
+        if: failure()
+        run: |
+          curl -X POST -H "Content-Type: application/json" \\
+            -d '{"status":"failure","repository":"\${github.repository}","branch":"${config.branch}"}' \\
+            ${config.deployUrl}/deployment-webhooks/status`;
 };

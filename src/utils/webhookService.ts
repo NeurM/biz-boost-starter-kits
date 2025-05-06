@@ -1,5 +1,6 @@
 
-import { fetchData, insertData, updateData, deleteData, TableRow } from './supabase';
+import { fetchData, insertData, updateData, deleteData, TableRow } from './dbService';
+import { supabase } from '@/integrations/supabase/client';
 
 // TypeScript interfaces for webhook data
 export interface WebhookData {
@@ -58,10 +59,11 @@ export const getWebhooks = async (): Promise<{ data: WebhookData[] | null, error
     return response;
   }
     
-  // Filter data for the current user
-  const filteredData = response.data?.filter((webhook: any) => webhook.user_id === user.user.id) || [];
+  // Filter data for the current user and type-cast to WebhookData
+  const filteredData = (response.data || [])
+    .filter((webhook: any) => webhook.user_id === user.user.id) as WebhookData[];
     
-  return { data: filteredData as WebhookData[], error: null };
+  return { data: filteredData, error: null };
 };
 
 export const updateWebhook = async (

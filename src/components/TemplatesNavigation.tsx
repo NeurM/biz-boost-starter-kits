@@ -1,117 +1,73 @@
-
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { signOut } from '@/utils/supabase';
-import { useToast } from "@/hooks/use-toast";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useLanguage, Language } from '@/context/LanguageContext';
+  Home,
+  ShoppingBag,
+  Wrench,
+  FileText,
+  Phone,
+  User,
+  MessageSquare
+} from 'lucide-react';
 import { useTemplateTheme } from '@/context/TemplateThemeContext';
 
-const TemplatesNavigation = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const { language, setLanguage } = useLanguage();
-  const { templateType } = useTemplateTheme();
-  const [isSigningOut, setIsSigningOut] = useState(false);
-  const location = useLocation();
-  
-  // Hide TemplatesNavigation when on template pages
-  const isTemplatePage = location.pathname.startsWith("/service") || 
-                         location.pathname.startsWith("/tradecraft") || 
-                         location.pathname.startsWith("/retail") || 
-                         location.pathname.startsWith("/expert") || 
-                         location.pathname.startsWith("/cleanslate");
-                         
-  if (isTemplatePage) {
-    return null;
-  }
+interface TemplatesNavigationProps {
+  templateType: string;
+}
 
-  const handleSignOut = async () => {
-    setIsSigningOut(true);
-    try {
-      await signOut();
-      toast({
-        title: "Signed out",
-        description: "You have been successfully signed out.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error signing out",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsSigningOut(false);
-    }
+export const TemplatesNavigation: React.FC<TemplatesNavigationProps> = ({ templateType }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { colorClasses } = useTemplateTheme();
+
+  const navItems = [
+    { name: 'Home', path: '/', icon: Home },
+    { name: 'About', path: '/about', icon: User },
+    {
+      name: templateType === 'retail' ? 'Products' : 'Services',
+      path: templateType === 'retail' ? '/products' : '/services',
+      icon: templateType === 'retail' ? ShoppingBag : Wrench,
+    },
+    { name: 'Blog', path: '/blog', icon: FileText },
+    { name: 'Contact', path: '/contact', icon: Phone },
+  ];
+
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
+
+  const navigateTo = (path: string) => {
+    navigate(path);
   };
 
   return (
-    <nav className="bg-white border-b">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-4">
-            <Link to="/" className="text-xl font-bold">
-              Website Builder
-            </Link>
-            <Link to="/dashboard" className="text-gray-600 hover:text-gray-900">
-              Dashboard
-            </Link>
-            <Link to="/templates" className="text-gray-600 hover:text-gray-900">
-              Templates
-            </Link>
-            <Link to="/saved-websites" className="text-gray-600 hover:text-gray-900">
-              Saved Websites
-            </Link>
-          </div>
-          <div className="flex items-center space-x-4">
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value as Language)}
-              className="border rounded px-2 py-1"
+    <nav className="container mx-auto px-4 py-6">
+      <ul className="flex space-x-6 justify-center">
+        {navItems.map((item) => (
+          <li key={item.name}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "gap-2",
+                isActive(item.path) ? `text-${colorClasses?.primary}-600` : "text-gray-600 hover:text-gray-900"
+              )}
+              onClick={() => navigateTo(item.path)}
             >
-              <option value="en">English</option>
-              <option value="es">Español</option>
-              <option value="fr">Français</option>
-              <option value="nl">Nederlands</option>
-              <option value="ar">العربية</option>
-            </select>
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger>
-                  <Avatar>
-                    <AvatarImage src={user.user_metadata?.avatar_url || ""} />
-                    <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem disabled={isSigningOut} onClick={handleSignOut}>
-                    {isSigningOut ? "Signing out..." : "Sign out"}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <>
-                <Link to="/auth" className="text-gray-600 hover:text-gray-900">
-                  Sign In
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
+              <item.icon className="h-4 w-4" />
+              <span>{item.name}</span>
+            </Button>
+          </li>
+        ))}
+        <li>
+          <Button variant="ghost" size="sm" className="gap-2 text-gray-600 hover:text-gray-900">
+            <MessageSquare className="h-4 w-4" />
+            <span>Chat</span>
+          </Button>
+        </li>
+      </ul>
     </nav>
   );
 };
-
-export default TemplatesNavigation;
