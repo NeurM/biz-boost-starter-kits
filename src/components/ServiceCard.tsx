@@ -20,6 +20,10 @@ const ServiceCard = ({
   linkText = "Learn More",
   className = ""
 }: ServiceCardProps) => {
+  // Ensure we have safe rendering even if props are missing
+  const safeTitle = title || "Service";
+  const safeDescription = description || "Service description";
+  
   return (
     <div className={`glass-card card-hover group ${className}`}>
       <div className="p-6">
@@ -30,8 +34,8 @@ const ServiceCard = ({
             </div>
           </div>
         )}
-        <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">{title}</h3>
-        <p className="text-gray-600 mb-5">{description}</p>
+        <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">{safeTitle}</h3>
+        <p className="text-gray-600 mb-5">{safeDescription}</p>
         {link && (
           <Button asChild variant="ghost" size="sm" className="p-0 hover:bg-transparent group-hover:text-primary">
             <Link to={link} className="flex items-center">

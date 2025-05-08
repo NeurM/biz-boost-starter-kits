@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getWebsiteConfig, saveWebsiteConfig } from '@/utils/supabase';
@@ -51,15 +50,19 @@ const TemplateThemeContext = createContext<TemplateThemeContextProps>({
 export const useTemplateTheme = () => useContext(TemplateThemeContext);
 
 export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Default to empty pathname
-  let pathname = '/';
-  try {
-    // Only use useLocation if we're in a router context
-    const location = useLocation();
-    pathname = location.pathname;
-  } catch (error) {
-    console.warn('TemplateThemeProvider used outside Router context, defaulting to "/" path');
-  }
+  // Get current path - use try/catch to handle cases outside Router context
+  const getPath = (): string => {
+    try {
+      // Only use useLocation if we're in a router context
+      const location = useLocation();
+      return location.pathname;
+    } catch (error) {
+      console.warn('TemplateThemeProvider: useLocation failed, defaulting to "/"', error);
+      return '/';
+    }
+  };
+  
+  const pathname = getPath();
   
   const getTemplateTypeFromPath = (path: string) => {
     if (path.startsWith('/tradecraft')) return 'tradecraft';
@@ -298,17 +301,32 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
       };
     }
     
+    // Safe handling for Tailwind classes
+    const safeColor = (color: string) => {
+      // Map any custom or invalid colors to defaults
+      const validColors = [
+        'blue', 'red', 'green', 'yellow', 'purple', 
+        'pink', 'indigo', 'gray', 'black', 'white',
+        'teal', 'orange', 'amber'
+      ];
+      
+      return validColors.includes(color) ? color : 'blue';
+    };
+    
+    const primary = safeColor(primaryColor);
+    const secondary = safeColor(secondaryColor);
+    
     return {
-      bg: `bg-${primaryColor}-600`,
-      text: `text-${primaryColor}-600`,
-      hover: `hover:bg-${primaryColor}-700`,
-      muted: `text-${primaryColor}-500`,
-      border: `border-${primaryColor}-600`,
-      secondaryBg: `bg-${secondaryColor}-600`,
-      secondaryText: `text-${secondaryColor}-600`,
-      secondaryHover: `hover:bg-${secondaryColor}-700`,
-      secondaryMuted: `text-${secondaryColor}-500`,
-      secondaryBorder: `border-${secondaryColor}-600`,
+      bg: `bg-${primary}-600`,
+      text: `text-${primary}-600`,
+      hover: `hover:bg-${primary}-700`,
+      muted: `text-${primary}-500`,
+      border: `border-${primary}-600`,
+      secondaryBg: `bg-${secondary}-600`,
+      secondaryText: `text-${secondary}-600`,
+      secondaryHover: `hover:bg-${secondary}-700`,
+      secondaryMuted: `text-${secondary}-500`,
+      secondaryBorder: `border-${secondary}-600`,
     };
   };
   
