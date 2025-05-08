@@ -87,6 +87,7 @@
 
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "salt" on, "ss01" on;
   }
 }
 
@@ -112,4 +113,248 @@
 
 .hover-grow:hover {
   transform: scale(1.03);
+}
+
+/* Modern UI Components */
+.glass-card {
+  @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-lg rounded-xl;
+}
+
+.dark .glass-card {
+  @apply bg-black/60 backdrop-blur-md border border-white/10 shadow-lg;
+}
+
+.glass-nav {
+  @apply bg-white/80 backdrop-blur-md border-b border-gray-200/50 shadow-sm sticky top-0 z-50;
+}
+
+.dark .glass-nav {
+  @apply bg-black/80 backdrop-blur-md border-b border-gray-700/50 shadow-sm;
+}
+
+.floating {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-in {
+  animation: fadeIn 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulseSlow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulseSlow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Modern Cards */
+.modern-card {
+  @apply rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300;
+}
+
+/* Modern buttons */
+.btn-gradient {
+  @apply relative overflow-hidden transition-all duration-300;
+  background-size: 200% auto;
+  background-position: left center;
+}
+
+.btn-gradient:hover {
+  background-position: right center;
+}
+
+.btn-gradient-primary {
+  @apply btn-gradient bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white;
+}
+
+.btn-gradient-secondary {
+  @apply btn-gradient bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white;
+}
+
+.btn-gradient-blue {
+  @apply btn-gradient bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white;
+}
+
+.btn-gradient-teal {
+  @apply btn-gradient bg-gradient-to-r from-teal-500 to-green-500 hover:from-teal-600 hover:to-green-600 text-white;
+}
+
+/* Dividers */
+.wave-divider {
+  position: relative;
+  height: 70px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.wave-divider::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 10px;
+  background-size: 20px 10px;
+  background-repeat: repeat-x;
+  background-position: 0 bottom;
+}
+
+.wave-divider-white::before {
+  background-image: radial-gradient(ellipse at 50% 100%, white 50%, transparent 50%);
+}
+
+.wave-divider-gray::before {
+  background-image: radial-gradient(ellipse at 50% 100%, #f3f4f6 50%, transparent 50%);
+}
+
+/* Section transitions */
+.section-transition {
+  position: relative;
+}
+
+.section-transition::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background: linear-gradient(to bottom, transparent, white);
+  pointer-events: none;
+}
+
+/* Card hover effects */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+}
+
+/* 3D tilt effect */
+.tilt-card {
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease;
+}
+
+.tilt-card:hover {
+  transform: perspective(1000px) rotateX(2deg) rotateY(2deg);
+}
+
+/* Modern gradient backgrounds */
+.bg-gradient-blue {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+}
+
+.bg-gradient-purple {
+  background: linear-gradient(135deg, #c084fc 0%, #8b5cf6 100%);
+}
+
+.bg-gradient-amber {
+  background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%);
+}
+
+.bg-gradient-teal {
+  background: linear-gradient(135deg, #5eead4 0%, #14b8a6 100%);
+}
+
+/* Modern Service Card */
+.service-card {
+  @apply bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.service-card:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: translateY(-5px);
+}
+
+.service-card .icon-wrapper {
+  @apply flex items-center justify-center rounded-full w-16 h-16 mb-4 transition-all duration-300;
+}
+
+.service-card:hover .icon-wrapper {
+  transform: scale(1.1);
+}
+
+/* Testimonial card styles */
+.testimonial-card {
+  @apply bg-white rounded-xl shadow-md overflow-hidden relative;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.testimonial-card::before {
+  content: """;
+  @apply text-6xl font-serif absolute top-4 left-4 opacity-10;
+}
+
+/* Shiny button effect */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-shine::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(45deg);
+  animation: shine 3s infinite;
+}
+
+@keyframes shine {
+  0% {
+    top: -100%;
+    left: -100%;
+  }
+  100% {
+    top: 100%;
+    left: 100%;
+  }
 }
