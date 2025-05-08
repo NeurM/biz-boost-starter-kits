@@ -19,7 +19,7 @@ const Testimonial = ({
   className = ""
 }: TestimonialProps) => {
   return (
-    <div className={`glass-card ${className}`}>
+    <div className={`glass-card ${className} hover:shadow-xl transition-shadow duration-300`}>
       <div className="p-6 relative">
         {/* Quote mark */}
         <div className="absolute top-4 left-4 text-6xl text-gray-200 font-serif leading-none z-0">"</div>

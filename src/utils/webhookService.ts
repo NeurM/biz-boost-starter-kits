@@ -56,14 +56,47 @@ export const getWebhooks = async (): Promise<{ data: WebhookData[] | null, error
   const response = await fetchData('webhooks');
     
   if (response.error) {
-    return response;
+    return { data: null, error: response.error };
   }
     
-  // Filter data for the current user and type-cast to WebhookData
-  const filteredData = (response.data || [])
-    .filter((webhook: any) => webhook.user_id === user.user.id) as WebhookData[];
+  // Since the response.data might be of a type incompatible with WebhookData,
+  // We need to transform it properly
+  try {
+    const webhooks: WebhookData[] = [];
     
-  return { data: filteredData, error: null };
+    // Check if response.data is an array
+    if (Array.isArray(response.data)) {
+      // Filter and map to ensure only valid webhook objects are included
+      response.data.forEach((item: any) => {
+        // Validate that the item has all required properties
+        if (item && 
+            typeof item === 'object' && 
+            'user_id' in item && 
+            'name' in item && 
+            'url' in item && 
+            'events' in item && 
+            'is_active' in item) {
+          
+          webhooks.push({
+            user_id: String(item.user_id),
+            name: String(item.name),
+            url: String(item.url),
+            events: Array.isArray(item.events) ? item.events.map(String) : [],
+            headers: item.headers && typeof item.headers === 'object' ? item.headers : {},
+            is_active: Boolean(item.is_active)
+          });
+        }
+      });
+    }
+    
+    // Filter for the current user's webhooks
+    const currentUserWebhooks = webhooks.filter(webhook => webhook.user_id === user.user.id);
+    
+    return { data: currentUserWebhooks, error: null };
+  } catch (err) {
+    console.error("Error processing webhooks data:", err);
+    return { data: null, error: err };
+  }
 };
 
 export const updateWebhook = async (
