@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { useAuth } from "@/context/AuthContext";
 import { getAllWebsiteConfigs } from "@/utils/websiteService";
 import GlobalAppNavbar from '@/components/GlobalAppNavbar';
@@ -50,18 +51,6 @@ const SavedWebsites = () => {
     
     return templates[templateId] || templateId;
   };
-  
-  const getTemplateBgClass = (templateId: string) => {
-    const templates: Record<string, string> = {
-      'tradecraft': 'bg-blue-50',
-      'retail': 'bg-purple-50',
-      'service': 'bg-teal-50',
-      'expert': 'bg-yellow-50',
-      'cleanslate': 'bg-gray-50',
-    };
-    
-    return templates[templateId] || 'bg-gray-50';
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -86,43 +75,46 @@ const SavedWebsites = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {websites.map((website) => (
-              <Card key={website.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                <div className={`h-24 ${getTemplateBgClass(website.template_id)} flex items-center justify-center`}>
-                  {website.logo ? (
-                    <img src={website.logo} alt={website.company_name} className="h-16 object-contain" />
-                  ) : (
-                    <span className="text-xl font-semibold">{website.company_name}</span>
-                  )}
-                </div>
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-semibold text-lg mb-1">{website.company_name}</h3>
-                      <p className="text-sm text-gray-500 mb-2">{website.domain_name}</p>
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        <span className="px-2 py-1 bg-secondary text-xs rounded-full">
-                          {getTemplateDisplayName(website.template_id)}
-                        </span>
-                        {website.color_scheme && (
-                          <span 
-                            className="px-2 py-1 text-xs rounded-full text-white"
-                            style={{ backgroundColor: `var(--${website.color_scheme}-500, #3b82f6)` }}
-                          >
-                            {website.color_scheme}
-                          </span>
+          <div className="bg-white rounded-md shadow">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Website Name</TableHead>
+                  <TableHead>Domain</TableHead>
+                  <TableHead>Template</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {websites.map((website) => (
+                  <TableRow key={website.id}>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center">
+                        {website.logo && (
+                          <img 
+                            src={website.logo} 
+                            alt="" 
+                            className="w-8 h-8 mr-2 object-contain" 
+                          />
                         )}
+                        {website.company_name}
                       </div>
-                      <p className="text-xs text-gray-400">
-                        Created: {format(new Date(website.created_at), 'MMM d, yyyy')}
-                      </p>
-                    </div>
-                    <WebsiteActions website={website} onDeleted={loadWebsites} />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    </TableCell>
+                    <TableCell>{website.domain_name}</TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 bg-secondary text-xs rounded-full">
+                        {getTemplateDisplayName(website.template_id)}
+                      </span>
+                    </TableCell>
+                    <TableCell>{format(new Date(website.created_at), 'MMM d, yyyy')}</TableCell>
+                    <TableCell className="text-right">
+                      <WebsiteActions website={website} onDeleted={loadWebsites} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>
