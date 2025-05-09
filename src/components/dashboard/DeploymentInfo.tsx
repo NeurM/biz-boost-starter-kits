@@ -12,28 +12,31 @@ import {
   GitCompare, 
   Rocket, 
   Settings, 
-  DownloadCloud 
+  DownloadCloud,
+  ExternalLink
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { createCiCdConfig, getCiCdConfigs, updateCiCdConfig, getWorkflowYaml } from "@/utils/cicdService";
 import { getWebsiteConfig, saveWebsiteConfig } from "@/utils/websiteService";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface DeploymentInfoProps {
   websiteConfig?: {
     id: string;
     template_id: string;
+    company_name: string;
+    domain_name: string;
     deployment_status?: string;
     deployment_url?: string;
     last_deployed_at?: string;
-  };
+  } | null;
 }
 
 const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
   const { toast } = useToast();
   const { user } = useAuth();
   
-  const [activeTemplate, setActiveTemplate] = useState<string | null>(null);
   const [repository, setRepository] = useState('');
   const [branch, setBranch] = useState('main');
   const [buildCommand, setBuildCommand] = useState('npm run build');
@@ -44,28 +47,15 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
   const [showYaml, setShowYaml] = useState(false);
   
   useEffect(() => {
-    if (!user) return;
+    if (!user || !websiteConfig) return;
     
-    const loadTemplateData = async () => {
+    const loadCiCdConfig = async () => {
       try {
-        // Get first website config if none provided
-        let config = websiteConfig;
-        
-        if (!config) {
-          const { data, error } = await getWebsiteConfig('cleanslate');
-          if (error) throw error;
-          
-          if (data) {
-            config = data;
-            setActiveTemplate(data.template_id);
-          }
-        } else {
-          setActiveTemplate(config.template_id);
-        }
+        setIsLoading(true);
         
         // Load CI/CD config if template is available
-        if (config && config.template_id) {
-          const { data, error } = await getCiCdConfigs(config.template_id);
+        if (websiteConfig && websiteConfig.template_id) {
+          const { data, error } = await getCiCdConfigs(websiteConfig.template_id);
           if (error) throw error;
           
           if (data && data.length > 0) {
@@ -75,6 +65,12 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
             setBranch(latestConfig.branch);
             setBuildCommand(latestConfig.build_command);
             setDeployCommand(latestConfig.deploy_command);
+          } else {
+            // Reset fields if no config exists
+            setRepository(websiteConfig.company_name.toLowerCase().replace(/\s+/g, '-'));
+            setBranch('main');
+            setBuildCommand('npm run build');
+            setDeployCommand('npm run deploy');
           }
         }
       } catch (error) {
@@ -84,17 +80,19 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
           description: "Failed to load deployment configuration.",
           variant: "destructive"
         });
+      } finally {
+        setIsLoading(false);
       }
     };
     
-    loadTemplateData();
+    loadCiCdConfig();
   }, [user, websiteConfig, toast]);
   
   const handleSaveConfig = async () => {
-    if (!activeTemplate) {
+    if (!websiteConfig) {
       toast({
         title: "Error",
-        description: "No active template selected.",
+        description: "No website selected.",
         variant: "destructive"
       });
       return;
@@ -116,7 +114,7 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
       } else {
         // Create new config
         const { error } = await createCiCdConfig(
-          activeTemplate,
+          websiteConfig.template_id,
           repository,
           branch,
           buildCommand,
@@ -133,13 +131,14 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
       
       // Update deployment status in website config
       if (websiteConfig) {
+        const deploymentUrl = `https://${repository.split('/').pop()}.github.io`;
         await saveWebsiteConfig({
           template_id: websiteConfig.template_id,
-          company_name: websiteConfig.id,
-          domain_name: websiteConfig.id,
+          company_name: websiteConfig.company_name,
+          domain_name: websiteConfig.domain_name,
           logo: websiteConfig.id,
           deployment_status: 'configured',
-          deployment_url: `https://${repository.split('/').pop()}.github.io`
+          deployment_url: deploymentUrl
         });
       }
       
@@ -156,11 +155,11 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
   };
   
   const generateWorkflow = async () => {
-    if (!activeTemplate) return;
+    if (!websiteConfig) return;
     
     try {
       const yaml = await getWorkflowYaml(
-        activeTemplate, 
+        websiteConfig.template_id, 
         repository, 
         branch, 
         buildCommand, 
@@ -206,12 +205,34 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
     return new Date(websiteConfig.last_deployed_at).toLocaleString();
   };
   
+  if (!websiteConfig) {
+    return (
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <div>
+            <CardTitle className="text-xl font-bold">Deployment</CardTitle>
+            <CardDescription>Configure CI/CD for your website</CardDescription>
+          </div>
+          <Settings className="h-5 w-5 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <Alert>
+            <AlertTitle>No Website Selected</AlertTitle>
+            <AlertDescription>
+              Please select a website from your saved websites above to configure deployment.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
           <CardTitle className="text-xl font-bold">Deployment</CardTitle>
-          <CardDescription>Configure CI/CD for your website</CardDescription>
+          <CardDescription>Configure CI/CD for {websiteConfig.company_name}</CardDescription>
         </div>
         <Settings className="h-5 w-5 text-muted-foreground" />
       </CardHeader>
@@ -237,6 +258,13 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
           </div>
         </div>
 
+        <Alert className="mb-4">
+          <AlertDescription>
+            These settings will generate a GitHub Actions workflow for deploying your website.
+            You will need to commit this file to your GitHub repository.
+          </AlertDescription>
+        </Alert>
+
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="repository">GitHub Repository</Label>
@@ -249,6 +277,9 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
                 onChange={(e) => setRepository(e.target.value)}
               />
             </div>
+            <p className="text-xs text-muted-foreground">
+              Format: username/repository-name
+            </p>
           </div>
           
           <div className="space-y-2">
@@ -290,7 +321,7 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
             </div>
           </div>
           
-          <div className="pt-2 flex space-x-2">
+          <div className="pt-2 flex flex-wrap gap-2">
             <Button 
               onClick={handleSaveConfig} 
               disabled={isLoading}
@@ -303,6 +334,15 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
             >
               Generate Workflow
             </Button>
+            {websiteConfig.deployment_url && (
+              <Button
+                variant="secondary"
+                onClick={() => window.open(websiteConfig.deployment_url, '_blank')}
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                View Deployed Site
+              </Button>
+            )}
           </div>
           
           {showYaml && workflowYaml && (
@@ -322,9 +362,17 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
                 value={workflowYaml}
                 readOnly
               />
-              <p className="text-xs text-muted-foreground">
-                Save this file as <code>.github/workflows/deploy.yml</code> in your repository.
-              </p>
+              <div className="space-y-2 text-xs text-muted-foreground">
+                <p>
+                  Save this file as <code className="bg-muted px-1 py-0.5 rounded">.github/workflows/deploy.yml</code> in your repository.
+                </p>
+                <ol className="list-decimal pl-5 space-y-1">
+                  <li>Create a new GitHub repository at the URL specified above</li>
+                  <li>Download the full React code using the "Download Code" panel</li>
+                  <li>Push the code to your GitHub repository</li>
+                  <li>Add this workflow file to deploy your site automatically</li>
+                </ol>
+              </div>
             </div>
           )}
         </div>
