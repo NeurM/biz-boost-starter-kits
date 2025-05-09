@@ -553,6 +553,86 @@ npm run deploy
     navigate('/dashboard');
   };
   
+  const handleViewWebsite = () => {
+    if (website.template_id) {
+      // Save the colors in session storage before navigating
+      try {
+        const sessionData = {
+          companyName: website.company_name,
+          domainName: website.domain_name,
+          logo: website.logo,
+          colorScheme: website.color_scheme,
+          secondaryColorScheme: website.secondary_color_scheme,
+          template: website.template_id
+        };
+        
+        sessionStorage.setItem('companyData', JSON.stringify(sessionData));
+        
+        // Set the colors in the theme context
+        if (website.color_scheme) setTemplateColor(website.color_scheme);
+        if (website.secondary_color_scheme) setSecondaryColor(website.secondary_color_scheme);
+        
+      } catch (error) {
+        console.error('Error saving to session storage:', error);
+      }
+      
+      // Navigate to the template
+      navigate(`/${website.template_id}`, { 
+        state: {
+          companyName: website.company_name,
+          domainName: website.domain_name,
+          logo: website.logo,
+          colorScheme: website.color_scheme,
+          secondaryColorScheme: website.secondary_color_scheme
+        }
+      });
+    }
+  };
+
+  const handleEditWebsite = () => {
+    if (website.template_id) {
+      // Save to session storage before navigating
+      try {
+        const sessionData = {
+          companyName: website.company_name,
+          domainName: website.domain_name,
+          logo: website.logo,
+          colorScheme: website.color_scheme,
+          secondaryColorScheme: website.secondary_color_scheme,
+          template: website.template_id
+        };
+        
+        sessionStorage.setItem('companyData', JSON.stringify(sessionData));
+      } catch (error) {
+        console.error('Error saving to session storage:', error);
+      }
+      
+      navigate(`/editor/${website.template_id}`);
+    }
+  };
+  
+  const handleDelete = async () => {
+    try {
+      await deleteWebsiteConfig(website.id);
+      setIsDeleteDialogOpen(false);
+      
+      toast({
+        title: "Website Deleted",
+        description: `${website.company_name} has been deleted.`,
+      });
+      
+      // Refresh the list
+      onDeleted();
+    } catch (error) {
+      console.error('Error deleting website:', error);
+      toast({
+        title: "Failed to delete website",
+        description: "An error occurred while deleting the website.",
+        variant: "destructive",
+      });
+    }
+  };
+  
   return (
     <>
       <DropdownMenu>

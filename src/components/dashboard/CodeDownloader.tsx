@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, Code, GitMerge, Package, Terminal } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getAllWebsiteConfigs, getTemplateFiles } from "@/utils/websiteService";
+import { getAllWebsiteConfigs } from "@/utils/websiteService";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -793,7 +793,7 @@ export default HomePage;
           <h3 className="font-medium mb-2">Deployment Instructions</h3>
           <ol className="space-y-2 text-sm text-gray-600 list-decimal pl-5">
             <li>Download the full React project using the button above</li>
-            <li>Create a GitHub repository with the name <code className="bg-muted px-1 rounded text-xs">{repository || 'your-username/your-repo'}</code></li>
+            <li>Create a GitHub repository for your project</li>
             <li>Push the downloaded code to your repository</li>
             <li>Configure GitHub Pages in your repository settings</li>
             <li>The included GitHub Actions workflow will handle deployment</li>
