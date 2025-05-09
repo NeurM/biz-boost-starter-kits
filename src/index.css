@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -321,7 +320,7 @@
 }
 
 .testimonial-card::before {
-  content: """;
+  content: "\201C";
   @apply text-6xl font-serif absolute top-4 left-4 opacity-10;
 }
 
