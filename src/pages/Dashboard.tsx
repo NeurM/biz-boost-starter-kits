@@ -7,6 +7,7 @@ import ApiAnalyticsCard from "@/components/dashboard/ApiAnalyticsCard";
 import WebsiteAnalyticsCard from "@/components/dashboard/WebsiteAnalyticsCard";
 import WebsiteVisitAnalytics from "@/components/dashboard/WebsiteVisitAnalytics";
 import DeploymentInfo from "@/components/dashboard/DeploymentInfo";
+import CodeDownloader from "@/components/dashboard/CodeDownloader";
 import GlobalAppNavbar from '@/components/GlobalAppNavbar';
 import { getAllWebsiteConfigs } from '@/utils/websiteService';
 
@@ -53,6 +54,7 @@ const Dashboard = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <DeploymentInfo websiteConfig={websiteConfig} />
+          <CodeDownloader websiteConfig={websiteConfig} />
         </div>
 
         <Card>

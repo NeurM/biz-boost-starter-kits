@@ -1,225 +1,131 @@
+
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { getAllWebsiteConfigs, deleteWebsiteConfig } from '@/utils/supabase';
-import { Pencil, ExternalLink, Trash2, Globe } from 'lucide-react';
-import AppNavbar from '@/components/AppNavbar';
-import Footer from '@/components/Footer';
-import { useLanguage } from '@/context/LanguageContext';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-
-interface WebsiteConfig {
-  id: string;
-  template_id: string;
-  company_name: string;
-  domain_name: string;
-  logo: string;
-  created_at: string;
-}
-
-const templates = {
-  "cleanslate": "Clean Slate",
-  "tradecraft": "Tradecraft",
-  "retail": "Retail Ready",
-  "service": "Service Pro",
-  "expert": "Local Expert"
-};
+import { useAuth } from "@/context/AuthContext";
+import { getAllWebsiteConfigs } from "@/utils/websiteService";
+import GlobalAppNavbar from '@/components/GlobalAppNavbar';
+import WebsiteActions from '@/components/website/WebsiteActions';
+import { format } from 'date-fns';
 
 const SavedWebsites = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [websiteConfigs, setWebsiteConfigs] = useState<WebsiteConfig[]>([]);
+  const [websites, setWebsites] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
-  const { t } = useLanguage();
 
-  const navItems = [
-    { name: t('nav.home'), path: "/" },
-    { name: t('nav.templates'), path: "/templates" },
-    { name: t('nav.dashboard'), path: "/dashboard" },
-    { name: t('nav.savedwebsites'), path: "/saved-websites" }
-  ];
-  
-  const contactInfo = {
-    address: "123 Main Street, City, ST 12345",
-    phone: "(555) 123-4567",
-    email: "contact@example.com",
-  };
-
-  useEffect(() => {
-    const loadSavedConfigs = async () => {
-      setIsLoading(true);
-      try {
-        const { data, error } = await getAllWebsiteConfigs();
-        if (data && !error) {
-          setWebsiteConfigs(data as WebsiteConfig[]);
-        } else if (error) {
-          console.error("Error loading website configs:", error);
-          toast({
-            title: t('errors.title') || "Error",
-            description: t('errors.loadWebsites') || "Could not load saved websites",
-            variant: "destructive"
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching website configs:", error);
-        toast({
-          title: t('errors.title') || "Error",
-          description: t('errors.generic') || "Something went wrong while loading your websites",
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadSavedConfigs();
-  }, [toast, t]);
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    });
-  };
-
-  const handleViewWebsite = (config: WebsiteConfig) => {
-    sessionStorage.setItem('companyData', JSON.stringify({
-      companyName: config.company_name,
-      domainName: config.domain_name,
-      logo: config.logo
-    }));
-    
-    navigate(`/${config.template_id}`, { state: { 
-      companyName: config.company_name, 
-      domainName: config.domain_name, 
-      logo: config.logo 
-    }});
-  };
-
-  const handleDelete = async (websiteId: string) => {
+  const loadWebsites = async () => {
+    setIsLoading(true);
     try {
-      setIsDeleting(websiteId);
-      const { error } = await deleteWebsiteConfig(websiteId);
-      
-      if (error) throw error;
-      
-      setWebsiteConfigs(prev => prev.filter(config => config.id !== websiteId));
-      
-      toast({
-        title: t('websites.deleted') || "Website Deleted",
-        description: t('websites.deleteSuccess') || "The website has been successfully deleted.",
-      });
+      const { data } = await getAllWebsiteConfigs();
+      setWebsites(data || []);
     } catch (error) {
-      console.error('Error deleting website:', error);
-      toast({
-        title: t('errors.title') || "Error",
-        description: t('websites.deleteFailed') || "Failed to delete the website. Please try again.",
-        variant: "destructive"
-      });
+      console.error('Error loading websites:', error);
     } finally {
-      setIsDeleting(null);
+      setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    
+    loadWebsites();
+  }, [user, navigate]);
+
+  if (!user) {
+    return null;
+  }
+
+  const getTemplateDisplayName = (templateId: string) => {
+    const templates: Record<string, string> = {
+      'tradecraft': 'Tradecraft',
+      'retail': 'Retail Ready',
+      'service': 'Service Pro',
+      'expert': 'Local Expert',
+      'cleanslate': 'Clean Slate',
+    };
+    
+    return templates[templateId] || templateId;
+  };
+  
+  const getTemplateBgClass = (templateId: string) => {
+    const templates: Record<string, string> = {
+      'tradecraft': 'bg-blue-50',
+      'retail': 'bg-purple-50',
+      'service': 'bg-teal-50',
+      'expert': 'bg-yellow-50',
+      'cleanslate': 'bg-gray-50',
+    };
+    
+    return templates[templateId] || 'bg-gray-50';
+  };
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <AppNavbar />
-      
-      <div className="container py-8 flex-grow">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">{t('nav.savedwebsites') || "Saved Websites"}</h1>
-          <Button asChild>
-            <Link to="/templates">{t('websites.createNew') || "Create New Website"}</Link>
-          </Button>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      <GlobalAppNavbar />
+      <div className="container mx-auto py-10 px-4">
+        <h1 className="text-3xl font-bold mb-6">Saved Websites</h1>
 
         {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <p>{t('common.loading') || "Loading saved websites..."}</p>
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
-        ) : websiteConfigs.length === 0 ? (
-          <Card className="w-full">
-            <CardContent className="py-8">
-              <div className="text-center">
-                <Globe className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-lg font-semibold">{t('websites.noWebsites') || "No websites found"}</h3>
-                <p className="mt-1 text-gray-500">{t('websites.noWebsitesDesc') || "You haven't created any websites yet."}</p>
-                <div className="mt-6">
-                  <Button asChild>
-                    <Link to="/templates">{t('websites.createFirst') || "Create Your First Website"}</Link>
-                  </Button>
-                </div>
-              </div>
+        ) : websites.length === 0 ? (
+          <Card>
+            <CardContent className="py-10 flex flex-col items-center justify-center">
+              <p className="text-lg text-gray-600 mb-4">You don't have any saved websites yet.</p>
+              <button 
+                onClick={() => navigate('/templates')}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+              >
+                Create Website
+              </button>
             </CardContent>
           </Card>
         ) : (
-          <div className="bg-white rounded-lg border shadow-sm">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('websites.company') || "Company"}</TableHead>
-                  <TableHead>{t('websites.template') || "Template"}</TableHead>
-                  <TableHead>{t('websites.domain') || "Domain"}</TableHead>
-                  <TableHead>{t('websites.created') || "Created"}</TableHead>
-                  <TableHead className="w-[140px]">{t('websites.actions') || "Actions"}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {websiteConfigs.map((config) => (
-                  <TableRow key={config.id}>
-                    <TableCell className="font-medium">{config.company_name}</TableCell>
-                    <TableCell>{t(`templates.${config.template_id}.name`) || templates[config.template_id] || config.template_id}</TableCell>
-                    <TableCell>{config.domain_name}</TableCell>
-                    <TableCell>{formatDate(config.created_at)}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => handleViewWebsite(config)}
-                          title={t('websites.view') || "View Website"}
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => handleDelete(config.id)}
-                          disabled={isDeleting === config.id}
-                          title={t('websites.delete') || "Delete Website"}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {websites.map((website) => (
+              <Card key={website.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                <div className={`h-24 ${getTemplateBgClass(website.template_id)} flex items-center justify-center`}>
+                  {website.logo ? (
+                    <img src={website.logo} alt={website.company_name} className="h-16 object-contain" />
+                  ) : (
+                    <span className="text-xl font-semibold">{website.company_name}</span>
+                  )}
+                </div>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-lg mb-1">{website.company_name}</h3>
+                      <p className="text-sm text-gray-500 mb-2">{website.domain_name}</p>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        <span className="px-2 py-1 bg-secondary text-xs rounded-full">
+                          {getTemplateDisplayName(website.template_id)}
+                        </span>
+                        {website.color_scheme && (
+                          <span 
+                            className="px-2 py-1 text-xs rounded-full text-white"
+                            style={{ backgroundColor: `var(--${website.color_scheme}-500, #3b82f6)` }}
+                          >
+                            {website.color_scheme}
+                          </span>
+                        )}
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      <p className="text-xs text-gray-400">
+                        Created: {format(new Date(website.created_at), 'MMM d, yyyy')}
+                      </p>
+                    </div>
+                    <WebsiteActions website={website} onDeleted={loadWebsites} />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
       </div>
-      
-      <Footer 
-        logo={t('app.name') || "TemplateBuilder"}
-        description={t('app.description') || "Create stunning websites for your clients"}
-        basePath=""
-        navItems={navItems}
-        contactInfo={contactInfo}
-      />
     </div>
   );
 };

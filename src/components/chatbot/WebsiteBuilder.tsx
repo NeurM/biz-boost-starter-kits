@@ -18,7 +18,7 @@ const WebsiteBuilder = ({ websiteStatus, onReset }: WebsiteBuilderProps) => {
   
   const handleViewWebsite = () => {
     if (websiteStatus.path) {
-      // Apply color schemes if available
+      // Make sure to apply color schemes with higher priority
       startTransition(() => {
         if (websiteStatus.colorScheme) {
           setTemplateColor(websiteStatus.colorScheme);
@@ -43,16 +43,21 @@ const WebsiteBuilder = ({ websiteStatus, onReset }: WebsiteBuilderProps) => {
       
       const defaultColors = getDefaultColors(websiteStatus.template);
       
-      // Store the data in sessionStorage so it can be accessed by the template
+      // Force color update in session storage before navigation
       try {
+        const colorScheme = websiteStatus.colorScheme || defaultColors.primary;
+        const secondaryColorScheme = websiteStatus.secondaryColorScheme || defaultColors.secondary;
+        
         sessionStorage.setItem('companyData', JSON.stringify({
           companyName: websiteStatus.companyName, 
           domainName: websiteStatus.domainName, 
           logo: websiteStatus.logo,
-          colorScheme: websiteStatus.colorScheme || defaultColors.primary,
-          secondaryColorScheme: websiteStatus.secondaryColorScheme || defaultColors.secondary,
+          colorScheme: colorScheme,
+          secondaryColorScheme: secondaryColorScheme,
           template: websiteStatus.template
         }));
+
+        console.log('Applied colors:', colorScheme, secondaryColorScheme);
       } catch (error) {
         console.error('Error saving to session storage:', error);
       }
