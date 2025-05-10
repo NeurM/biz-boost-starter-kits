@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
-import { getWorkflowYaml } from "@/utils/cicdService";
+import { getWorkflowYaml, createCiCdConfig, getCiCdConfigs, updateCiCdConfig } from "@/utils/cicdService";
 import { saveWebsiteConfig } from "@/utils/websiteService";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -55,13 +55,28 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
       try {
         setIsLoading(true);
         
-        // Since the cicd_configs table doesn't exist, we'll just use default values
         if (websiteConfig && websiteConfig.template_id) {
-          // Initialize with default values based on the website name
-          setRepository(websiteConfig.company_name.toLowerCase().replace(/\s+/g, '-'));
-          setBranch('main');
-          setBuildCommand('npm run build');
-          setDeployCommand('npm run deploy');
+          const { data, error } = await getCiCdConfigs(websiteConfig.template_id);
+          
+          if (error) {
+            throw error;
+          }
+          
+          // If there's an existing config, use it
+          if (data && data.length > 0) {
+            const config = data[0];
+            setRepository(config.repository || '');
+            setBranch(config.branch || 'main');
+            setBuildCommand(config.build_command || 'npm run build');
+            setDeployCommand(config.deploy_command || 'npm run deploy');
+            setCicdConfig(config);
+          } else {
+            // Initialize with default values based on the website name
+            setRepository(websiteConfig.company_name.toLowerCase().replace(/\s+/g, '-'));
+            setBranch('main');
+            setBuildCommand('npm run build');
+            setDeployCommand('npm run deploy');
+          }
         }
       } catch (error) {
         console.error('Error loading deployment data:', error);
@@ -91,15 +106,32 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
     setIsLoading(true);
     
     try {
-      // We don't have a cicd_configs table, so we'll just save to the UI state
-      const newConfig: CICDConfig = {
-        repository,
-        branch,
-        build_command: buildCommand, 
-        deploy_command: deployCommand
-      };
+      let configResponse;
       
-      setCicdConfig(newConfig);
+      if (cicdConfig && cicdConfig.id) {
+        // Update existing config
+        configResponse = await updateCiCdConfig(cicdConfig.id, {
+          repository,
+          branch,
+          build_command: buildCommand,
+          deploy_command: deployCommand
+        });
+      } else {
+        // Create new config
+        configResponse = await createCiCdConfig(
+          websiteConfig.template_id,
+          repository,
+          branch,
+          buildCommand,
+          deployCommand
+        );
+      }
+      
+      if (configResponse.error) {
+        throw configResponse.error;
+      }
+      
+      setCicdConfig(configResponse.data);
       
       toast({
         title: "Configuration Saved",
@@ -107,17 +139,12 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
       });
       
       // Update deployment status in website config
-      if (websiteConfig) {
-        const deploymentUrl = `https://${repository.split('/').pop()}.github.io`;
-        await saveWebsiteConfig({
-          template_id: websiteConfig.template_id,
-          company_name: websiteConfig.company_name,
-          domain_name: websiteConfig.domain_name,
-          logo: websiteConfig.id,
-          deployment_status: 'configured',
-          deployment_url: deploymentUrl
-        });
-      }
+      const deploymentUrl = `https://${repository.split('/').pop()}.github.io`;
+      await saveWebsiteConfig({
+        ...websiteConfig,
+        deployment_status: 'configured',
+        deployment_url: deploymentUrl
+      });
       
     } catch (error) {
       console.error('Error saving deployment config:', error);

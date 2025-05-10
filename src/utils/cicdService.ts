@@ -2,10 +2,13 @@
 import { supabase } from '@/integrations/supabase/client';
 import { logApiCall } from './apiLogger';
 
-// Since we don't have cicd_configs in our database schema, we'll simplify these functions
-// and focus only on the workflow generation
+// Get the current logged-in user
+const getCurrentUser = async () => {
+  const { data } = await supabase.auth.getUser();
+  return data.user;
+};
 
-// This function is a mockup as there's no cicd_configs table to store these values
+// Create a new CI/CD configuration
 export const createCiCdConfig = async (
   templateId: string,
   repository: string,
@@ -14,40 +17,71 @@ export const createCiCdConfig = async (
   deployCommand: string
 ) => {
   try {
+    const user = await getCurrentUser();
+    
+    if (!user) {
+      throw new Error("User must be logged in to save CI/CD configurations");
+    }
+    
+    const { data, error } = await supabase
+      .from('cicd_configs')
+      .insert({
+        user_id: user.id,
+        template_id: templateId,
+        repository,
+        branch,
+        build_command: buildCommand,
+        deploy_command: deployCommand
+      })
+      .select()
+      .single();
+    
     await logApiCall(
       '/cicd-configs', 
       'POST', 
       { templateId, repository, branch, buildCommand, deployCommand }, 
-      { success: true }, 
-      null
+      data, 
+      error
     );
       
-    return { data: { id: 'temp-id', repository, branch, build_command: buildCommand, deploy_command: deployCommand }, error: null };
+    return { data, error };
   } catch (error) {
     await logApiCall('/cicd-configs', 'POST', { templateId, repository, branch, buildCommand, deployCommand }, null, error as Error);
     throw error;
   }
 };
 
-// This function is a mockup as there's no cicd_configs table to get data from
+// Get all CI/CD configurations for a template
 export const getCiCdConfigs = async (templateId: string) => {
   try {
+    const user = await getCurrentUser();
+    
+    if (!user) {
+      return { data: [], error: null };
+    }
+    
+    const { data, error } = await supabase
+      .from('cicd_configs')
+      .select()
+      .eq('user_id', user.id)
+      .eq('template_id', templateId);
+    
     await logApiCall(
       `/cicd-configs/${templateId}`, 
       'GET', 
       { templateId }, 
-      [], 
-      null
+      data, 
+      error
     );
       
-    return { data: [], error: null };
+    return { data, error };
   } catch (error) {
     await logApiCall(`/cicd-configs/${templateId}`, 'GET', { templateId }, null, error as Error);
     throw error;
   }
 };
 
-// This function is a mockup as there's no cicd_configs table to update
+// Update an existing CI/CD configuration
 export const updateCiCdConfig = async (
   configId: string,
   updates: {
@@ -58,21 +92,29 @@ export const updateCiCdConfig = async (
   }
 ) => {
   try {
+    const { data, error } = await supabase
+      .from('cicd_configs')
+      .update(updates)
+      .eq('id', configId)
+      .select()
+      .single();
+    
     await logApiCall(
       `/cicd-configs/${configId}`, 
       'PATCH', 
       { configId, updates }, 
-      { success: true }, 
-      null
+      data, 
+      error
     );
       
-    return { data: { id: configId, ...updates }, error: null };
+    return { data, error };
   } catch (error) {
     await logApiCall(`/cicd-configs/${configId}`, 'PATCH', { configId, updates: { ...updates } }, null, error as Error);
     throw error;
   }
 };
 
+// Generate a GitHub Actions workflow YAML file
 export const getWorkflowYaml = async (
   templateId: string,
   repository: string,
@@ -123,18 +165,23 @@ jobs:
   return yaml;
 };
 
-// This function is a mockup as there's no cicd_configs table to delete from
+// Delete a CI/CD configuration
 export const deleteCiCdConfig = async (configId: string) => {
   try {
+    const { data, error } = await supabase
+      .from('cicd_configs')
+      .delete()
+      .eq('id', configId);
+    
     await logApiCall(
       `/cicd-configs/${configId}`, 
       'DELETE', 
       { configId }, 
       { success: true }, 
-      null
+      error
     );
       
-    return { data: null, error: null };
+    return { data, error };
   } catch (error) {
     await logApiCall(`/cicd-configs/${configId}`, 'DELETE', { configId }, null, error as Error);
     throw error;
