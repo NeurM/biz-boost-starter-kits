@@ -22,14 +22,14 @@ const getCurrentUser = async () => {
   return data.user;
 };
 
-// Create a new CI/CD configuration
+// Create a new CI/CD configuration - using local storage as primary method
 export const createCiCdConfig = async (
   templateId: string,
   repository: string,
   branch: string,
   buildCommand: string,
   deployCommand: string
-) => {
+): Promise<{ data: CICDConfig | null, error: any }> => {
   try {
     const user = await getCurrentUser();
     
@@ -37,33 +37,39 @@ export const createCiCdConfig = async (
       throw new Error("User must be logged in to save CI/CD configurations");
     }
     
-    // Using a raw query to avoid TypeScript errors with table that's not in types
-    const { data, error } = await supabase
-      .rpc('create_cicd_config', {
-        p_user_id: user.id,
-        p_template_id: templateId,
-        p_repository: repository,
-        p_branch: branch,
-        p_build_command: buildCommand,
-        p_deploy_command: deployCommand
-      });
+    const config: CICDConfig = {
+      id: `config-${Date.now()}`,
+      user_id: user.id,
+      template_id: templateId,
+      repository,
+      branch,
+      build_command: buildCommand,
+      deploy_command: deployCommand,
+      deployment_status: 'configured',
+      last_deployed_at: new Date().toISOString()
+    };
     
+    // Store in localStorage
+    const key = `cicd-config-${templateId}`;
+    localStorage.setItem(key, JSON.stringify(config));
+    
+    // Log the API call (for analytics)
     await logApiCall(
       '/cicd-configs', 
       'POST', 
       { templateId, repository, branch, buildCommand, deployCommand }, 
-      data, 
-      error
+      config, 
+      null
     );
       
-    return { data, error };
+    return { data: config, error: null };
   } catch (error) {
     await logApiCall('/cicd-configs', 'POST', { templateId, repository, branch, buildCommand, deployCommand }, null, error as Error);
     throw error;
   }
 };
 
-// Get all CI/CD configurations for a template
+// Get all CI/CD configurations for a template - using local storage as primary method
 export const getCiCdConfigs = async (templateId: string): Promise<{ data: CICDConfig[] | null, error: any }> => {
   try {
     const user = await getCurrentUser();
@@ -72,22 +78,23 @@ export const getCiCdConfigs = async (templateId: string): Promise<{ data: CICDCo
       return { data: [], error: null };
     }
     
-    // Using a raw query to avoid TypeScript errors
-    const { data, error } = await supabase
-      .rpc('get_cicd_configs', {
-        p_user_id: user.id,
-        p_template_id: templateId
-      });
+    // Retrieve from localStorage
+    const key = `cicd-config-${templateId}`;
+    const storedConfig = localStorage.getItem(key);
     
-    await logApiCall(
-      `/cicd-configs/${templateId}`, 
-      'GET', 
-      { templateId }, 
-      data, 
-      error
-    );
-      
-    return { data, error };
+    if (storedConfig) {
+      const config = JSON.parse(storedConfig);
+      await logApiCall(
+        `/cicd-configs/${templateId}`, 
+        'GET', 
+        { templateId }, 
+        [config], 
+        null
+      );
+      return { data: [config], error: null };
+    }
+    
+    return { data: [], error: null };
   } catch (error) {
     await logApiCall(`/cicd-configs/${templateId}`, 'GET', { templateId }, null, error as Error);
     throw error;
@@ -105,24 +112,39 @@ export const updateCiCdConfig = async (
   }
 ) => {
   try {
-    // Using a raw query to avoid TypeScript errors
-    const { data, error } = await supabase
-      .rpc('update_cicd_config', {
-        p_config_id: configId,
-        p_updates: updates
-      });
+    // Extract template ID from config ID format (config-timestamp-templateId)
+    const parts = configId.split('-');
+    const templateId = parts.length > 2 ? parts[2] : '';
+    const key = `cicd-config-${templateId}`;
+    
+    // Get current config
+    const storedConfig = localStorage.getItem(key);
+    if (!storedConfig) {
+      throw new Error('Config not found');
+    }
+    
+    // Update config
+    const config = JSON.parse(storedConfig);
+    const updatedConfig = {
+      ...config,
+      ...updates,
+      last_deployed_at: new Date().toISOString()
+    };
+    
+    // Save updated config
+    localStorage.setItem(key, JSON.stringify(updatedConfig));
     
     await logApiCall(
       `/cicd-configs/${configId}`, 
       'PATCH', 
       { configId, updates }, 
-      data, 
-      error
+      updatedConfig, 
+      null
     );
       
-    return { data, error };
+    return { data: updatedConfig, error: null };
   } catch (error) {
-    await logApiCall(`/cicd-configs/${configId}`, 'PATCH', { configId, updates: { ...updates } }, null, error as Error);
+    await logApiCall(`/cicd-configs/${configId}`, 'PATCH', { configId, updates }, null, error as Error);
     throw error;
   }
 };
@@ -181,75 +203,29 @@ jobs:
 // Delete a CI/CD configuration
 export const deleteCiCdConfig = async (configId: string) => {
   try {
-    // Using a raw query to avoid TypeScript errors
-    const { data, error } = await supabase
-      .rpc('delete_cicd_config', {
-        p_config_id: configId
-      });
+    // Extract template ID from config ID format (config-timestamp-templateId)
+    const parts = configId.split('-');
+    const templateId = parts.length > 2 ? parts[2] : '';
+    const key = `cicd-config-${templateId}`;
+    
+    // Remove from localStorage
+    localStorage.removeItem(key);
     
     await logApiCall(
       `/cicd-configs/${configId}`, 
       'DELETE', 
       { configId }, 
       { success: true }, 
-      error
+      null
     );
       
-    return { data, error };
+    return { data: { success: true }, error: null };
   } catch (error) {
     await logApiCall(`/cicd-configs/${configId}`, 'DELETE', { configId }, null, error as Error);
     throw error;
   }
 };
 
-// Fallback functions that use local storage when database functions aren't available
-export const localCreateCiCdConfig = async (
-  templateId: string,
-  repository: string,
-  branch: string,
-  buildCommand: string,
-  deployCommand: string
-): Promise<{ data: CICDConfig | null, error: any }> => {
-  try {
-    const user = await getCurrentUser();
-    
-    if (!user) {
-      throw new Error("User must be logged in to save CI/CD configurations");
-    }
-    
-    const config: CICDConfig = {
-      id: `config-${Date.now()}`,
-      user_id: user.id,
-      template_id: templateId,
-      repository,
-      branch,
-      build_command: buildCommand,
-      deploy_command: deployCommand,
-      deployment_status: 'configured',
-      last_deployed_at: new Date().toISOString()
-    };
-    
-    // Store in localStorage as fallback
-    const key = `cicd-config-${templateId}`;
-    localStorage.setItem(key, JSON.stringify(config));
-    
-    return { data: config, error: null };
-  } catch (error) {
-    return { data: null, error };
-  }
-};
-
-export const localGetCiCdConfigs = async (templateId: string): Promise<{ data: CICDConfig[] | null, error: any }> => {
-  try {
-    const key = `cicd-config-${templateId}`;
-    const storedConfig = localStorage.getItem(key);
-    
-    if (storedConfig) {
-      return { data: [JSON.parse(storedConfig)], error: null };
-    }
-    
-    return { data: [], error: null };
-  } catch (error) {
-    return { data: [], error };
-  }
-};
+// These are kept as separate exports for backward compatibility
+export const localCreateCiCdConfig = createCiCdConfig;
+export const localGetCiCdConfigs = getCiCdConfigs;

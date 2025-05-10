@@ -19,6 +19,7 @@ interface WebsiteConfig {
   template_id: string;
   company_name: string;
   domain_name: string;
+  logo: string;
   color_scheme?: string;
   secondary_color_scheme?: string;
   deployment_status?: string;
