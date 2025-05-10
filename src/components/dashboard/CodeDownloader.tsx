@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -123,7 +124,6 @@ const CodeDownloader = () => {
 }
       `);
       
-      // Fix: Changed companyName to selectedWebsite.company_name
       // Add tailwind config
       zip.file("tailwind.config.js", `
 module.exports = {
@@ -280,7 +280,6 @@ const reportWebVitals = (onPerfEntry) => {
 export default reportWebVitals;
       `);
       
-      // Fix: Changed companyName to selectedWebsite.company_name in App.js content
       srcFolder.file("App.js", `
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -560,4 +559,463 @@ const Home = ({ companyName, primaryColor = 'blue', secondaryColor = 'gray' }) =
 
             <div className={\`bg-white p-8 rounded-lg shadow-md border-t-4 border-\${primaryColor}-500\`}>
               <div className={\`inline-flex items-center justify-center p-2 bg-\${primaryColor}-100 text-\${primaryColor}-600 rounded-lg\`}>
-                <svg className="
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                </svg>
+              </div>
+              <h3 className="mt-4 text-xl font-medium">Web Development</h3>
+              <p className="mt-2 text-gray-600">
+                Modern web applications built with the latest technologies and best practices.
+              </p>
+            </div>
+
+            <div className={\`bg-white p-8 rounded-lg shadow-md border-t-4 border-\${primaryColor}-500\`}>
+              <div className={\`inline-flex items-center justify-center p-2 bg-\${primaryColor}-100 text-\${primaryColor}-600 rounded-lg\`}>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+              <h3 className="mt-4 text-xl font-medium">SEO Optimization</h3>
+              <p className="mt-2 text-gray-600">
+                Improve your visibility online and attract more customers to your website.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default Home;
+      `);
+
+      pagesFolder.file("About.js", `
+import React from 'react';
+
+const About = ({ companyName, primaryColor = 'blue' }) => {
+  return (
+    <div>
+      <div className={\`bg-\${primaryColor}-600 py-16 text-white\`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-extrabold text-center">About {companyName}</h1>
+          <p className="mt-4 max-w-3xl mx-auto text-center text-xl">
+            We're passionate about creating digital experiences that make a difference.
+          </p>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div>
+            <h2 className="text-2xl font-bold mb-6">Our Story</h2>
+            <p className="mb-4 text-gray-600">
+              {companyName} was founded in 2020 with a single mission: to build websites that make our clients successful.
+              We believe in creating digital solutions that are both beautiful and functional.
+            </p>
+            <p className="mb-4 text-gray-600">
+              Our team brings together decades of experience in design, development, and digital marketing.
+              We work closely with our clients to understand their unique needs and craft solutions that exceed expectations.
+            </p>
+            <p className="text-gray-600">
+              Whether you're a small business looking to establish your online presence or a large enterprise seeking
+              to revamp your digital strategy, we're here to help you succeed.
+            </p>
+          </div>
+          <div className="bg-gray-200 h-80 rounded-lg flex items-center justify-center">
+            <span className="text-gray-500 text-lg">Company Image</span>
+          </div>
+        </div>
+
+        <div className="mt-20">
+          <h2 className="text-2xl font-bold mb-6 text-center">Our Values</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-10">
+            <div className={\`p-6 bg-white rounded-lg shadow-md border-t-4 border-\${primaryColor}-500\`}>
+              <h3 className="text-xl font-medium mb-3">Quality</h3>
+              <p className="text-gray-600">We never compromise on quality. Our websites are built to the highest standards.</p>
+            </div>
+            
+            <div className={\`p-6 bg-white rounded-lg shadow-md border-t-4 border-\${primaryColor}-500\`}>
+              <h3 className="text-xl font-medium mb-3">Innovation</h3>
+              <p className="text-gray-600">We stay at the forefront of technology to bring you cutting-edge solutions.</p>
+            </div>
+            
+            <div className={\`p-6 bg-white rounded-lg shadow-md border-t-4 border-\${primaryColor}-500\`}>
+              <h3 className="text-xl font-medium mb-3">Reliability</h3>
+              <p className="text-gray-600">You can count on us to deliver on time and on budget, every time.</p>
+            </div>
+            
+            <div className={\`p-6 bg-white rounded-lg shadow-md border-t-4 border-\${primaryColor}-500\`}>
+              <h3 className="text-xl font-medium mb-3">Customer Focus</h3>
+              <p className="text-gray-600">Your satisfaction is our top priority. We're not happy until you're thrilled.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default About;
+      `);
+
+      pagesFolder.file("Contact.js", `
+import React, { useState } from 'react';
+
+const Contact = ({ companyName, primaryColor = 'blue', domainName = 'example.com' }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    message: ''
+  });
+  
+  const [formStatus, setFormStatus] = useState({
+    submitted: false,
+    error: false
+  });
+  
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // In a real app, you'd send this data to an API
+    console.log('Form submitted:', formData);
+    
+    // Simulate submission success
+    setFormStatus({
+      submitted: true,
+      error: false
+    });
+    
+    // Reset form
+    setFormData({
+      name: '',
+      email: '',
+      message: ''
+    });
+  };
+  
+  return (
+    <div>
+      <div className={\`bg-\${primaryColor}-600 py-16 text-white\`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-extrabold text-center">Contact Us</h1>
+          <p className="mt-4 max-w-3xl mx-auto text-center text-xl">
+            We'd love to hear from you. Drop us a line and we'll get back to you as soon as possible.
+          </p>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <div>
+            <h2 className="text-2xl font-bold mb-6">Get In Touch</h2>
+            
+            {formStatus.submitted && (
+              <div className={\`mb-6 p-4 bg-\${primaryColor}-100 text-\${primaryColor}-700 rounded-lg\`}>
+                Thank you for your message! We'll be in touch soon.
+              </div>
+            )}
+            
+            <form onSubmit={handleSubmit}>
+              <div className="mb-4">
+                <label htmlFor="name" className="block text-gray-700 font-medium mb-2">Your Name</label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label htmlFor="email" className="block text-gray-700 font-medium mb-2">Your Email</label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label htmlFor="message" className="block text-gray-700 font-medium mb-2">Your Message</label>
+                <textarea
+                  id="message"
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  required
+                  rows={5}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                ></textarea>
+              </div>
+              
+              <button
+                type="submit"
+                className={\`bg-\${primaryColor}-600 text-white px-6 py-3 rounded-lg hover:bg-\${primaryColor}-700 transition-colors\`}
+              >
+                Send Message
+              </button>
+            </form>
+          </div>
+          
+          <div>
+            <h2 className="text-2xl font-bold mb-6">Contact Information</h2>
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="mb-6">
+                <h3 className="font-medium text-lg mb-2">Address</h3>
+                <p className="text-gray-600">
+                  123 Main Street<br />
+                  Suite 101<br />
+                  San Francisco, CA 94105
+                </p>
+              </div>
+              
+              <div className="mb-6">
+                <h3 className="font-medium text-lg mb-2">Email</h3>
+                <p className="text-gray-600">
+                  <a href={\`mailto:contact@\${domainName}\`} className={\`text-\${primaryColor}-600 hover:underline\`}>
+                    contact@{domainName}
+                  </a>
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="font-medium text-lg mb-2">Phone</h3>
+                <p className="text-gray-600">
+                  <a href="tel:+15551234567" className={\`text-\${primaryColor}-600 hover:underline\`}>
+                    (555) 123-4567
+                  </a>
+                </p>
+              </div>
+            </div>
+            
+            <div className="mt-8 bg-gray-200 h-64 rounded-lg flex items-center justify-center">
+              <span className="text-gray-500 text-lg">Map placeholder</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Contact;
+      `);
+      
+      // Generate a complete package
+      const content = await zip.generateAsync({type:"blob"});
+      saveAs(content, `${selectedWebsite.company_name.toLowerCase().replace(/\\s+/g, '-')}-website.zip`);
+      
+      toast({
+        title: "Download Complete",
+        description: "Your website code has been downloaded successfully",
+      });
+    } catch (error) {
+      console.error('Error downloading code:', error);
+      toast({
+        title: "Download Error",
+        description: "Failed to generate downloadable code package",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  return (
+    <div className="p-6 bg-white rounded-md shadow">
+      <h2 className="text-xl font-semibold mb-4">Website Code</h2>
+      
+      <p className="mb-4 text-gray-600">
+        Download your complete website code package with all necessary files and configurations.
+      </p>
+      
+      {websites.length > 0 ? (
+        <>
+          <div className="mb-4">
+            <Label htmlFor="website-select">Select Website</Label>
+            <select 
+              id="website-select"
+              value={selectedWebsiteId || ""}
+              onChange={handleSelectWebsite}
+              className="w-full border border-gray-300 rounded p-2 mt-1"
+            >
+              {websites.map(website => (
+                <option key={website.id} value={website.id}>
+                  {website.company_name} - {website.domain_name || 'No domain'}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <Tabs defaultValue="react">
+            <TabsList className="mb-4">
+              <TabsTrigger value="react" className="flex items-center gap-1">
+                <Code size={16} /> React
+              </TabsTrigger>
+              <TabsTrigger value="workflow" className="flex items-center gap-1">
+                <GitMerge size={16} /> GitHub Actions
+              </TabsTrigger>
+              <TabsTrigger value="packages" className="flex items-center gap-1">
+                <Package size={16} /> Dependencies
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="react">
+              <Alert className="mb-4">
+                <AlertTitle>React Website</AlertTitle>
+                <AlertDescription>
+                  Download a complete React website with routing and your branding applied.
+                </AlertDescription>
+              </Alert>
+              
+              {selectedWebsite ? (
+                <div className="flex flex-col gap-2">
+                  <p className="text-sm text-gray-500 mb-2">
+                    <span className="font-semibold">Company:</span> {selectedWebsite.company_name}
+                  </p>
+                  {selectedWebsite.color_scheme && (
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <span className="font-semibold">Primary Color:</span>
+                      <div 
+                        className="w-4 h-4 rounded-full" 
+                        style={{backgroundColor: `var(--${selectedWebsite.color_scheme}-500, #3b82f6)`}}
+                      ></div>
+                      {selectedWebsite.color_scheme}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">Select a website to see details</p>
+              )}
+              
+              <Button
+                onClick={downloadFullProject}
+                disabled={!selectedWebsite || isLoading}
+                className="mt-4 flex items-center gap-2"
+              >
+                <Download size={16} />
+                {isLoading ? 'Preparing...' : 'Download Full Project'}
+              </Button>
+            </TabsContent>
+            
+            <TabsContent value="workflow">
+              <Alert className="mb-4">
+                <AlertTitle>GitHub Actions Workflow</AlertTitle>
+                <AlertDescription>
+                  Includes a GitHub Actions workflow for automatic deployment to GitHub Pages.
+                </AlertDescription>
+              </Alert>
+              
+              <div className="bg-gray-100 p-4 rounded text-sm font-mono mb-4">
+                <pre className="whitespace-pre-wrap">
+                  {`name: Deploy React Website
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build website
+        run: npm run build
+      
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: build`}
+                </pre>
+              </div>
+              
+              <p className="text-sm text-gray-600">
+                This workflow automatically builds and deploys your React site to GitHub Pages
+                whenever you push to the main branch.
+              </p>
+            </TabsContent>
+            
+            <TabsContent value="packages">
+              <Alert className="mb-4">
+                <AlertTitle>Package Dependencies</AlertTitle>
+                <AlertDescription>
+                  The downloaded project includes these key dependencies.
+                </AlertDescription>
+              </Alert>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between p-2 rounded bg-gray-50">
+                  <span>react</span>
+                  <span className="text-gray-500">^18.2.0</span>
+                </div>
+                <div className="flex justify-between p-2 rounded bg-gray-50">
+                  <span>react-dom</span>
+                  <span className="text-gray-500">^18.2.0</span>
+                </div>
+                <div className="flex justify-between p-2 rounded bg-gray-50">
+                  <span>react-router-dom</span>
+                  <span className="text-gray-500">^6.8.1</span>
+                </div>
+                <div className="flex justify-between p-2 rounded bg-gray-50">
+                  <span>tailwindcss</span>
+                  <span className="text-gray-500">^3.2.7</span>
+                </div>
+                <div className="flex justify-between p-2 rounded bg-gray-50">
+                  <span>gh-pages</span>
+                  <span className="text-gray-500">^5.0.0</span>
+                </div>
+              </div>
+              
+              <p className="mt-4 text-sm text-gray-600">
+                Installation is handled by running <code className="bg-gray-100 px-1 py-0.5 rounded">npm install</code> after downloading.
+              </p>
+              
+              <div className="mt-4 p-3 border border-yellow-200 bg-yellow-50 rounded">
+                <p className="text-sm flex items-start gap-2">
+                  <Terminal size={16} className="mt-0.5" />
+                  <span>
+                    Run <code className="bg-gray-100 px-1 py-0.5 rounded">npm run deploy</code> to publish your site to GitHub Pages.
+                  </span>
+                </p>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </>
+      ) : (
+        <div className="text-center py-8">
+          <p className="text-gray-600 mb-4">No websites found. Create a website first.</p>
+          <Button onClick={() => window.location.href = '/templates'}>
+            Create Website
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default CodeDownloader;
