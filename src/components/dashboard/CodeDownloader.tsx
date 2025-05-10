@@ -1199,6 +1199,16 @@ Edit files in the \`src\` directory to customize your website further:
     }
   };
 
+  const handleConfigureDeployment = () => {
+    if (!selectedWebsiteId) return;
+    
+    // Save selected website ID to session storage
+    sessionStorage.setItem('selectedWebsiteId', selectedWebsiteId);
+    
+    // Navigate to dashboard
+    window.location.href = '/dashboard';
+  };
+
   return (
     <div className="mt-8">
       <div className="space-y-8">
@@ -1294,10 +1304,7 @@ Edit files in the \`src\` directory to customize your website further:
                 <Button 
                   className="mt-3"
                   variant="outline"
-                  onClick={() => {
-                    navigate('/dashboard');
-                    sessionStorage.setItem('selectedWebsiteId', selectedWebsiteId);
-                  }}
+                  onClick={handleConfigureDeployment}
                 >
                   <GitMerge className="mr-2 h-4 w-4" />
                   Configure Deployment

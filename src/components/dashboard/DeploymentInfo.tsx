@@ -12,16 +12,18 @@ import DeploymentStatus from './deployment/DeploymentStatus';
 import ConfigurationForm from './deployment/ConfigurationForm';
 import WorkflowDisplay from './deployment/WorkflowDisplay';
 
+interface WebsiteConfig {
+  id: string;
+  template_id: string;
+  company_name: string;
+  domain_name: string;
+  deployment_status?: string;
+  deployment_url?: string;
+  last_deployed_at?: string;
+}
+
 interface DeploymentInfoProps {
-  websiteConfig?: {
-    id: string;
-    template_id: string;
-    company_name: string;
-    domain_name: string;
-    deployment_status?: string;
-    deployment_url?: string;
-    last_deployed_at?: string;
-  } | null;
+  websiteConfig?: WebsiteConfig | null;
 }
 
 const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {

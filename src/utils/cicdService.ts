@@ -1,126 +1,129 @@
 
-import { fetchData, insertData, updateData, deleteData } from './dbService';
 import { supabase } from '@/integrations/supabase/client';
+import { logApiCall } from './apiLogger';
 
-// TypeScript interfaces for CI/CD configuration data
-export interface CiCdConfigData {
-  user_id: string;
-  template_id: string;
-  repository: string;
-  branch: string;
-  build_command: string;
-  deploy_command: string;
-}
-
-export interface CiCdConfigUpdate {
-  repository?: string;
-  branch?: string;
-  build_command?: string;
-  deploy_command?: string;
-}
-
-export interface WorkflowConfig {
-  repository: string;
-  branch: string;
-  buildCommand: string;
-  deployCommand: string;
-  deployUrl: string;
-}
-
-// CI/CD Pipeline Functions
+// CI/CD Configuration Functions
 export const createCiCdConfig = async (
   templateId: string,
   repository: string,
-  branch: string = 'main',
-  buildCommand: string = 'npm run build',
-  deployCommand: string = 'npm run deploy'
-): Promise<{ data: any, error: any }> => {
-  const { data: user } = await import('@/integrations/supabase/client').then(m => m.supabase.auth.getUser());
+  branch: string,
+  buildCommand: string,
+  deployCommand: string
+) => {
+  try {
+    const { data: user } = await supabase.auth.getUser();
     
-  if (!user.user) {
-    throw new Error("User must be logged in to create CI/CD configurations");
+    if (!user.user) {
+      throw new Error("User must be logged in to create CI/CD configurations");
+    }
+    
+    const { data, error } = await supabase
+      .from('cicd_configs')
+      .insert({
+        user_id: user.user.id,
+        template_id: templateId,
+        repository,
+        branch,
+        build_command: buildCommand,
+        deploy_command: deployCommand
+      })
+      .select()
+      .single();
+      
+    await logApiCall(
+      '/cicd-configs', 
+      'POST', 
+      { templateId, repository, branch, buildCommand, deployCommand }, 
+      data, 
+      error
+    );
+      
+    return { data, error };
+  } catch (error) {
+    await logApiCall('/cicd-configs', 'POST', { templateId, repository, branch, buildCommand, deployCommand }, null, error as Error);
+    throw error;
   }
-    
-  const cicdData: CiCdConfigData = {
-    user_id: user.user.id,
-    template_id: templateId,
-    repository,
-    branch,
-    build_command: buildCommand,
-    deploy_command: deployCommand
-  };
-    
-  return insertData('cicd_configs', cicdData);
 };
 
-export const getCiCdConfigs = async (templateId?: string): Promise<{ data: any[] | null, error: any }> => {
-  const { data: user } = await import('@/integrations/supabase/client').then(m => m.supabase.auth.getUser());
+export const getCiCdConfigs = async (templateId: string) => {
+  try {
+    const { data: user } = await supabase.auth.getUser();
     
-  if (!user.user) {
-    return { data: null, error: null };
+    if (!user.user) {
+      return { data: null, error: null };
+    }
+    
+    const { data, error } = await supabase
+      .from('cicd_configs')
+      .select()
+      .eq('user_id', user.user.id)
+      .eq('template_id', templateId)
+      .order('created_at', { ascending: false });
+      
+    await logApiCall(
+      `/cicd-configs/${templateId}`, 
+      'GET', 
+      { templateId }, 
+      data, 
+      error
+    );
+      
+    return { data, error };
+  } catch (error) {
+    await logApiCall(`/cicd-configs/${templateId}`, 'GET', { templateId }, null, error as Error);
+    throw error;
   }
-    
-  const response = await fetchData('cicd_configs');
-    
-  if (response.error) {
-    return response;
-  }
-    
-  // Filter data for the current user and templateId if provided
-  let filteredData = (response.data || [])
-    .filter((config: any) => config.user_id === user.user.id);
-    
-  if (templateId) {
-    filteredData = filteredData.filter((config: any) => config.template_id === templateId);
-  }
-    
-  return { data: filteredData, error: null };
 };
 
 export const updateCiCdConfig = async (
   configId: string,
-  updates: CiCdConfigUpdate
-): Promise<{ data: any, error: any }> => {
-  return updateData('cicd_configs', configId, updates);
-};
-
-export const deleteCiCdConfig = async (configId: string): Promise<{ data: any, error: any }> => {
-  return deleteData('cicd_configs', configId);
-};
-
-export const getWorkflowYaml = async (templateId: string, repository: string, branch: string, 
-                                    buildCommand: string, deployCommand: string): Promise<string> => {
-  // Get deployment URL from website config
-  const { data: websiteConfig, error } = await supabase
-    .from('website_configs')
-    .select('domain_name')
-    .eq('template_id', templateId)
-    .maybeSingle();
-    
-  if (error || !websiteConfig) {
-    throw new Error("Website configuration not found");
+  updates: {
+    repository?: string;
+    branch?: string;
+    build_command?: string;
+    deploy_command?: string;
   }
-  
-  const deployUrl = `https://${websiteConfig.domain_name}`;
-  
-  return generateGithubWorkflow({
-    repository,
-    branch,
-    buildCommand,
-    deployCommand,
-    deployUrl
-  });
+) => {
+  try {
+    const { data, error } = await supabase
+      .from('cicd_configs')
+      .update(updates)
+      .eq('id', configId)
+      .select()
+      .single();
+      
+    await logApiCall(
+      `/cicd-configs/${configId}`, 
+      'PATCH', 
+      { configId, updates }, 
+      data, 
+      error
+    );
+      
+    return { data, error };
+  } catch (error) {
+    await logApiCall(`/cicd-configs/${configId}`, 'PATCH', { configId, updates: { ...updates } }, null, error as Error);
+    throw error;
+  }
 };
 
-// Generate GitHub Workflow file - Fixed to escape string properly
-export const generateGithubWorkflow = (config: WorkflowConfig): string => {
-  return `name: Deploy Website
+export const getWorkflowYaml = async (
+  templateId: string,
+  repository: string,
+  branch: string,
+  buildCommand: string,
+  deployCommand: string
+) => {
+  // In a real application, this might call a service to generate a custom workflow
+  // For now, we'll return a standard GitHub Pages workflow
+  const yaml = `
+name: Deploy React Website
 
 on:
   push:
-    branches: [${config.branch}]
+    branches: [ ${branch} ]
   pull_request:
-    branches: [${config.branch}]
+    branches: [ ${branch} ]
 
 jobs:
   build-and-deploy:
@@ -139,24 +142,40 @@ jobs:
         run: npm ci
       
       - name: Build website
-        run: ${config.buildCommand}
+        run: ${buildCommand}
       
-      - name: Deploy to production
-        run: ${config.deployCommand}
-        env:
-          DEPLOY_URL: ${config.deployUrl}
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: build
           
       - name: Notify deployment success
         if: success()
-        run: |
-          curl -X POST -H "Content-Type: application/json" \\
-            -d '{"status":"success","repository":"\${github.repository}","branch":"${config.branch}"}' \\
-            ${config.deployUrl}/deployment-webhooks/status
-            
-      - name: Notify deployment failure
-        if: failure()
-        run: |
-          curl -X POST -H "Content-Type: application/json" \\
-            -d '{"status":"failure","repository":"\${github.repository}","branch":"${config.branch}"}' \\
-            ${config.deployUrl}/deployment-webhooks/status`;
+        run: echo "Website deployed successfully!"
+`;
+  
+  return yaml;
+};
+
+export const deleteCiCdConfig = async (configId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('cicd_configs')
+      .delete()
+      .eq('id', configId)
+      .select();
+      
+    await logApiCall(
+      `/cicd-configs/${configId}`, 
+      'DELETE', 
+      { configId }, 
+      data, 
+      error
+    );
+      
+    return { data, error };
+  } catch (error) {
+    await logApiCall(`/cicd-configs/${configId}`, 'DELETE', { configId }, null, error as Error);
+    throw error;
+  }
 };

@@ -14,10 +14,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { useToast } from '@/hooks/use-toast';
 
+interface WebsiteConfig {
+  id: string;
+  template_id: string;
+  company_name: string;
+  domain_name: string;
+  color_scheme?: string;
+  secondary_color_scheme?: string;
+  deployment_status?: string;
+  deployment_url?: string;
+  last_deployed_at?: string;
+}
+
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [websites, setWebsites] = useState<any[]>([]);
+  const [websites, setWebsites] = useState<WebsiteConfig[]>([]);
   const [selectedWebsiteId, setSelectedWebsiteId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -94,7 +106,7 @@ const Dashboard = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <DeploymentInfo websiteConfig={selectedWebsite} />
-          <CodeDownloader websiteConfig={selectedWebsite} />
+          <CodeDownloader />
         </div>
 
         <Card>
