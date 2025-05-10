@@ -3,7 +3,15 @@ import React, { useState, useEffect } from 'react';
 import { ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
-import { getWorkflowYaml, createCiCdConfig, getCiCdConfigs, updateCiCdConfig } from "@/utils/cicdService";
+import { 
+  getWorkflowYaml, 
+  createCiCdConfig, 
+  getCiCdConfigs, 
+  updateCiCdConfig,
+  CICDConfig,
+  localCreateCiCdConfig,
+  localGetCiCdConfigs
+} from "@/utils/cicdService";
 import { saveWebsiteConfig } from "@/utils/websiteService";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -17,18 +25,12 @@ interface WebsiteConfig {
   template_id: string;
   company_name: string;
   domain_name: string;
+  logo: string;
+  color_scheme?: string;
+  secondary_color_scheme?: string;
   deployment_status?: string;
   deployment_url?: string;
   last_deployed_at?: string;
-}
-
-// Define a simple interface for CICD configuration
-interface CICDConfig {
-  id?: string;
-  repository: string;
-  branch: string;
-  build_command: string;
-  deploy_command: string;
 }
 
 interface DeploymentInfoProps {
@@ -56,15 +58,19 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
         setIsLoading(true);
         
         if (websiteConfig && websiteConfig.template_id) {
-          const { data, error } = await getCiCdConfigs(websiteConfig.template_id);
+          // Try to get config from database, fall back to local storage
+          let configResponse;
           
-          if (error) {
-            throw error;
+          try {
+            configResponse = await getCiCdConfigs(websiteConfig.template_id);
+          } catch (error) {
+            console.log('Falling back to local storage for CI/CD config');
+            configResponse = await localGetCiCdConfigs(websiteConfig.template_id);
           }
           
           // If there's an existing config, use it
-          if (data && data.length > 0) {
-            const config = data[0];
+          if (configResponse.data && configResponse.data.length > 0) {
+            const config = configResponse.data[0];
             setRepository(config.repository || '');
             setBranch(config.branch || 'main');
             setBuildCommand(config.build_command || 'npm run build');
@@ -110,21 +116,45 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
       
       if (cicdConfig && cicdConfig.id) {
         // Update existing config
-        configResponse = await updateCiCdConfig(cicdConfig.id, {
-          repository,
-          branch,
-          build_command: buildCommand,
-          deploy_command: deployCommand
-        });
+        try {
+          configResponse = await updateCiCdConfig(cicdConfig.id, {
+            repository,
+            branch,
+            build_command: buildCommand,
+            deploy_command: deployCommand
+          });
+        } catch (error) {
+          console.log('Falling back to local storage for CI/CD config update');
+          const updatedConfig = {
+            ...cicdConfig,
+            repository,
+            branch,
+            build_command: buildCommand,
+            deploy_command: deployCommand
+          };
+          localStorage.setItem(`cicd-config-${websiteConfig.template_id}`, JSON.stringify(updatedConfig));
+          configResponse = { data: updatedConfig, error: null };
+        }
       } else {
         // Create new config
-        configResponse = await createCiCdConfig(
-          websiteConfig.template_id,
-          repository,
-          branch,
-          buildCommand,
-          deployCommand
-        );
+        try {
+          configResponse = await createCiCdConfig(
+            websiteConfig.template_id,
+            repository,
+            branch,
+            buildCommand,
+            deployCommand
+          );
+        } catch (error) {
+          console.log('Falling back to local storage for CI/CD config creation');
+          configResponse = await localCreateCiCdConfig(
+            websiteConfig.template_id,
+            repository,
+            branch,
+            buildCommand,
+            deployCommand
+          );
+        }
       }
       
       if (configResponse.error) {
@@ -140,11 +170,14 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
       
       // Update deployment status in website config
       const deploymentUrl = `https://${repository.split('/').pop()}.github.io`;
-      await saveWebsiteConfig({
-        ...websiteConfig,
-        deployment_status: 'configured',
-        deployment_url: deploymentUrl
-      });
+      
+      if (websiteConfig.logo) {
+        await saveWebsiteConfig({
+          ...websiteConfig,
+          deployment_status: 'configured',
+          deployment_url: deploymentUrl
+        });
+      }
       
     } catch (error) {
       console.error('Error saving deployment config:', error);
