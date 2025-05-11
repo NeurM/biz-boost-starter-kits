@@ -22,7 +22,7 @@ const getCurrentUser = async () => {
   return data.user;
 };
 
-// Create a new CI/CD configuration - using local storage as primary method
+// Create a new CI/CD configuration - using Supabase as primary method, fallback to localStorage
 export const createCiCdConfig = async (
   templateId: string,
   repository: string,
@@ -36,6 +36,37 @@ export const createCiCdConfig = async (
     if (!user) {
       throw new Error("User must be logged in to save CI/CD configurations");
     }
+
+    // Try to save to database first
+    const { data: dbData, error: dbError } = await supabase
+      .from('cicd_configs')
+      .insert({
+        user_id: user.id,
+        template_id: templateId,
+        repository,
+        branch,
+        build_command: buildCommand,
+        deploy_command: deployCommand,
+        deployment_status: 'configured',
+        last_deployed_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+    
+    if (!dbError && dbData) {
+      // Successful database save
+      await logApiCall(
+        '/cicd-configs', 
+        'POST', 
+        { templateId, repository, branch, buildCommand, deployCommand }, 
+        dbData, 
+        null
+      );
+      return { data: dbData as CICDConfig, error: null };
+    }
+
+    // If database save fails, fallback to localStorage
+    console.log('Falling back to localStorage for CI/CD config', dbError);
     
     const config: CICDConfig = {
       id: `config-${Date.now()}`,
@@ -59,7 +90,7 @@ export const createCiCdConfig = async (
       'POST', 
       { templateId, repository, branch, buildCommand, deployCommand }, 
       config, 
-      null
+      dbError
     );
       
     return { data: config, error: null };
@@ -69,13 +100,37 @@ export const createCiCdConfig = async (
   }
 };
 
-// Get all CI/CD configurations for a template - using local storage as primary method
+// Get all CI/CD configurations for a template - using Supabase as primary method, fallback to localStorage
 export const getCiCdConfigs = async (templateId: string): Promise<{ data: CICDConfig[] | null, error: any }> => {
   try {
     const user = await getCurrentUser();
     
     if (!user) {
       return { data: [], error: null };
+    }
+
+    // Try to get from database first
+    const { data: dbData, error: dbError } = await supabase
+      .from('cicd_configs')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('template_id', templateId);
+
+    if (!dbError && dbData && dbData.length > 0) {
+      // Successful database fetch
+      await logApiCall(
+        `/cicd-configs/${templateId}`, 
+        'GET', 
+        { templateId }, 
+        dbData, 
+        null
+      );
+      return { data: dbData as CICDConfig[], error: null };
+    }
+
+    // If database fetch fails or returns no results, fallback to localStorage
+    if (dbError) {
+      console.log('Falling back to localStorage for CI/CD config fetch', dbError);
     }
     
     // Retrieve from localStorage
@@ -112,15 +167,52 @@ export const updateCiCdConfig = async (
   }
 ) => {
   try {
+    const user = await getCurrentUser();
+    
+    if (!user) {
+      throw new Error("User must be logged in to update CI/CD configurations");
+    }
+
+    // Check if this is a database ID (UUID format) or local ID
+    const isDbId = configId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+    
+    if (isDbId) {
+      // Try to update in database
+      const { data: dbData, error: dbError } = await supabase
+        .from('cicd_configs')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString(),
+          last_deployed_at: new Date().toISOString()
+        })
+        .eq('id', configId)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (!dbError && dbData) {
+        await logApiCall(
+          `/cicd-configs/${configId}`, 
+          'PATCH', 
+          { configId, updates }, 
+          dbData, 
+          null
+        );
+        return { data: dbData as CICDConfig, error: null };
+      }
+      
+      console.log('Database update failed, falling back to localStorage', dbError);
+    }
+
     // Extract template ID from config ID format (config-timestamp-templateId)
     const parts = configId.split('-');
     const templateId = parts.length > 2 ? parts[2] : '';
     const key = `cicd-config-${templateId}`;
     
-    // Get current config
+    // Get current config from localStorage
     const storedConfig = localStorage.getItem(key);
     if (!storedConfig) {
-      throw new Error('Config not found');
+      throw new Error('Config not found in localStorage');
     }
     
     // Update config
@@ -203,6 +295,37 @@ jobs:
 // Delete a CI/CD configuration
 export const deleteCiCdConfig = async (configId: string) => {
   try {
+    const user = await getCurrentUser();
+    
+    if (!user) {
+      throw new Error("User must be logged in to delete CI/CD configurations");
+    }
+
+    // Check if this is a database ID (UUID format) or local ID
+    const isDbId = configId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+    
+    if (isDbId) {
+      // Try to delete from database
+      const { error: dbError } = await supabase
+        .from('cicd_configs')
+        .delete()
+        .eq('id', configId)
+        .eq('user_id', user.id);
+
+      if (!dbError) {
+        await logApiCall(
+          `/cicd-configs/${configId}`, 
+          'DELETE', 
+          { configId }, 
+          { success: true }, 
+          null
+        );
+        return { data: { success: true }, error: null };
+      }
+      
+      console.log('Database delete failed, falling back to localStorage', dbError);
+    }
+
     // Extract template ID from config ID format (config-timestamp-templateId)
     const parts = configId.split('-');
     const templateId = parts.length > 2 ? parts[2] : '';

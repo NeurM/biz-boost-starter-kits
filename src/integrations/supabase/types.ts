@@ -72,6 +72,51 @@ export type Database = {
         }
         Relationships: []
       }
+      cicd_configs: {
+        Row: {
+          branch: string
+          build_command: string
+          created_at: string
+          deploy_command: string
+          deployment_status: string | null
+          deployment_url: string | null
+          id: string
+          last_deployed_at: string | null
+          repository: string
+          template_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          branch?: string
+          build_command?: string
+          created_at?: string
+          deploy_command?: string
+          deployment_status?: string | null
+          deployment_url?: string | null
+          id?: string
+          last_deployed_at?: string | null
+          repository: string
+          template_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          branch?: string
+          build_command?: string
+          created_at?: string
+          deploy_command?: string
+          deployment_status?: string | null
+          deployment_url?: string | null
+          id?: string
+          last_deployed_at?: string | null
+          repository?: string
+          template_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       website_analytics: {
         Row: {
           created_at: string
@@ -128,8 +173,11 @@ export type Database = {
           color_scheme: string | null
           company_name: string
           created_at: string
+          deployment_status: string | null
+          deployment_url: string | null
           domain_name: string
           id: string
+          last_deployed_at: string | null
           logo: string
           secondary_color_scheme: string | null
           template_id: string
@@ -140,8 +188,11 @@ export type Database = {
           color_scheme?: string | null
           company_name: string
           created_at?: string
+          deployment_status?: string | null
+          deployment_url?: string | null
           domain_name: string
           id?: string
+          last_deployed_at?: string | null
           logo: string
           secondary_color_scheme?: string | null
           template_id: string
@@ -152,8 +203,11 @@ export type Database = {
           color_scheme?: string | null
           company_name?: string
           created_at?: string
+          deployment_status?: string | null
+          deployment_url?: string | null
           domain_name?: string
           id?: string
+          last_deployed_at?: string | null
           logo?: string
           secondary_color_scheme?: string | null
           template_id?: string
