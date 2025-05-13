@@ -10,9 +10,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, Edit, Globe } from 'lucide-react';
+import { User, LogOut, Edit, Globe, Home, LayoutGrid, Bookmark } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/LanguageContext';
 
 interface UserMenuProps {
@@ -25,6 +25,7 @@ const UserMenu = ({ isTemplate = false, templatePath = '', isAppLevel = false }:
   const { user, signOut: handleAuthSignOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
   const { t } = useLanguage();
   
   // Check if we're on a template page
@@ -105,6 +106,11 @@ const UserMenu = ({ isTemplate = false, templatePath = '', isAppLevel = false }:
   const handleEditContent = () => {
     const template = templatePath || location.pathname.split('/')[1];
     navigate(`/${template}/edit`, { state: { editMode: true } });
+  };
+  
+  // Return to the app when in a template
+  const handleReturnToApp = () => {
+    navigate('/');
   };
   
   // Handle website publishing with domain checks
@@ -203,23 +209,36 @@ const UserMenu = ({ isTemplate = false, templatePath = '', isAppLevel = false }:
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuLabel>{t('nav.userMenu') || "Navigation"}</DropdownMenuLabel>
-          {isAppLevel && (
+          
+          {/* Always show app links when in template, and show app navigation when at app level */}
+          {(isTemplate || isAppLevel) && (
             <>
               <DropdownMenuItem asChild>
-                <Link to="/">{t('nav.home') || "Home"}</Link>
+                <Link to="/"><Home className="h-4 w-4 mr-2" />{t('nav.home') || "Home"}</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/templates">{t('nav.templates') || "Templates"}</Link>
+                <Link to="/templates"><LayoutGrid className="h-4 w-4 mr-2" />{t('nav.templates') || "Templates"}</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/dashboard">{t('nav.dashboard') || "Dashboard"}</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/saved-websites">{t('nav.savedwebsites') || "Saved Websites"}</Link>
+                <Link to="/saved-websites"><Bookmark className="h-4 w-4 mr-2" />{t('nav.savedwebsites') || "Saved Websites"}</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
             </>
           )}
+          
+          {/* Template navigation - add back-to-app link when in template */}
+          {isTemplate && !isAppLevel && (
+            <>
+              <DropdownMenuItem onClick={handleReturnToApp}>
+                <Home className="h-4 w-4 mr-2" />Back to App
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
+          
           <DropdownMenuItem onClick={handleLogout}>
             <LogOut className="h-4 w-4 mr-2" />
             {logoutText}

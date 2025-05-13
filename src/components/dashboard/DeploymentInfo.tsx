@@ -135,7 +135,12 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
       });
       
       // Update deployment status in website config
-      const deploymentUrl = `https://${repository.split('/').pop()}.github.io`;
+      // Use GitHub Pages URL format: https://username.github.io/repository
+      const repoName = repository.split('/').pop();
+      const username = repository.includes('/') ? repository.split('/')[0] : '';
+      const deploymentUrl = username && repoName 
+        ? `https://${username}.github.io/${repoName}` 
+        : `https://${repository.split('/').pop()}.github.io`;
       
       await saveWebsiteConfig({
         ...websiteConfig,
@@ -159,6 +164,7 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
     if (!websiteConfig) return;
     
     try {
+      setIsLoading(true);
       const yaml = await getWorkflowYaml(
         websiteConfig.template_id, 
         repository, 
@@ -167,6 +173,7 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
         deployCommand
       );
       
+      console.log("Generated workflow YAML:", yaml ? yaml.substring(0, 100) + "..." : "empty");
       setWorkflowYaml(yaml);
       setShowYaml(true);
     } catch (error) {
@@ -176,6 +183,8 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
         description: "Failed to generate workflow file.",
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
   

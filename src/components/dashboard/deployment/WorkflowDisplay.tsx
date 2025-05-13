@@ -23,6 +23,12 @@ const WorkflowDisplay: React.FC<WorkflowDisplayProps> = ({
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
   
+  useEffect(() => {
+    // Debug logging to check props
+    console.log("WorkflowDisplay - showYaml:", showYaml);
+    console.log("WorkflowDisplay - workflowYaml:", workflowYaml ? workflowYaml.substring(0, 50) + "..." : null);
+  }, [showYaml, workflowYaml]);
+  
   const copyToClipboard = () => {
     if (!workflowYaml) return;
     
@@ -37,6 +43,7 @@ const WorkflowDisplay: React.FC<WorkflowDisplayProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
   
+  // If showYaml is false or workflowYaml is null/empty, don't render anything
   if (!showYaml || !workflowYaml) {
     return null;
   }
@@ -124,7 +131,7 @@ const WorkflowDisplay: React.FC<WorkflowDisplayProps> = ({
           <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-gray-900/10 to-transparent z-10"></div>
           <Textarea
             className="font-mono text-xs h-64 bg-gray-900 text-gray-100 dark:bg-gray-800/90 shadow-inner resize-none scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent border-[0.5px] border-gray-700/30"
-            value={workflowYaml}
+            value={workflowYaml || ''}
             readOnly
           />
           <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-gray-900/10 to-transparent z-10"></div>

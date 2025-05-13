@@ -13,7 +13,7 @@ import { useTemplateTheme } from '@/context/TemplateThemeContext';
 import { useCompanyData } from '@/context/CompanyDataContext';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from './ui/button';
-import { Edit } from 'lucide-react';
+import { Edit, ArrowLeft } from 'lucide-react';
 
 interface NavItem {
   name: string;
@@ -48,7 +48,6 @@ const Navbar = ({
   const { companyData } = useCompanyData();
   const { templateType } = useTemplateTheme();
   const { user } = useAuth();
-  const navigate = useLocation();
   
   // Detect if this is a template page
   const isTemplate = basePath && ["expert", "tradecraft", "retail", "service", "cleanslate"].includes(basePath);
@@ -112,12 +111,29 @@ const Navbar = ({
       window.location.href = `/editor/${basePath}`;
     }
   };
+  
+  // Return to main app
+  const handleReturnToApp = () => {
+    window.location.href = '/';
+  };
 
   return (
     <nav className={`bg-white shadow-sm ${className} ${isAppLevel ? 'app-navbar' : 'site-navbar'}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
+            {isTemplate && !isAppLevel && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleReturnToApp}
+                className="mr-2 md:mr-4"
+              >
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">Back to App</span>
+              </Button>
+            )}
+            
             <NavLogo 
               logo={logo}
               basePath={basePath}
