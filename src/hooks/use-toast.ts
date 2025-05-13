@@ -1,4 +1,3 @@
-
 import * as React from "react"
 
 import type {
@@ -14,6 +13,16 @@ type ToasterToast = ToastProps & {
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
+}
+
+// Define Toast type with id property to resolve the TypeScript error
+export type Toast = {
+  id?: string
+  title?: React.ReactNode
+  description?: React.ReactNode
+  action?: ToastActionElement
+  variant?: "default" | "destructive"
+  duration?: number
 }
 
 const actionTypes = {
@@ -135,8 +144,6 @@ function dispatch(action: Action) {
     listener(memoryState)
   })
 }
-
-type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
   const id = genId()
