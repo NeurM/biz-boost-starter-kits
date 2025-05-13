@@ -74,30 +74,63 @@ const DeploymentStatus: React.FC<DeploymentStatusProps> = ({
     });
   };
 
+  // New animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        duration: 0.5
+      }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { 
+        type: "spring",
+        stiffness: 100,
+        damping: 10
+      }
+    }
+  };
+
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: 0.1 }}
-      className="flex flex-col space-y-5 sm:flex-row sm:justify-between sm:space-y-0 mb-8 bg-gradient-to-b from-muted/60 to-muted/30 backdrop-blur-sm p-4 rounded-lg border border-muted-foreground/10"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="flex flex-col space-y-5 sm:flex-row sm:justify-between sm:space-y-0 mb-8 glass-card bg-gradient-to-b from-background/60 to-background/30 shadow-md backdrop-blur-sm p-6 rounded-xl border border-border/40"
     >
-      <div className="flex items-center space-x-3">
+      <motion.div 
+        variants={itemVariants}
+        className="flex items-center space-x-3"
+      >
         <div className="flex flex-col">
-          <span className="text-sm text-muted-foreground mb-2">Status</span>
+          <span className="text-sm font-medium text-muted-foreground mb-1.5">Deployment Status</span>
           <HoverCard>
             <HoverCardTrigger asChild>
               <Badge variant="outline" className={`${getStatusColor()} px-3 py-1.5 text-sm shadow-sm hover:shadow transition-all duration-300`}>
                 <motion.span 
                   className="flex items-center" 
-                  animate={{ scale: deploymentStatus === 'success' ? [1, 1.05, 1] : 1 }}
-                  transition={{ repeat: deploymentStatus === 'success' ? 1 : 0, duration: 0.5 }}
+                  animate={{ 
+                    scale: deploymentStatus === 'success' ? [1, 1.05, 1] : 1 
+                  }}
+                  transition={{ 
+                    repeat: deploymentStatus === 'success' ? 1 : 0, 
+                    duration: 0.5 
+                  }}
                 >
                   {getStatusIcon()}
                   <span className="ml-2 font-medium">{getStatusText()}</span>
                 </motion.span>
               </Badge>
             </HoverCardTrigger>
-            <HoverCardContent className="w-64">
+            <HoverCardContent className="w-64 shadow-lg">
               <div className="text-sm">
                 <p className="font-semibold mb-1">Deployment Status</p>
                 <p className="text-muted-foreground">
@@ -113,21 +146,24 @@ const DeploymentStatus: React.FC<DeploymentStatusProps> = ({
             </HoverCardContent>
           </HoverCard>
         </div>
-      </div>
+      </motion.div>
       
-      <div className="flex items-center space-x-3">
+      <motion.div 
+        variants={itemVariants}
+        className="flex items-center space-x-3"
+      >
         <div className="flex flex-col">
-          <span className="text-sm text-muted-foreground mb-2">Last Deployed</span>
+          <span className="text-sm font-medium text-muted-foreground mb-1.5">Last Deployment</span>
           <HoverCard>
             <HoverCardTrigger asChild>
-              <div className="flex items-center space-x-2 px-3 py-1.5 bg-muted/40 rounded-md border border-muted-foreground/10 hover:bg-muted/60 transition-colors duration-300">
+              <div className="flex items-center space-x-2 px-3 py-1.5 bg-muted/40 rounded-md border border-muted-foreground/10 hover:bg-muted/60 transition-colors duration-300 cursor-default">
                 <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="text-sm font-medium">{getLastDeployed()}</span>
               </div>
             </HoverCardTrigger>
-            <HoverCardContent className="w-64">
+            <HoverCardContent className="w-64 shadow-lg">
               <div className="text-sm">
-                <p className="font-semibold mb-1">Last Deployment</p>
+                <p className="font-semibold mb-1">Last Deployment Time</p>
                 <p className="text-muted-foreground">
                   {lastDeployedAt
                     ? `Your website was last deployed on ${getLastDeployed()}.`
@@ -137,7 +173,7 @@ const DeploymentStatus: React.FC<DeploymentStatusProps> = ({
             </HoverCardContent>
           </HoverCard>
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 };
