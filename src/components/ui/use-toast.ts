@@ -1,9 +1,11 @@
 
 // Re-export the toast function from the hooks directory
-import { toast, Toast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
+import type { Toast } from "@/hooks/use-toast";
 
 // Export enhanced toast functions with default styles
-export { toast, Toast };
+export { toast };
+export type { Toast };
 
 // Add optimized exports
 export const successToast = (title: string, description?: string) => {

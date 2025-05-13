@@ -1,3 +1,4 @@
+
 import * as React from "react"
 
 import type {
@@ -10,15 +11,15 @@ const TOAST_REMOVE_DELAY = 1000000
 
 type ToasterToast = ToastProps & {
   id: string
-  title?: React.ReactNode
+  title?: string
   description?: React.ReactNode
   action?: ToastActionElement
 }
 
-// Define Toast type with id property to resolve the TypeScript error
+// Define Toast type with compatible properties
 export type Toast = {
   id?: string
-  title?: React.ReactNode
+  title?: string
   description?: React.ReactNode
   action?: ToastActionElement
   variant?: "default" | "destructive"
@@ -146,7 +147,7 @@ function dispatch(action: Action) {
 }
 
 function toast({ ...props }: Toast) {
-  const id = genId()
+  const id = props.id || genId()
 
   const update = (props: ToasterToast) =>
     dispatch({
@@ -164,7 +165,7 @@ function toast({ ...props }: Toast) {
       onOpenChange: (open) => {
         if (!open) dismiss()
       },
-    },
+    } as ToasterToast,
   })
 
   return {
