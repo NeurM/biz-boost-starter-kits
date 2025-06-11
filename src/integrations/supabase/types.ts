@@ -117,6 +117,274 @@ export type Database = {
         }
         Relationships: []
       }
+      tenant_analytics: {
+        Row: {
+          created_at: string | null
+          element_class: string | null
+          element_id: string | null
+          element_text: string | null
+          element_type: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          page_path: string
+          scroll_depth: number | null
+          session_id: string
+          tenant_id: string | null
+          timestamp: string | null
+          user_id: string | null
+          website_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          element_class?: string | null
+          element_id?: string | null
+          element_text?: string | null
+          element_type?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          page_path: string
+          scroll_depth?: number | null
+          session_id: string
+          tenant_id?: string | null
+          timestamp?: string | null
+          user_id?: string | null
+          website_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          element_class?: string | null
+          element_id?: string | null
+          element_text?: string | null
+          element_type?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          page_path?: string
+          scroll_depth?: number | null
+          session_id?: string
+          tenant_id?: string | null
+          timestamp?: string | null
+          user_id?: string | null
+          website_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_analytics_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_analytics_website_id_fkey"
+            columns: ["website_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_websites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_deployments: {
+        Row: {
+          branch: string | null
+          build_command: string | null
+          created_at: string | null
+          deploy_command: string | null
+          deployment_status: string | null
+          deployment_url: string | null
+          id: string
+          last_deployed_at: string | null
+          repository: string
+          settings: Json | null
+          tenant_id: string | null
+          updated_at: string | null
+          website_id: string | null
+        }
+        Insert: {
+          branch?: string | null
+          build_command?: string | null
+          created_at?: string | null
+          deploy_command?: string | null
+          deployment_status?: string | null
+          deployment_url?: string | null
+          id?: string
+          last_deployed_at?: string | null
+          repository: string
+          settings?: Json | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          website_id?: string | null
+        }
+        Update: {
+          branch?: string | null
+          build_command?: string | null
+          created_at?: string | null
+          deploy_command?: string | null
+          deployment_status?: string | null
+          deployment_url?: string | null
+          id?: string
+          last_deployed_at?: string | null
+          repository?: string
+          settings?: Json | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          website_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_deployments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_deployments_website_id_fkey"
+            columns: ["website_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_websites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_users: {
+        Row: {
+          created_at: string | null
+          id: string
+          invited_at: string | null
+          invited_by: string | null
+          joined_at: string | null
+          role: Database["public"]["Enums"]["tenant_role"]
+          tenant_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          joined_at?: string | null
+          role?: Database["public"]["Enums"]["tenant_role"]
+          tenant_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          joined_at?: string | null
+          role?: Database["public"]["Enums"]["tenant_role"]
+          tenant_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_users_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_websites: {
+        Row: {
+          color_scheme: string | null
+          created_at: string | null
+          deployment_status: string | null
+          deployment_url: string | null
+          domain_name: string | null
+          id: string
+          last_deployed_at: string | null
+          logo: string | null
+          name: string
+          secondary_color_scheme: string | null
+          settings: Json | null
+          template_id: string
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          color_scheme?: string | null
+          created_at?: string | null
+          deployment_status?: string | null
+          deployment_url?: string | null
+          domain_name?: string | null
+          id?: string
+          last_deployed_at?: string | null
+          logo?: string | null
+          name: string
+          secondary_color_scheme?: string | null
+          settings?: Json | null
+          template_id: string
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          color_scheme?: string | null
+          created_at?: string | null
+          deployment_status?: string | null
+          deployment_url?: string | null
+          domain_name?: string | null
+          id?: string
+          last_deployed_at?: string | null
+          logo?: string | null
+          name?: string
+          secondary_color_scheme?: string | null
+          settings?: Json | null
+          template_id?: string
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_websites_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenants: {
+        Row: {
+          created_at: string | null
+          domain: string | null
+          id: string
+          name: string
+          settings: Json | null
+          slug: string
+          status: string | null
+          subscription_plan: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          domain?: string | null
+          id?: string
+          name: string
+          settings?: Json | null
+          slug: string
+          status?: string | null
+          subscription_plan?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          domain?: string | null
+          id?: string
+          name?: string
+          settings?: Json | null
+          slug?: string
+          status?: string | null
+          subscription_plan?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       website_analytics: {
         Row: {
           created_at: string
@@ -221,10 +489,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_tenant_ids: {
+        Args: Record<PropertyKey, never>
+        Returns: string[]
+      }
+      user_has_tenant_access: {
+        Args: { tenant_uuid: string }
+        Returns: boolean
+      }
+      user_has_tenant_role: {
+        Args: {
+          tenant_uuid: string
+          required_role: Database["public"]["Enums"]["tenant_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      tenant_role: "owner" | "admin" | "editor" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -339,6 +621,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      tenant_role: ["owner", "admin", "editor", "viewer"],
+    },
   },
 } as const

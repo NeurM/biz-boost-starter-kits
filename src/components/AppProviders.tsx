@@ -6,6 +6,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { TemplateThemeProvider } from "@/context/TemplateThemeContext";
 import { CompanyDataProvider } from "@/context/CompanyDataContext";
+import { TenantProvider } from "@/context/TenantContext";
 import { Toaster } from "@/components/ui/toaster";
 
 // Error Fallback Component
@@ -47,12 +48,14 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
         <Suspense fallback={<div>Loading...</div>}>
           <LanguageProvider>
             <AuthProvider>
-              <TemplateThemeProvider>
-                <CompanyDataProvider>
-                  {children}
-                  <Toaster />
-                </CompanyDataProvider>
-              </TemplateThemeProvider>
+              <TenantProvider>
+                <TemplateThemeProvider>
+                  <CompanyDataProvider>
+                    {children}
+                    <Toaster />
+                  </CompanyDataProvider>
+                </TemplateThemeProvider>
+              </TenantProvider>
             </AuthProvider>
           </LanguageProvider>
         </Suspense>
