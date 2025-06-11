@@ -1,4 +1,12 @@
 
+import { Database } from '@/integrations/supabase/types';
+
+// Use Supabase generated types as base and extend them
+type DbTenant = Database['public']['Tables']['tenants']['Row'];
+type DbTenantUser = Database['public']['Tables']['tenant_users']['Row'];
+type DbTenantWebsite = Database['public']['Tables']['tenant_websites']['Row'];
+type DbTenantDeployment = Database['public']['Tables']['tenant_deployments']['Row'];
+
 export interface Tenant {
   id: string;
   name: string;
@@ -71,3 +79,28 @@ export interface CreateWebsiteRequest {
   color_scheme?: string;
   secondary_color_scheme?: string;
 }
+
+// Helper functions to convert database types to our interface types
+export const convertDbTenantToTenant = (dbTenant: DbTenant): Tenant => ({
+  id: dbTenant.id,
+  name: dbTenant.name,
+  slug: dbTenant.slug,
+  domain: dbTenant.domain || undefined,
+  status: dbTenant.status as 'active' | 'suspended' | 'cancelled',
+  subscription_plan: dbTenant.subscription_plan as 'free' | 'pro' | 'enterprise',
+  settings: (dbTenant.settings as Record<string, any>) || {},
+  created_at: dbTenant.created_at || '',
+  updated_at: dbTenant.updated_at || ''
+});
+
+export const convertDbTenantUserToTenantUser = (dbTenantUser: DbTenantUser & { tenant?: DbTenant }): TenantUser => ({
+  id: dbTenantUser.id,
+  tenant_id: dbTenantUser.tenant_id || '',
+  user_id: dbTenantUser.user_id || '',
+  role: dbTenantUser.role as 'owner' | 'admin' | 'editor' | 'viewer',
+  invited_by: dbTenantUser.invited_by || undefined,
+  invited_at: dbTenantUser.invited_at || '',
+  joined_at: dbTenantUser.joined_at || undefined,
+  created_at: dbTenantUser.created_at || '',
+  tenant: dbTenantUser.tenant ? convertDbTenantToTenant(dbTenantUser.tenant) : undefined
+});

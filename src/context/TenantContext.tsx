@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Tenant, TenantUser } from '@/types/tenant';
+import { Tenant, TenantUser, convertDbTenantUserToTenantUser, convertDbTenantToTenant } from '@/types/tenant';
 import { getUserTenants } from '@/utils/tenantService';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -54,7 +54,10 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
         throw response.error;
       }
 
-      const memberships = response.data || [];
+      const dbMemberships = response.data || [];
+      
+      // Convert database types to our interface types
+      const memberships = dbMemberships.map(convertDbTenantUserToTenantUser);
       setTenantMemberships(memberships);
 
       // If no current tenant is set, default to the first one
