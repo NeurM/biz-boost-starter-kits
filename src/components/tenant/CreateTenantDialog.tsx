@@ -1,46 +1,18 @@
 
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { createTenant, generateTenantSlug, validateTenantSlug } from '@/utils/tenantService';
 import { useTenant } from '@/context/TenantContext';
-
-const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Tenant name must be at least 2 characters.",
-  }).max(50, {
-    message: "Tenant name must not exceed 50 characters.",
-  }),
-  slug: z.string().min(2, {
-    message: "Slug must be at least 2 characters.",
-  }).max(30, {
-    message: "Slug must not exceed 30 characters.",
-  }).regex(/^[a-z0-9-]+$/, {
-    message: "Slug can only contain lowercase letters, numbers, and hyphens.",
-  }),
-  domain: z.string().optional(),
-});
+import { createTenant, generateTenantSlug, validateTenantSlug } from '@/utils/tenantService';
 
 interface CreateTenantDialogProps {
   open: boolean;
@@ -51,88 +23,69 @@ export const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({
   open,
   onOpenChange,
 }) => {
+  const [name, setName] = useState('');
+  const [slug, setSlug] = useState('');
+  const [domain, setDomain] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
   const { refreshTenants, switchTenant } = useTenant();
-  const [isLoading, setIsLoading] = useState(false);
-  const [slugValidation, setSlugValidation] = useState<{
-    isValid: boolean;
-    message: string;
-  } | null>(null);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      slug: "",
-      domain: "",
-    },
-  });
-
-  const watchedName = form.watch("name");
-  const watchedSlug = form.watch("slug");
-
-  // Auto-generate slug from name
-  React.useEffect(() => {
-    if (watchedName && !form.formState.dirtyFields.slug) {
-      const generatedSlug = generateTenantSlug(watchedName);
-      form.setValue("slug", generatedSlug);
+  const handleNameChange = (value: string) => {
+    setName(value);
+    if (value && !slug) {
+      setSlug(generateTenantSlug(value));
     }
-  }, [watchedName, form]);
+  };
 
-  // Validate slug availability
-  React.useEffect(() => {
-    const validateSlug = async () => {
-      if (watchedSlug && watchedSlug.length >= 2) {
-        try {
-          const isValid = await validateTenantSlug(watchedSlug);
-          setSlugValidation({
-            isValid,
-            message: isValid ? "Slug is available" : "Slug is already taken",
-          });
-        } catch (error) {
-          setSlugValidation({
-            isValid: false,
-            message: "Error validating slug",
-          });
-        }
-      } else {
-        setSlugValidation(null);
-      }
-    };
+  const handleCreateTenant = async () => {
+    if (!name.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Tenant name is required.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    const debounceTimer = setTimeout(validateSlug, 500);
-    return () => clearTimeout(debounceTimer);
-  }, [watchedSlug]);
+    if (!slug.trim()) {
+      toast({
+        title: "Validation Error", 
+        description: "Tenant slug is required.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true);
+    setIsCreating(true);
 
     try {
-      // Final slug validation
-      const isSlugValid = await validateTenantSlug(values.slug);
-      if (!isSlugValid) {
+      // Validate slug availability
+      const isSlugAvailable = await validateTenantSlug(slug);
+      if (!isSlugAvailable) {
         toast({
-          title: "Error",
-          description: "Slug is already taken. Please choose a different one.",
-          variant: "destructive",
+          title: "Validation Error",
+          description: "This slug is already taken. Please choose a different one.",
+          variant: "destructive"
         });
-        setIsLoading(false);
+        setIsCreating(false);
         return;
       }
 
-      const response = await createTenant({
-        name: values.name,
-        slug: values.slug,
-        domain: values.domain || undefined,
-      });
+      const tenantData = {
+        name: name.trim(),
+        slug: slug.trim(),
+        domain: domain.trim() || undefined
+      };
 
+      const response = await createTenant(tenantData);
+      
       if (response.error) {
         throw response.error;
       }
 
       toast({
-        title: "Success",
-        description: "Tenant created successfully!",
+        title: "Success!",
+        description: "Tenant created successfully.",
       });
 
       // Refresh tenants and switch to the new one
@@ -142,20 +95,22 @@ export const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({
       }
 
       // Reset form and close dialog
-      form.reset();
+      setName('');
+      setSlug('');
+      setDomain('');
       onOpenChange(false);
-
+      
     } catch (error) {
       console.error('Error creating tenant:', error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to create tenant.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
-      setIsLoading(false);
+      setIsCreating(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -166,74 +121,50 @@ export const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({
             Create a new tenant to organize your websites and team members.
           </DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tenant Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="My Company" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    The display name for your tenant.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+        
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="name">Tenant Name</Label>
+            <Input
+              id="name"
+              placeholder="My Company"
+              value={name}
+              onChange={(e) => handleNameChange(e.target.value)}
             />
-            <FormField
-              control={form.control}
-              name="slug"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Slug</FormLabel>
-                  <FormControl>
-                    <Input placeholder="my-company" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Used in URLs and must be unique. Only lowercase letters, numbers, and hyphens.
-                  </FormDescription>
-                  {slugValidation && (
-                    <p className={`text-sm ${slugValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
-                      {slugValidation.message}
-                    </p>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
+          </div>
+          
+          <div className="grid gap-2">
+            <Label htmlFor="slug">Slug (URL identifier)</Label>
+            <Input
+              id="slug"
+              placeholder="my-company"
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
             />
-            <FormField
-              control={form.control}
-              name="domain"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Custom Domain (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="example.com" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Custom domain for your tenant (optional).
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <p className="text-xs text-gray-500">
+              This will be used in URLs and must be unique
+            </p>
+          </div>
+          
+          <div className="grid gap-2">
+            <Label htmlFor="domain">Custom Domain (optional)</Label>
+            <Input
+              id="domain"
+              placeholder="mycompany.com"
+              value={domain}
+              onChange={(e) => setDomain(e.target.value)}
             />
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={isLoading || (slugValidation && !slugValidation.isValid)}
-              >
-                {isLoading ? "Creating..." : "Create Tenant"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+          </div>
+        </div>
+        
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleCreateTenant} disabled={isCreating}>
+            {isCreating ? "Creating..." : "Create Tenant"}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
