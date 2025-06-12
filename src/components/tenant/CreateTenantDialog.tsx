@@ -56,10 +56,24 @@ export const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({
       return;
     }
 
+    // Basic slug validation
+    const slugRegex = /^[a-z0-9\-]+$/;
+    if (!slugRegex.test(slug)) {
+      toast({
+        title: "Validation Error",
+        description: "Slug can only contain lowercase letters, numbers, and hyphens.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsCreating(true);
 
     try {
+      console.log('Starting tenant creation process...');
+      
       // Validate slug availability
+      console.log('Validating slug:', slug);
       const isSlugAvailable = await validateTenantSlug(slug);
       if (!isSlugAvailable) {
         toast({
@@ -77,11 +91,15 @@ export const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({
         domain: domain.trim() || undefined
       };
 
+      console.log('Creating tenant with data:', tenantData);
       const response = await createTenant(tenantData);
       
       if (response.error) {
+        console.error('Tenant creation failed:', response.error);
         throw response.error;
       }
+
+      console.log('Tenant created successfully:', response.data);
 
       toast({
         title: "Success!",
@@ -89,8 +107,10 @@ export const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({
       });
 
       // Refresh tenants and switch to the new one
+      console.log('Refreshing tenants...');
       await refreshTenants();
       if (response.data) {
+        console.log('Switching to new tenant:', response.data.id);
         switchTenant(response.data.id);
       }
 
@@ -102,9 +122,17 @@ export const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({
       
     } catch (error) {
       console.error('Error creating tenant:', error);
+      let errorMessage = "Failed to create tenant.";
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage = (error as any).message;
+      }
+      
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create tenant.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
