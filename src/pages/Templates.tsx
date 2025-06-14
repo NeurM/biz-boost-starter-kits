@@ -14,6 +14,7 @@ import { TenantSwitcher } from '@/components/tenant/TenantSwitcher';
 import { createTenantWebsite } from '@/utils/tenantService';
 import { generateTenantSlug } from '@/utils/tenantService';
 import GlobalAppNavbar from '@/components/GlobalAppNavbar';
+import { BulkWebsiteCreator } from "@/components/templates/BulkWebsiteCreator";
 
 const templates = [
   {
@@ -81,6 +82,8 @@ const Templates: React.FC = () => {
   const [selectedSecondaryColor, setSelectedSecondaryColor] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [createTenantOpen, setCreateTenantOpen] = useState(false);
+  const [bulkModalOpen, setBulkModalOpen] = useState(false);
+  const [bulkTemplate, setBulkTemplate] = useState<any | null>(null);
 
   const handleSelectTemplate = (template: any) => {
     if (!user) {
@@ -202,6 +205,11 @@ const Templates: React.FC = () => {
     setCreateTenantOpen(true);
   };
 
+  const handleOpenBulkModal = (template: any) => {
+    setBulkTemplate(template);
+    setBulkModalOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <GlobalAppNavbar />
@@ -226,6 +234,13 @@ const Templates: React.FC = () => {
                   Create Your First Tenant
                 </Button>
               )}
+              <Button
+                variant="secondary"
+                onClick={() => handleOpenBulkModal(templates[0])}
+                className="ml-4"
+              >
+                Bulk Create Websites
+              </Button>
             </div>
           )}
         </div>
@@ -256,6 +271,17 @@ const Templates: React.FC = () => {
         </div>
       </div>
 
+      {/* Bulk Modal UI */}
+      {bulkTemplate && (
+        <BulkWebsiteCreator
+          open={bulkModalOpen}
+          onClose={() => setBulkModalOpen(false)}
+          template={bulkTemplate}
+          primaryColor={selectedPrimaryColor || bulkTemplate.primaryColor}
+          secondaryColor={selectedSecondaryColor || bulkTemplate.secondaryColor}
+        />
+      )}
+      
       <CreateTenantDialog 
         open={createTenantOpen} 
         onOpenChange={setCreateTenantOpen} 

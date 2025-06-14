@@ -130,6 +130,76 @@ export const createTenantWebsite = async (websiteData: CreateWebsiteRequest) => 
   }
 };
 
+// Bulk create websites for a tenant given a list of company names and shared settings 
+export const createTenantWebsitesBulk = async ({
+  tenantId,
+  companyNames,
+  sharedSettings,
+}: {
+  tenantId: string,
+  companyNames: string[],
+  sharedSettings: {
+    template_id: string;
+    logo?: string;
+    color_scheme?: string;
+    secondary_color_scheme?: string;
+    domainPattern?: string;
+  }
+}) => {
+  // Helper to normalize slug
+  const toSlug = (name: string): string => 
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .trim();
+
+  // Process all creations in parallel but limit to 5 at a time
+  const results: any[] = [];
+  // Simple throttling for up to 5 at a time
+  const group = <T,>(arr: T[], n: number) => arr.reduce((a, c, i) => {
+    a[Math.floor(i/n)] = [...(a[Math.floor(i/n)]||[]), c]; return a;
+  }, [] as T[][]);
+  const batches = group(companyNames, 5);
+
+  for (const batch of batches) {
+    // Each batch in parallel
+    const batchResults = await Promise.allSettled(
+      batch.map(async (companyName) => {
+        const slug = toSlug(companyName);
+        let domain = undefined;
+        if (sharedSettings.domainPattern) {
+          domain = sharedSettings.domainPattern.replace(/\{slug\}/g, slug);
+        }
+        try {
+          const resp = await createTenantWebsite({
+            tenant_id: tenantId,
+            template_id: sharedSettings.template_id,
+            name: companyName,
+            domain_name: domain,
+            logo: sharedSettings.logo,
+            color_scheme: sharedSettings.color_scheme,
+            secondary_color_scheme: sharedSettings.secondary_color_scheme,
+          });
+          if (resp.error) throw resp.error;
+          return { companyName, success: true, data: resp.data };
+        } catch (error: any) {
+          return { companyName, success: false, error: error?.message || "Failed" };
+        }
+      })
+    );
+    for (const r of batchResults) {
+      if (r.status === "fulfilled") {
+        results.push(r.value);
+      } else {
+        results.push({ companyName: "", success: false, error: r.reason });
+      }
+    }
+  }
+  return results;
+};
+
 export const getTenantWebsites = async (tenantId: string) => {
   try {
     const response = await supabase
