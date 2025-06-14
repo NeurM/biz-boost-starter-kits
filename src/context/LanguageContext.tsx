@@ -1,10 +1,14 @@
-import React, { createContext, useContext } from 'react';
-import { useTranslation } from 'react-i18next';
-import i18n from '@/integrations/i18n';
+
+import React, { createContext, useContext, useState, useCallback } from 'react';
+
+// Supported language codes
+const SUPPORTED_LANGUAGES = ['en', 'nl', 'fr', 'ar', 'es'] as const;
+type Language = (typeof SUPPORTED_LANGUAGES)[number];
 
 interface LanguageContextType {
+  language: Language;
+  setLanguage: (lang: Language) => void;
   t: (key: string) => string;
-  i18n: typeof i18n;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -21,7 +25,7 @@ interface LanguageProviderProps {
   children: React.ReactNode;
 }
 
-const translations = {
+const translations: Record<Language, Record<string, string>> = {
   en: {
     "nav.home": "Home",
     "nav.templates": "Templates",
@@ -38,17 +42,29 @@ const translations = {
     "actions.edit": "Edit",
     "actions.publish": "Publish",
   },
+  nl: {},
+  fr: {},
+  ar: {},
+  es: {},
 };
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const { t } = useTranslation();
+  const [language, setLanguage] = useState<Language>('en');
 
-  // Initialize missing keys in i18n
-  i18n.addResourceBundle('en', 'translation', translations.en, true, true);
+  const t = useCallback((key: string) => {
+    // Try current language, then fallback to 'en', then fallback to key
+    return (
+      translations[language][key] ||
+      translations['en'][key] ||
+      key
+    );
+  }, [language]);
 
   return (
-    <LanguageContext.Provider value={{ t, i18n }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );
 };
+
+export type { Language };

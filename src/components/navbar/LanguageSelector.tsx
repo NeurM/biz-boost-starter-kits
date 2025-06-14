@@ -8,10 +8,10 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { Globe } from "lucide-react";
-import { useLanguage, Language } from '@/context/LanguageContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 type LanguageOption = {
-  code: Language;
+  code: string;
   name: string;
   flag: string;
 };
@@ -27,8 +27,8 @@ const languages: LanguageOption[] = [
 const LanguageSelector = () => {
   const { language, setLanguage } = useLanguage();
 
-  const handleLanguageChange = (langCode: Language) => {
-    setLanguage(langCode);
+  const handleLanguageChange = (langCode: string) => {
+    setLanguage(langCode as any);
   };
 
   return (
