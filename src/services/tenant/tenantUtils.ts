@@ -1,3 +1,4 @@
+
 // Utility functions for tenant services
 
 import { supabase } from '@/integrations/supabase/client';
@@ -53,7 +54,7 @@ export const createDefaultTenantForUser = async (user: any) => {
 
   const slug = generateTenantSlug(defaultName);
 
-  const { data: tenant, error: createTenantError } = await createTenant({
+  const { data: tenant, error: createTenantError } = await createTenantCore({
     name: defaultName,
     slug,
     domain: undefined,
@@ -66,5 +67,4 @@ export const createDefaultTenantForUser = async (user: any) => {
   return tenant;
 };
 
-// Re-export createTenant so it's available for consumers like CreateTenantDialog
-export const createTenant = createTenantCore;
+// Removed duplicate re-export of createTenant to fix module ambiguity

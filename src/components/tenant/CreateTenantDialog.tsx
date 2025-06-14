@@ -1,9 +1,11 @@
+
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { generateTenantSlug, validateTenantSlug, createTenant } from "@/services/tenant/tenantUtils";
+import { generateTenantSlug, validateTenantSlug } from "@/services/tenant/tenantUtils";
+import { createTenant } from "@/services/tenant/tenantService";
 
 interface CreateTenantDialogProps {
   open: boolean;
