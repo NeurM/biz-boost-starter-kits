@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { logApiCall } from './apiLogger';
 import { Tenant, TenantUser, TenantWebsite, TenantDeployment, CreateTenantRequest, CreateWebsiteRequest } from '@/types/tenant';
@@ -292,12 +291,16 @@ export const validateTenantSlug = async (slug: string): Promise<boolean> => {
       .maybeSingle();
 
     if (error) {
-      throw error;
+      // Added better logging for RLS/unauthorized errors
+      console.error('[validateTenantSlug] Error querying tenants:', error);
+      // Optionally, expose error for toast, but return false (slug taken)
+      return false;
     }
 
-    return !data; // Return true if slug is available (no existing tenant found)
+    return !data; // True if database returns no match (slug available)
   } catch (error) {
-    console.error('Error validating tenant slug:', error);
+    console.error('[validateTenantSlug] Exception:', error);
+    // Unhandled error (network/SDK)—treat slug as taken
     return false;
   }
 };

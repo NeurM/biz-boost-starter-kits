@@ -74,10 +74,11 @@ export const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({
       // Validate slug availability
       console.log('Validating slug:', slug);
       const isSlugAvailable = await validateTenantSlug(slug);
+
       if (!isSlugAvailable) {
         toast({
           title: "Validation Error",
-          description: "This slug is already taken. Please choose a different one.",
+          description: "This slug is already taken or could not be checked. Please try another.",
           variant: "destructive"
         });
         setIsCreating(false);
@@ -94,11 +95,20 @@ export const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({
       const response = await createTenant(tenantData);
       
       if (response.error) {
-        console.error('Tenant creation failed:', response.error);
-        throw response.error;
+        // Handle "row violates row-level security" likely due to auth issues
+        let errMessage = response.error.message || 'Failed to create tenant.';
+        if (errMessage.toLowerCase().includes('row-level security')) {
+          errMessage = "You must be logged in to create a tenant. Please sign in and try again.";
+        }
+        console.error('Tenant creation failed:', errMessage);
+        toast({
+          title: "Error",
+          description: errMessage,
+          variant: "destructive"
+        });
+        setIsCreating(false);
+        return;
       }
-
-      console.log('Tenant created successfully:', response.data);
 
       toast({
         title: "Success!",
@@ -106,29 +116,23 @@ export const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({
       });
 
       // Refresh tenants and switch to the new one
-      console.log('Refreshing tenants...');
       await refreshTenants();
       if (response.data) {
-        console.log('Switching to new tenant:', response.data.id);
         switchTenant(response.data.id);
       }
 
-      // Reset form and close dialog
       setName('');
       setSlug('');
       setDomain('');
       onOpenChange(false);
       
     } catch (error) {
-      console.error('Error creating tenant:', error);
       let errorMessage = "Failed to create tenant.";
-      
       if (error instanceof Error) {
         errorMessage = error.message;
       } else if (typeof error === 'object' && error !== null && 'message' in error) {
         errorMessage = (error as any).message;
       }
-      
       toast({
         title: "Error",
         description: errorMessage,
