@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -18,12 +17,13 @@ import {
   AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Eye, Download, MoreHorizontal, Trash, Edit, ExternalLink } from "lucide-react";
+import { Eye, Download, MoreHorizontal, Trash, Edit, ExternalLink, Mail } from "lucide-react";
 import { deleteWebsiteConfig } from "@/utils/websiteService";
 import { useToast } from "@/hooks/use-toast";
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { useTemplateTheme } from '@/context/TemplateThemeContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface WebsiteActionsProps {
   website: any;
@@ -36,6 +36,9 @@ const WebsiteActions: React.FC<WebsiteActionsProps> = ({ website, onDeleted }) =
   const { setTemplateColor, setSecondaryColor } = useTemplateTheme();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSendPreviewOpen, setIsSendPreviewOpen] = useState(false);
+  const [previewEmail, setPreviewEmail] = useState('');
+  const [isSendingPreview, setIsSendingPreview] = useState(false);
 
   const handleViewWebsite = () => {
     if (website.template_id) {
@@ -553,6 +556,52 @@ npm run deploy
     navigate('/dashboard');
   };
   
+  const handleSendPreviewEmail = async () => {
+    if (!previewEmail || !/\S+@\S+\.\S+/.test(previewEmail)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive"
+      });
+      return;
+    }
+    setIsSendingPreview(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-website-previews", {
+        body: {
+          emails: [previewEmail],
+          websites: [{
+            name: website.name || website.company_name,
+            url: website.domain_name || "",
+            template: website.template_id || "",
+          }]
+        }
+      });
+      if (error || (data?.error)) {
+        toast({
+          title: "Failed to Send Preview",
+          description: error?.message || data?.error || "Could not send preview email.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Preview Sent!",
+          description: `Website preview sent to ${previewEmail}.`
+        });
+        setIsSendPreviewOpen(false);
+        setPreviewEmail('');
+      }
+    } catch (e: any) {
+      toast({
+        title: "Error",
+        description: e.message || "An error occurred sending the preview.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSendingPreview(false);
+    }
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -577,6 +626,13 @@ npm run deploy
             <Download className="mr-2 h-4 w-4" />
             <span>Download Code</span>
           </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setIsSendPreviewOpen(true)}
+            disabled={isSendingPreview}
+          >
+            <Mail className="mr-2 h-4 w-4" />
+            <span>Send Preview Email</span>
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={openDeployPage}>
             <ExternalLink className="mr-2 h-4 w-4" />
             <span>Deploy Website</span>
@@ -590,6 +646,44 @@ npm run deploy
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {/* Preview Email Dialog */}
+      {isSendPreviewOpen && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+            <h3 className="font-bold text-lg mb-2">Send Website Preview</h3>
+            <p className="text-sm text-gray-700 mb-4">
+              Enter an email address to send a preview of <span className="font-semibold">{website.name || website.company_name}</span>.
+            </p>
+            <input
+              type="email"
+              required
+              className="w-full border px-3 py-2 rounded mb-4"
+              placeholder="someone@example.com"
+              value={previewEmail}
+              onChange={e => setPreviewEmail(e.target.value)}
+              disabled={isSendingPreview}
+              autoFocus
+            />
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setIsSendPreviewOpen(false);
+                  setPreviewEmail('');
+                }}
+                disabled={isSendingPreview}
+              >Cancel</Button>
+              <Button
+                onClick={handleSendPreviewEmail}
+                disabled={isSendingPreview}
+              >
+                {isSendingPreview ? "Sending..." : "Send"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
