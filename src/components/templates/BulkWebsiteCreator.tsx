@@ -40,7 +40,8 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
   const [selectedTemplateIdx, setSelectedTemplateIdx] = useState(0);
   const selectedTemplate = templates[selectedTemplateIdx];
 
-  const [namesInput, setNamesInput] = useState<string>("");
+  // Updated: Company/email pairs input
+  const [pairsInput, setPairsInput] = useState<string>("");
   const [domainPattern, setDomainPattern] = useState<string>("");
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [primaryColor, setPrimaryColor] = useState(selectedTemplate.primaryColor);
@@ -48,47 +49,88 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
 
   const [isCreating, setIsCreating] = useState(false);
   const [results, setResults] = useState<any[]>([]);
-  // -- ADDED loading state for email
   const [isSendingPreview, setIsSendingPreview] = useState(false);
-
-  // Email input and result
-  const [emailsInput, setEmailsInput] = useState<string>("");
   const [emailResults, setEmailResults] = useState<any[]>([]);
-  
+
   // Keep color pickers in sync with template
   React.useEffect(() => {
     setPrimaryColor(selectedTemplate.primaryColor);
     setSecondaryColor(selectedTemplate.secondaryColor);
   }, [selectedTemplateIdx]);
 
-  // Fix email preview call
-  const handleSendPreviews = async (previews: any[], emails: string[]) => {
-    if (emails.length === 0) return;
+  // Helper: Parse company-email pairs
+  function parsePairs(input: string): { name: string, email: string }[] {
+    return input
+      .split('\n')
+      .map(l => l.trim())
+      .filter(Boolean)
+      .map(l => {
+        const [nameRaw, emailRaw] = l.split('|').map(x => x?.trim());
+        return {
+          name: nameRaw || "",
+          email: (emailRaw && /\S+@\S+\.\S+/.test(emailRaw)) ? emailRaw : "",
+        }
+      })
+      .filter(p => p.name.length > 0 && p.email.length > 0);
+  }
+
+  // Email send: one site, one preview per company/email
+  const handleSendPreviews = async (websiteResults: any[], pairs: { name: string, email: string }[]) => {
+    // Only send for websites that succeeded & have an email
+    const previewsToSend = websiteResults
+      .filter((r: any) => r.success)
+      .map((r: any) => {
+        const pair = pairs.find(p => p.name.toLowerCase() === r.companyName.toLowerCase());
+        return pair && pair.email
+          ? {
+              email: pair.email,
+              website: {
+                name: r.companyName,
+                url: r.data?.domain_name || "",
+                template: r.data?.template_id || "",
+              }
+            }
+          : null;
+      })
+      .filter(Boolean) as { email: string, website: any }[];
+
+    if (previewsToSend.length === 0) return;
+
     setIsSendingPreview(true);
     try {
+      // We'll call the edge function for batch send (or one-by-one if needed)
       const functionUrl = `https://jidyjuyniqslfviemrkx.supabase.co/functions/v1/send-website-previews`;
-      const response = await fetch(functionUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          emails,
-          websites: previews.filter(r => r.success).map(r => ({
-            name: r.companyName,
-            url: r.data?.domain_name || "",
-            template: r.data?.template_id || "",
-          })),
-        }),
-      });
-      const resData = await response.json();
-      setEmailResults(resData.results || []);
-      if (resData.error) {
+      // Group into { email, websites: [website] }
+      const previewsGrouped = previewsToSend.map(p => ({
+        emails: [p.email],
+        websites: [p.website]
+      }));
+      // Call edge function for each
+      let allEmailResults: any[] = [];
+      for (let group of previewsGrouped) {
+        const response = await fetch(functionUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(group),
+        });
+        const resData = await response.json();
+        // result: [{email, success, error}]
+        if (resData.results) {
+          allEmailResults = allEmailResults.concat(resData.results);
+        }
+        if (resData.error && group.emails[0]) {
+          allEmailResults.push({ email: group.emails[0], success: false, error: resData.error });
+        }
+      }
+      setEmailResults(allEmailResults);
+      if (allEmailResults.some(r => !r.success)) {
         toast({
-          title: "Email sending failed",
-          description: resData.error,
+          title: "Some Preview Emails Failed",
+          description: "Check below for details.",
           variant: "destructive"
         });
       } else {
-        toast({ title: "Previews sent!", description: "Website previews sent to provided emails." });
+        toast({ title: "Preview Emails Sent!", description: "Website previews sent to company emails." });
       }
     } catch (err: any) {
       toast({
@@ -101,29 +143,23 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
     }
   };
 
+  // Bulk create
   const handleBulkCreate = async () => {
     if (!currentTenant) {
       toast({ title: "Tenant Required", description: "Select or create a tenant first.", variant: "destructive" });
       return;
     }
-    const companyNames = namesInput
-      .split("\n")
-      .map((n) => n.trim())
-      .filter(Boolean);
-    if (companyNames.length === 0) {
+    // Parse company-email pairs
+    const pairs = parsePairs(pairsInput);
+    if (pairs.length === 0) {
       toast({
         title: "Input Required",
-        description: "Paste at least one company name.",
+        description: "Enter at least one line like: Acme Inc | alice@acme.com",
         variant: "destructive",
       });
       return;
     }
-    // Parse emails (allow comma or newline separated)
-    const emails = emailsInput
-      .split(/,|\n/)
-      .map(e => e.trim())
-      .filter(Boolean)
-      .filter(e => /\S+@\S+\.\S+/.test(e));
+    const companyNames = pairs.map(p => p.name);
     setIsCreating(true);
     setResults([]);
     setEmailResults([]);
@@ -149,8 +185,9 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
         description: "See the results below.",
         variant: failures > 0 ? "destructive" : "default"
       });
-      if (emails.length > 0 && successes > 0) {
-        await handleSendPreviews(creationResults, emails);
+      // After creation, send previews only to matching company email
+      if (successes > 0) {
+        await handleSendPreviews(creationResults, pairs);
       }
       if (onSuccess) onSuccess();
     } catch (err: any) {
@@ -179,7 +216,8 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
         <CardContent className="pt-6">
           <h2 className="text-xl font-semibold mb-2">Bulk Create Websites</h2>
           <p className="text-sm text-gray-500 mb-2">
-            Enter one company name per line. <br />
+            Enter one line per company in the format: <br />
+            <span className="text-gray-700 font-mono">Company Name | someone@company.com</span><br />
             <span className="text-gray-700">All settings below will be applied to each site.</span>
           </p>
           <form
@@ -204,14 +242,17 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
             </div>
             <div>
               <label className="text-sm font-semibold mb-1 block">
-                Company Names <span className="text-gray-400">(one per line)</span>
+                Companies & Emails
+                <span className="text-gray-400">
+                  {" "}(one per line: Name | email)
+                </span>
               </label>
               <textarea
-                className="w-full min-h-[80px] border rounded p-2 text-sm"
-                rows={6}
-                value={namesInput}
-                onChange={e => setNamesInput(e.target.value)}
-                placeholder="Acme Inc&#10;BetaCorp LLC&#10;Gamma Ltd"
+                className="w-full min-h-[96px] border rounded p-2 text-sm font-mono"
+                rows={7}
+                value={pairsInput}
+                onChange={e => setPairsInput(e.target.value)}
+                placeholder={"Acme Inc | alice@acme.com\nBeta LLC | bob@beta.com\nGamma Ltd | gamma@example.com"}
               />
             </div>
             <div>
@@ -261,19 +302,6 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
                   ))}
                 </div>
               </div>
-            </div>
-            {/* ADDED: emails input field */}
-            <div>
-              <label className="text-sm font-semibold mb-1 block">
-                Preview Emails <span className="text-gray-400">(comma or newline separated, optional)</span>
-              </label>
-              <textarea
-                className="w-full min-h-[40px] border rounded p-2 text-sm"
-                rows={2}
-                value={emailsInput}
-                onChange={e => setEmailsInput(e.target.value)}
-                placeholder="email@example.com,editor@example.com"
-              />
             </div>
             <div className="flex gap-2 justify-end items-center pt-2">
               <Button
