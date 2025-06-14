@@ -4,19 +4,35 @@ import { Button } from "@/components/ui/button";
 
 interface GoogleAnalyticsSettingsProps {
   analyticsId?: string;
-  onSave?: (id: string) => void;
+  onSave?: (id: string) => Promise<void> | void;
   disabled?: boolean;
+  resolved?: {
+    gaId?: string;
+    sourceTenantName?: string;
+    isInherited?: boolean;
+  }
 }
 
 const GoogleAnalyticsSettings: React.FC<GoogleAnalyticsSettingsProps> = ({
   analyticsId,
   onSave,
-  disabled
+  disabled,
+  resolved
 }) => {
   const [inputId, setInputId] = useState(analyticsId || "");
+  const [saving, setSaving] = useState(false);
 
   // Validate for GA-XXXXXXXXX or G-XXXXXXXXX
   const isValid = inputId.match(/^GA-\w{8,}|^G-\w{8,}/i);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      if (onSave) await onSave(inputId);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-2 p-4 border rounded-md bg-gray-50">
@@ -25,7 +41,7 @@ const GoogleAnalyticsSettings: React.FC<GoogleAnalyticsSettingsProps> = ({
         type="text"
         value={inputId}
         onChange={e => setInputId(e.target.value)}
-        disabled={disabled}
+        disabled={disabled || saving}
         placeholder="e.g. G-XXXXXXXXX"
         className="border rounded px-2 py-1"
       />
@@ -38,11 +54,28 @@ const GoogleAnalyticsSettings: React.FC<GoogleAnalyticsSettingsProps> = ({
       {onSave && (
         <Button
           type="button"
-          disabled={!isValid || disabled || inputId === analyticsId}
-          onClick={() => onSave(inputId)}
+          disabled={!isValid || disabled || inputId === analyticsId || saving}
+          onClick={handleSave}
         >
-          Save
+          {saving ? "Saving..." : "Save"}
         </Button>
+      )}
+
+      {/* Show GA ID resolution/inheritance info */}
+      {resolved?.gaId && resolved.isInherited && (
+        <div className="text-xs text-blue-700 mt-2">
+          Inherited from agency: <span className="font-bold">{resolved.sourceTenantName}</span> ({resolved.gaId})
+        </div>
+      )}
+      {resolved?.gaId && !resolved.isInherited && (
+        <div className="text-xs text-stone-700 mt-2">
+          This tenant is using its own tracking ID.
+        </div>
+      )}
+      {!resolved?.gaId && (
+        <div className="text-xs text-orange-600 mt-2">
+          No Tracking ID is currently configured or inherited for this tenant.
+        </div>
       )}
     </div>
   );

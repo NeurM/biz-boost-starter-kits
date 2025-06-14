@@ -13,6 +13,7 @@ import Footer from "@/components/Footer";
 import { ExternalLink } from "lucide-react";
 import GoogleAnalyticsSettings from "@/components/GoogleAnalyticsSettings";
 import { toast } from "@/hooks/use-toast";
+import { resolveGoogleAnalyticsId, saveGoogleAnalyticsId } from "@/services/tenant/googleAnalyticsService";
 
 const SavedWebsites = () => {
   const { user } = useAuth();
@@ -112,15 +113,51 @@ const SavedWebsites = () => {
     ? tenantMemberships.find(m => m.tenant?.id === currentTenant.parent_tenant_id)
     : null;
 
+  const [gaResolved, setGaResolved] = useState<{
+    gaId?: string;
+    sourceTenantName?: string;
+    isInherited?: boolean;
+  }>({});
+
+  useEffect(() => {
+    // Figure out if the GA ID is inherited and where from.
+    if (!currentTenant) return setGaResolved({});
+    const { gaId, sourceTenant } = resolveGoogleAnalyticsId(currentTenant, tenantMemberships);
+    setGaResolved({
+      gaId,
+      sourceTenantName: sourceTenant?.name,
+      isInherited:
+        !!gaId &&
+        !!sourceTenant &&
+        sourceTenant.id !== currentTenant.id
+    });
+  }, [currentTenant, tenantMemberships]);
+
   const googleAnalyticsId = currentTenant?.settings?.google_analytics_id;
 
-  // Handler for updating tenant analytics (needs backend after SQL migration)
-  const handleSaveAnalyticsId = (id: string) => {
-    toast({
-      title: "Not yet implemented!",
-      description: "Saving GA ID coming after backend migration. Stay tuned.",
-      variant: "destructive"
-    });
+  // Handler for updating tenant analytics
+  const handleSaveAnalyticsId = async (id: string) => {
+    if (!currentTenant) return;
+    // null or blank means remove
+    if (!id) id = "";
+    const res = await saveGoogleAnalyticsId(currentTenant.id, id);
+    if (res.error) {
+      toast({
+        title: "Failed to update Google Analytics ID",
+        description: res.error.message || "Unknown error",
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Google Analytics ID updated",
+        description: id
+          ? `Tracking ID set to: ${id}`
+          : "Tracking ID removed. Will now inherit from agency (if available).",
+        variant: "default"
+      });
+      // Refresh so UI shows latest
+      await loadWebsites();
+    }
   };
 
   return (
@@ -165,6 +202,7 @@ const SavedWebsites = () => {
           <GoogleAnalyticsSettings
             analyticsId={googleAnalyticsId}
             onSave={handleSaveAnalyticsId}
+            resolved={gaResolved}
           />
         </div>
 
