@@ -69,6 +69,7 @@ export interface CreateTenantRequest {
   name: string;
   slug: string;
   domain?: string;
+  tenant_type?: 'agency' | 'client'; // <-- Added to support correct tenant creation
 }
 
 export interface CreateWebsiteRequest {
