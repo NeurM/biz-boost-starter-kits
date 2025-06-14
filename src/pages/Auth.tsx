@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { signIn, signUp, getCurrentUser } from "@/utils/supabase";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
 const checkAgencyExists = async (agencyName: string) => {
   // Slugify for uniqueness
@@ -37,15 +38,23 @@ const createAgencyTenant = async (agencyName: string) => {
   return { data, error, slug };
 };
 
-const addUserToTenant = async ({ tenant_id, user_id, role }: { tenant_id: string; user_id: string; role: string }) => {
+const addUserToTenant = async ({
+  tenant_id,
+  user_id,
+  role,
+}: {
+  tenant_id: string;
+  user_id: string;
+  role: Database["public"]["Enums"]["tenant_role"];
+}) => {
   const { data, error } = await supabase
     .from('tenant_users')
     .insert({
       tenant_id,
       user_id,
-      role,
+      role, // this is now the enum-typed value
       joined_at: new Date().toISOString(),
-    })
+    } as Database["public"]["Tables"]["tenant_users"]["Insert"])
     .select()
     .single();
   return { data, error };
@@ -173,7 +182,6 @@ const AuthPage = () => {
       let tenantId: string | undefined;
 
       if (registerForm.agencyChoice === "create") {
-        // 2a. Create agency if not exist (double-check)
         let agencyTenantId: string | undefined;
         if (agencyCheckResult?.exists && agencyCheckResult?.tenant) {
           agencyTenantId = agencyCheckResult.tenant.id;
@@ -207,9 +215,12 @@ const AuthPage = () => {
 
       // 3. Add user to tenant_users as owner
       if (tenantId) {
-        const addRes = await addUserToTenant({ tenant_id: tenantId, user_id: signUpData.user.id, role: "owner" });
+        const addRes = await addUserToTenant({
+          tenant_id: tenantId,
+          user_id: signUpData.user.id,
+          role: "owner" as Database["public"]["Enums"]["tenant_role"],
+        });
         if (addRes.error) {
-          // fallback: not critical, but user may not be able to manage tenant
           toast({
             title: "Could not assign agency ownership",
             description: addRes.error.message || "Try to contact support.",
