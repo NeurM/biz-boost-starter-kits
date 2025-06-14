@@ -48,8 +48,10 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
 
   const [isCreating, setIsCreating] = useState(false);
   const [results, setResults] = useState<any[]>([]);
+  // -- ADDED loading state for email
+  const [isSendingPreview, setIsSendingPreview] = useState(false);
 
-  // New states for email preview
+  // Email input and result
   const [emailsInput, setEmailsInput] = useState<string>("");
   const [emailResults, setEmailResults] = useState<any[]>([]);
   
@@ -59,10 +61,13 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
     setSecondaryColor(selectedTemplate.secondaryColor);
   }, [selectedTemplateIdx]);
 
+  // Fix email preview call
   const handleSendPreviews = async (previews: any[], emails: string[]) => {
     if (emails.length === 0) return;
+    setIsSendingPreview(true);
     try {
-      const response = await fetch('/functions/v1/send-website-previews', {
+      const functionUrl = `https://jidyjuyniqslfviemrkx.supabase.co/functions/v1/send-website-previews`;
+      const response = await fetch(functionUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -91,6 +96,8 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
         description: err.message || "Failed to send previews.",
         variant: "destructive"
       });
+    } finally {
+      setIsSendingPreview(false);
     }
   };
 
@@ -111,6 +118,7 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
       });
       return;
     }
+    // Parse emails (allow comma or newline separated)
     const emails = emailsInput
       .split(/,|\n/)
       .map(e => e.trim())
@@ -158,7 +166,6 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
 
   if (!open) return null;
 
-  // Simplified Tailwind palette for color pickers
   const colorOptions = [
     "#ef4444", "#f97316", "#f59e0b", "#eab308", "#84cc16", "#22c55e",
     "#10b981", "#14b8a6", "#06b6d4", "#0ea5e9", "#3b82f6", "#6366f1",
@@ -175,7 +182,6 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
             Enter one company name per line. <br />
             <span className="text-gray-700">All settings below will be applied to each site.</span>
           </p>
-          {/* Email list input - NEW FIELD */}
           <form
             onSubmit={e => {
               e.preventDefault();
@@ -256,16 +262,29 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
                 </div>
               </div>
             </div>
+            {/* ADDED: emails input field */}
+            <div>
+              <label className="text-sm font-semibold mb-1 block">
+                Preview Emails <span className="text-gray-400">(comma or newline separated, optional)</span>
+              </label>
+              <textarea
+                className="w-full min-h-[40px] border rounded p-2 text-sm"
+                rows={2}
+                value={emailsInput}
+                onChange={e => setEmailsInput(e.target.value)}
+                placeholder="email@example.com,editor@example.com"
+              />
+            </div>
             <div className="flex gap-2 justify-end items-center pt-2">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={onClose}
-                disabled={isCreating}
+                disabled={isCreating || isSendingPreview}
               >Cancel</Button>
               <Button
                 type="submit"
-                disabled={isCreating}
+                disabled={isCreating || isSendingPreview}
               >{isCreating ? "Creating..." : "Create Websites"}</Button>
             </div>
           </form>
@@ -293,6 +312,9 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
                   ))}
                 </ul>
               </div>
+            )}
+            {isSendingPreview && (
+              <div className="text-gray-500 text-xs mt-3">Sending preview emails...</div>
             )}
           </div>
         </CardContent>
