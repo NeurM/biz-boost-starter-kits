@@ -35,6 +35,14 @@ const GlobalAppNavbar: React.FC = () => {
                     Current: <span className="font-medium">{currentTenant.name}</span>
                   </div>
                 )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-2"
+                  onClick={() => navigate("/agency-management")}
+                >
+                  Agencies
+                </Button>
               </div>
             )}
           </div>

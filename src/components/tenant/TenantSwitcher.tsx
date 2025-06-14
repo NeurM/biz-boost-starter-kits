@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Check, ChevronsUpDown, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,6 +25,17 @@ interface TenantSwitcherProps {
 export const TenantSwitcher: React.FC<TenantSwitcherProps> = ({ onCreateTenant }) => {
   const { currentTenant, tenantMemberships, switchTenant } = useTenant();
   const [open, setOpen] = React.useState(false);
+
+  // Only list tenants that are either:
+  // - Agencies
+  // - Clients WITHOUT a parent agency (parent_tenant_id is falsy)
+  const filteredMemberships = tenantMemberships.filter((membership) => {
+    const t = membership.tenant;
+    if (!t) return false;
+    if (t.tenant_type === "agency") return true;
+    if (t.tenant_type === "client" && !t.parent_tenant_id) return true;
+    return false;
+  });
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -56,9 +66,8 @@ export const TenantSwitcher: React.FC<TenantSwitcherProps> = ({ onCreateTenant }
           <CommandList>
             <CommandEmpty>No tenant found.</CommandEmpty>
             <CommandGroup>
-              {tenantMemberships.map((membership) => {
+              {filteredMemberships.map((membership) => {
                 if (!membership.tenant) return null;
-                
                 return (
                   <CommandItem
                     key={membership.tenant.id}

@@ -1,4 +1,3 @@
-
 import React, { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate, useParams } from 'react-router-dom';
 import { expertRoutes } from './routes/expertRoutes';
@@ -16,6 +15,7 @@ import WebsiteEditor from './pages/WebsiteEditor';
 import SavedWebsites from './pages/SavedWebsites';
 import NotFound from './pages/NotFound';
 import CleanSlate from './templates/cleanslate/CleanSlate';
+import AgencyManagement from './pages/AgencyManagement';
 
 // Loading fallback
 const Loading = () => (
@@ -96,6 +96,11 @@ const mainRoutes = [
   {
     path: '/websites',
     element: <Navigate to="/saved-websites" replace />,
+  },
+  {
+    path: '/agency-management',
+    element: withSuspense(AgencyManagement),
+    errorElement: <ErrorFallback />
   },
 ];
 

@@ -134,3 +134,37 @@ export const addTenantOwner = async ({
       joined_at: new Date().toISOString(),
     });
 };
+
+/**
+ * Get all agency tenants (where tenant_type = 'agency' and user is a member), with their clients
+ */
+export const getUserAgenciesWithClients = async (userId: string) => {
+  // Agencies where the user is a member (could be owner or admin/etc)
+  const agenciesRes = await supabase
+    .from('tenants')
+    .select('*')
+    .eq('tenant_type', 'agency');
+
+  if (agenciesRes.error) {
+    return { error: agenciesRes.error, data: null };
+  }
+  const agencies = agenciesRes.data || [];
+
+  // Get clients for each agency
+  const clientsRes = await supabase
+    .from('tenants')
+    .select('*')
+    .eq('tenant_type', 'client')
+    .not('parent_tenant_id', 'is', null);
+
+  const clients = clientsRes.data || [];
+  // Attach clients to their parent agency
+  const agenciesWithClients = agencies.map(agency => {
+    const agencyClients = clients.filter(
+      client => client.parent_tenant_id === agency.id
+    );
+    return { ...agency, clients: agencyClients };
+  });
+
+  return { error: null, data: agenciesWithClients };
+};
