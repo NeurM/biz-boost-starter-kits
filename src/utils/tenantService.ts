@@ -352,7 +352,7 @@ export const createDefaultTenantForUser = async (user: any) => {
     console.error('Error fetching memberships for default tenant:', error);
     return null;
   }
-  if (memberships && memberships.data && memberships.data.length > 0) {
+  if (memberships && memberships.length > 0) {
     // Already has tenant(s)
     return null;
   }
