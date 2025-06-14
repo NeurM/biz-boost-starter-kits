@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -11,8 +12,8 @@ import { useTenant } from '@/context/TenantContext';
 import { TemplateCard } from '@/components/templates/TemplateCard';
 import { CreateTenantDialog } from '@/components/tenant/CreateTenantDialog';
 import { TenantSwitcher } from '@/components/tenant/TenantSwitcher';
-import { createTenantWebsite } from '@/utils/tenantService';
-import { generateTenantSlug } from '@/utils/tenantService';
+import { createTenantWebsite } from '@/services/tenant/websiteService';
+import { generateTenantSlug } from '@/services/tenant/tenantUtils';
 import GlobalAppNavbar from '@/components/GlobalAppNavbar';
 import { BulkWebsiteCreator } from "@/components/templates/BulkWebsiteCreator";
 

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { createTenantWebsitesBulk } from "@/utils/tenantService";
+import { createTenantWebsitesBulk } from "@/services/tenant/websiteService";
 import { useTenant } from "@/context/TenantContext";
 
 // Small template card for selector
@@ -49,11 +49,50 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
   const [isCreating, setIsCreating] = useState(false);
   const [results, setResults] = useState<any[]>([]);
 
+  // New states for email preview
+  const [emailsInput, setEmailsInput] = useState<string>("");
+  const [emailResults, setEmailResults] = useState<any[]>([]);
+  
   // Keep color pickers in sync with template
   React.useEffect(() => {
     setPrimaryColor(selectedTemplate.primaryColor);
     setSecondaryColor(selectedTemplate.secondaryColor);
   }, [selectedTemplateIdx]);
+
+  const handleSendPreviews = async (previews: any[], emails: string[]) => {
+    if (emails.length === 0) return;
+    try {
+      const response = await fetch('/functions/v1/send-website-previews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          emails,
+          websites: previews.filter(r => r.success).map(r => ({
+            name: r.companyName,
+            url: r.data?.domain_name || "",
+            template: r.data?.template_id || "",
+          })),
+        }),
+      });
+      const resData = await response.json();
+      setEmailResults(resData.results || []);
+      if (resData.error) {
+        toast({
+          title: "Email sending failed",
+          description: resData.error,
+          variant: "destructive"
+        });
+      } else {
+        toast({ title: "Previews sent!", description: "Website previews sent to provided emails." });
+      }
+    } catch (err: any) {
+      toast({
+        title: "Email Error",
+        description: err.message || "Failed to send previews.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const handleBulkCreate = async () => {
     if (!currentTenant) {
@@ -72,10 +111,14 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
       });
       return;
     }
-
+    const emails = emailsInput
+      .split(/,|\n/)
+      .map(e => e.trim())
+      .filter(Boolean)
+      .filter(e => /\S+@\S+\.\S+/.test(e));
     setIsCreating(true);
     setResults([]);
-
+    setEmailResults([]);
     try {
       const sharedSettings = {
         template_id: selectedTemplate.path,
@@ -98,6 +141,9 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
         description: "See the results below.",
         variant: failures > 0 ? "destructive" : "default"
       });
+      if (emails.length > 0 && successes > 0) {
+        await handleSendPreviews(creationResults, emails);
+      }
       if (onSuccess) onSuccess();
     } catch (err: any) {
       toast({
@@ -125,10 +171,11 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
       <Card className="w-full max-w-xl">
         <CardContent className="pt-6">
           <h2 className="text-xl font-semibold mb-2">Bulk Create Websites</h2>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-gray-500 mb-2">
             Enter one company name per line. <br />
             <span className="text-gray-700">All settings below will be applied to each site.</span>
           </p>
+          {/* Email list input - NEW FIELD */}
           <form
             onSubmit={e => {
               e.preventDefault();
@@ -230,6 +277,18 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
                   {results.map((r, i) => (
                     <li key={i} className={r.success ? "text-green-700" : "text-red-600"}>
                       {r.companyName}: {r.success ? "✓ Created" : `✗ ${r.error || "Failed"}`}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {emailResults.length > 0 && (
+              <div className="mt-3 max-h-28 overflow-y-auto">
+                <h4 className="font-semibold text-sm mb-1">Email Preview Results:</h4>
+                <ul className="space-y-1 text-sm">
+                  {emailResults.map((r, i) => (
+                    <li key={i} className={r.success ? "text-green-700" : "text-red-600"}>
+                      {r.email}: {r.success ? "✓ Sent" : `✗ ${r.error || "Failed"}`}
                     </li>
                   ))}
                 </ul>

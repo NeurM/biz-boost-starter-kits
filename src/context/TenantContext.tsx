@@ -1,6 +1,7 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Tenant, TenantUser, convertDbTenantUserToTenantUser, convertDbTenantToTenant } from '@/types/tenant';
-import { getUserTenants } from '@/utils/tenantService';
+import { getUserTenants } from '@/services/tenant/tenantService';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 

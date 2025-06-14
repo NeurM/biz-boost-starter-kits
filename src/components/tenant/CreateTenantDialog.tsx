@@ -1,145 +1,68 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
-import { useTenant } from '@/context/TenantContext';
-import { createTenant, generateTenantSlug, validateTenantSlug } from '@/utils/tenantService';
+import React, { useState } from "react";
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { generateTenantSlug, validateTenantSlug, createTenant } from "@/services/tenant/tenantUtils";
 
 interface CreateTenantDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({
-  open,
-  onOpenChange,
-}) => {
-  const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [domain, setDomain] = useState('');
-  const [isCreating, setIsCreating] = useState(false);
+export const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ open, onOpenChange }) => {
+  const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { refreshTenants, switchTenant } = useTenant();
 
-  const handleNameChange = (value: string) => {
-    setName(value);
-    if (value && !slug) {
-      setSlug(generateTenantSlug(value));
-    }
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value;
+    setName(newName);
+    const newSlug = generateTenantSlug(newName);
+    setSlug(newSlug);
+  };
+
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSlug(e.target.value);
   };
 
   const handleCreateTenant = async () => {
-    if (!name.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Tenant name is required.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!slug.trim()) {
-      toast({
-        title: "Validation Error", 
-        description: "Tenant slug is required.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Basic slug validation
-    const slugRegex = /^[a-z0-9\-]+$/;
-    if (!slugRegex.test(slug)) {
-      toast({
-        title: "Validation Error",
-        description: "Slug can only contain lowercase letters, numbers, and hyphens.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsCreating(true);
-
+    setIsLoading(true);
     try {
-      console.log('[TenantDialog] Creating tenant:', name, slug, domain, new Date());
-      
-      // Validate slug availability
-      console.log('Validating slug:', slug);
-      const isSlugAvailable = await validateTenantSlug(slug);
-
-      if (!isSlugAvailable) {
+      const isValidSlug = await validateTenantSlug(slug);
+      if (!isValidSlug) {
         toast({
-          title: "Validation Error",
-          description: "This slug is already taken or could not be checked. Please try another.",
-          variant: "destructive"
+          title: "Invalid Slug",
+          description: "This slug is already taken. Please choose a different one.",
+          variant: "destructive",
         });
-        setIsCreating(false);
         return;
       }
 
-      const tenantData = {
-        name: name.trim(),
-        slug: slug.trim(),
-        domain: domain.trim() || undefined
-      };
+      const response = await createTenant({
+        name,
+        slug,
+        domain: undefined,
+      });
 
-      console.log('Creating tenant with data:', tenantData);
-      const response = await createTenant(tenantData);
-      
       if (response.error) {
-        // Handle "row violates row-level security" likely due to auth issues
-        let errMessage = response.error.message || 'Failed to create tenant.';
-        if (errMessage.toLowerCase().includes('row-level security')) {
-          errMessage = "You must be logged in to create a tenant. Please sign in and try again.";
-        }
-        console.error('Tenant creation failed:', errMessage);
-        toast({
-          title: "Error",
-          description: errMessage,
-          variant: "destructive"
-        });
-        setIsCreating(false);
-        return;
+        throw response.error;
       }
 
       toast({
-        title: "Success!",
-        description: "Tenant created successfully.",
+        title: "Tenant Created",
+        description: "Your new tenant has been successfully created.",
       });
-
-      // Refresh tenants and switch to the new one
-      await refreshTenants();
-      if (response.data) {
-        switchTenant(response.data.id);
-      }
-
-      setName('');
-      setSlug('');
-      setDomain('');
       onOpenChange(false);
-      
-    } catch (error) {
-      let errorMessage = "Failed to create tenant.";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (typeof error === 'object' && error !== null && 'message' in error) {
-        errorMessage = (error as any).message;
-      }
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: errorMessage,
-        variant: "destructive"
+        description: error.message || "Failed to create tenant.",
+        variant: "destructive",
       });
     } finally {
-      setIsCreating(false);
+      setIsLoading(false);
     }
   };
 
@@ -149,53 +72,45 @@ export const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Create New Tenant</DialogTitle>
           <DialogDescription>
-            Create a new tenant to organize your websites and team members.
+            Create a new tenant to manage your websites and users.
           </DialogDescription>
         </DialogHeader>
-        
         <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="name">Tenant Name</Label>
-            <Input
-              id="name"
-              placeholder="My Company"
-              value={name}
-              onChange={(e) => handleNameChange(e.target.value)}
-            />
+          <div className="grid grid-cols-4 items-center gap-4">
+            <label htmlFor="name" className="text-right text-sm font-medium leading-none text-gray-800">
+              Name
+            </label>
+            <div className="col-span-3">
+              <Input
+                id="name"
+                value={name}
+                onChange={handleNameChange}
+                className="col-span-3 h-10"
+              />
+            </div>
           </div>
-          
-          <div className="grid gap-2">
-            <Label htmlFor="slug">Slug (URL identifier)</Label>
-            <Input
-              id="slug"
-              placeholder="my-company"
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-            />
-            <p className="text-xs text-gray-500">
-              This will be used in URLs and must be unique
-            </p>
-          </div>
-          
-          <div className="grid gap-2">
-            <Label htmlFor="domain">Custom Domain (optional)</Label>
-            <Input
-              id="domain"
-              placeholder="mycompany.com"
-              value={domain}
-              onChange={(e) => setDomain(e.target.value)}
-            />
+          <div className="grid grid-cols-4 items-center gap-4">
+            <label htmlFor="slug" className="text-right text-sm font-medium leading-none text-gray-800">
+              Slug
+            </label>
+            <div className="col-span-3">
+              <Input
+                id="slug"
+                value={slug}
+                onChange={handleSlugChange}
+                className="col-span-3 h-10"
+              />
+            </div>
           </div>
         </div>
-        
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter>
+          <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleCreateTenant} disabled={isCreating}>
-            {isCreating ? "Creating..." : "Create Tenant"}
+          <Button type="submit" onClick={handleCreateTenant} disabled={isLoading}>
+            {isLoading ? "Creating..." : "Create Tenant"}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
