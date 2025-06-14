@@ -1,7 +1,7 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Tenant, TenantUser, convertDbTenantUserToTenantUser, convertDbTenantToTenant } from '@/types/tenant';
 import { getUserTenants } from '@/services/tenant/tenantService';
+import { createDefaultTenantForUser } from '@/services/tenant/tenantUtils';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -59,8 +59,8 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
       if (!isCreatingDefaultTenant && dbMemberships.length === 0) {
         setIsCreatingDefaultTenant(true);
         try {
-          // Reuse existing service function
-          const created = await import('@/utils/tenantService').then(mod => mod.createDefaultTenantForUser(user));
+          // Call the correct function (from tenantUtils, fixed above)
+          const created = await createDefaultTenantForUser(user);
           if (created) {
             // After creation, reload memberships
             response = await getUserTenants();

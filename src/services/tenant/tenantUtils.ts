@@ -1,8 +1,7 @@
-
 // Utility functions for tenant services
 
 import { supabase } from '@/integrations/supabase/client';
-import { createTenant, getUserTenants } from './tenantService';
+import { createTenant as createTenantCore, getUserTenants } from './tenantService';
 
 // Slug generator
 export const generateTenantSlug = (name: string): string => {
@@ -66,3 +65,6 @@ export const createDefaultTenantForUser = async (user: any) => {
   }
   return tenant;
 };
+
+// Re-export createTenant so it's available for consumers like CreateTenantDialog
+export const createTenant = createTenantCore;
