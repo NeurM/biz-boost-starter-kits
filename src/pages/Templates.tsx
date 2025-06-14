@@ -83,7 +83,6 @@ const Templates: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [createTenantOpen, setCreateTenantOpen] = useState(false);
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
-  const [bulkTemplate, setBulkTemplate] = useState<any | null>(null);
 
   const handleSelectTemplate = (template: any) => {
     if (!user) {
@@ -205,8 +204,7 @@ const Templates: React.FC = () => {
     setCreateTenantOpen(true);
   };
 
-  const handleOpenBulkModal = (template: any) => {
-    setBulkTemplate(template);
+  const handleOpenBulkModal = () => {
     setBulkModalOpen(true);
   };
 
@@ -236,7 +234,7 @@ const Templates: React.FC = () => {
               )}
               <Button
                 variant="secondary"
-                onClick={() => handleOpenBulkModal(templates[0])}
+                onClick={handleOpenBulkModal}
                 className="ml-4"
               >
                 Bulk Create Websites
@@ -272,13 +270,11 @@ const Templates: React.FC = () => {
       </div>
 
       {/* Bulk Modal UI */}
-      {bulkTemplate && (
+      {bulkModalOpen && (
         <BulkWebsiteCreator
           open={bulkModalOpen}
           onClose={() => setBulkModalOpen(false)}
-          template={bulkTemplate}
-          primaryColor={selectedPrimaryColor || bulkTemplate.primaryColor}
-          secondaryColor={selectedSecondaryColor || bulkTemplate.secondaryColor}
+          templates={templates}
         />
       )}
       
