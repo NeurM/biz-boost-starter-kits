@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Tenant, TenantUser, convertDbTenantUserToTenantUser, convertDbTenantToTenant } from '@/types/tenant';
 import { getUserTenants } from '@/services/tenant/tenantService';
@@ -30,7 +31,7 @@ interface TenantProviderProps {
 }
 
 export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null);
   const [tenantMemberships, setTenantMemberships] = useState<TenantUser[]>([]);
@@ -42,6 +43,7 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
     if (!user) {
       setTenantMemberships([]);
       setCurrentTenant(null);
+      setError(null);
       return;
     }
     setIsLoading(true);
@@ -59,10 +61,8 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
       if (!isCreatingDefaultTenant && dbMemberships.length === 0) {
         setIsCreatingDefaultTenant(true);
         try {
-          // Call the correct function (from tenantUtils, fixed above)
           const created = await createDefaultTenantForUser(user);
           if (created) {
-            // After creation, reload memberships
             response = await getUserTenants();
             dbMemberships = response.data || [];
             toast({
@@ -90,7 +90,7 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
       const memberships = dbMemberships.map(convertDbTenantUserToTenantUser);
       setTenantMemberships(memberships);
 
-      // Find current tenant by stored id, otherwise use first one, for more robust switching after creation
+      // Find current tenant by stored id, otherwise use first one
       const savedTenantId = localStorage.getItem('currentTenantId');
       let tenantToSet = null;
       if (savedTenantId) {
@@ -102,7 +102,6 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
       }
       setCurrentTenant(tenantToSet);
 
-      // If no current tenant is set, default to the first one
       if (!currentTenant && memberships.length > 0) {
         const firstMembership = memberships[0];
         if (firstMembership.tenant) {
@@ -110,17 +109,20 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
         }
       }
 
-      // If current tenant is set but not in the list, clear it
       if (currentTenant && !memberships.find(m => m.tenant?.id === currentTenant.id)) {
         setCurrentTenant(null);
       }
 
     } catch (error) {
-      console.error('Error loading tenants:', error);
-      setError(error instanceof Error ? error.message : 'Failed to load tenants');
+      // Improved: Show error, prevent logic from redirecting, distinguish between auth/tenancy
+      const msg = (error instanceof Error ? error.message : (typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : 'Failed to load tenants')) || '';
+      console.error('[TenantContext] Error loading tenants:', msg, error);
+      setError(msg);
+      setTenantMemberships([]);
+      setCurrentTenant(null);
       toast({
-        title: "Error",
-        description: "Failed to load tenant information.",
+        title: "Error loading tenants",
+        description: msg,
         variant: "destructive"
       });
     } finally {
@@ -136,17 +138,19 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
     }
   };
 
-  // Load tenants when user changes
+  // Load tenants when user changes, but only after auth loading resolves
   useEffect(() => {
+    if (authLoading) return; // Don't fetch until auth state is loaded
     if (user) {
       refreshTenants();
     } else {
       setTenantMemberships([]);
       setCurrentTenant(null);
     }
-  }, [user]);
+    // eslint-disable-next-line
+  }, [user, authLoading]);
 
-  // Restore current tenant from localStorage
+  // Restore current tenant from localStorage when memberships update
   useEffect(() => {
     const savedTenantId = localStorage.getItem('currentTenantId');
     if (savedTenantId && tenantMemberships.length > 0) {
@@ -155,12 +159,13 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
         setCurrentTenant(membership.tenant);
       }
     }
+    // eslint-disable-next-line
   }, [tenantMemberships]);
 
   const value: TenantContextType = {
     currentTenant,
     tenantMemberships,
-    isLoading: isLoading || isCreatingDefaultTenant,
+    isLoading: isLoading || isCreatingDefaultTenant || authLoading,
     error,
     setCurrentTenant,
     refreshTenants,

@@ -3,6 +3,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { getCurrentUser, signOut as supabaseSignOut } from '@/utils/supabase';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextProps {
   user: User | null;
@@ -26,33 +27,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function loadUser() {
-      try {
-        setIsLoading(true);
-        const { data, error } = await getCurrentUser();
-        
-        if (data?.user) {
-          setUser(data.user);
-          // Fix: Only access session if available in the return data
-          if ('session' in data) {
-            setSession(data.session as Session);
-          } else {
-            setSession(null);
-          }
-        } else {
-          setUser(null);
-          setSession(null);
-        }
-      } catch (error) {
-        console.error('Error loading user:', error);
-        setUser(null);
-        setSession(null);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    
-    loadUser();
+    // Setup an auth state listener and restore existing session from Supabase
+    setIsLoading(true);
+
+    // Listener for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
+
+    // Immediately fetch session/user for page refresh
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleSignOut = async () => {

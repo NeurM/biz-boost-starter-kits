@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -73,7 +72,7 @@ const Templates: React.FC = () => {
   const { t } = useLanguage();
   const { templateColor, secondaryColor } = useTemplateTheme();
   const { user } = useAuth();
-  const { currentTenant, tenantMemberships } = useTenant();
+  const { currentTenant, tenantMemberships, isLoading: tenantsLoading, error: tenantsError } = useTenant();
 
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [companyName, setCompanyName] = useState('');
@@ -208,6 +207,31 @@ const Templates: React.FC = () => {
   const handleOpenBulkModal = () => {
     setBulkModalOpen(true);
   };
+
+  // Updated: Show loader/fallback when tenantMemberships is loading
+  if (tenantsLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-400 mx-auto mb-8"></div>
+          <div className="text-lg text-gray-700 font-semibold">Loading your workspace...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Updated: Distinguish between auth/tenant errors
+  if (tenantsError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="bg-white rounded-lg shadow-md p-8 max-w-lg mx-auto text-center">
+          <h2 className="text-red-600 text-2xl font-bold mb-2">Something went wrong</h2>
+          <p className="text-gray-600 mb-6">{tenantsError}</p>
+          <Button variant="outline" onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
