@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,6 +11,7 @@ import { format } from 'date-fns';
 import { useTenant } from "@/context/TenantContext";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/Footer";
+import { ExternalLink } from "lucide-react";
 
 const SavedWebsites = () => {
   const { user } = useAuth();
@@ -19,6 +21,12 @@ const SavedWebsites = () => {
   const [websites, setWebsites] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Helper: agencyId if currentTenant is agency and user is owner/admin there
+  const agencyMembership = tenantMemberships.find(m =>
+    m.tenant?.id === currentTenant?.id && m.tenant?.tenant_type === 'agency' && ["owner","admin"].includes(m.role)
+  );
+  const isViewingAgency = !!agencyMembership;
 
   // --- New: handle tenant param from query string ---
   useEffect(() => {
@@ -67,8 +75,25 @@ const SavedWebsites = () => {
     return null;
   }
 
-  // Show tenant switcher if more than one tenant
-  const showTenantSelector = tenantMemberships.length > 1;
+  // Show tenant switcher if more than one tenant (filtered, see below)
+  // For agency owners: only show agency + independent clients (direct memberships)
+  let filteredTenantMemberships = tenantMemberships;
+  if (isViewingAgency) {
+    filteredTenantMemberships = tenantMemberships.filter(m =>
+      m.tenant &&
+      (
+        m.tenant.id === agencyMembership.tenant.id ||
+        (m.tenant.tenant_type === "client" && !m.tenant.parent_tenant_id)
+      )
+    );
+  }
+  const showTenantSelector = filteredTenantMemberships.length > 1;
+
+  const handleGoToTenant = (tenantId: string) => {
+    switchTenant(tenantId);
+    // Add tenant query param to remember state (optional)
+    navigate(`/saved-websites?tenant=${tenantId}`);
+  };
 
   const getTemplateDisplayName = (templateId: string) => {
     const templates: Record<string, string> = {
@@ -92,10 +117,10 @@ const SavedWebsites = () => {
               <span className="text-sm">Tenant:</span>
               <select
                 value={currentTenant?.id || ""}
-                onChange={e => switchTenant(e.target.value)}
+                onChange={e => handleGoToTenant(e.target.value)}
                 className="border rounded px-2 py-1 text-sm"
               >
-                {tenantMemberships.map(m => (
+                {filteredTenantMemberships.map(m => (
                   <option key={m.tenant?.id} value={m.tenant?.id || ""}>
                     {m.tenant?.name}
                   </option>
@@ -166,13 +191,36 @@ const SavedWebsites = () => {
                     </TableCell>
                     <TableCell>{website.created_at ? format(new Date(website.created_at), 'MMM d, yyyy') : '-'}</TableCell>
                     <TableCell>
-                      {/* Show the tenant name as a badge if it's different from the selected one */}
-                      <span className={"inline-block px-2 py-1 text-xs rounded bg-gray-100 font-semibold"}>
-                        {website.tenant_name || "Unknown"}
-                      </span>
+                      {/* Agency Owner/Manager: tenant name is clickable (go to client), visual cue for agency/client */}
+                      {isViewingAgency && website.tenant_id !== currentTenant?.id && website.tenant_id ? (
+                        <button
+                          className="text-blue-600 hover:underline flex items-center gap-1"
+                          title="Go to client tenant"
+                          onClick={() => handleGoToTenant(website.tenant_id)}
+                        >
+                          {website.tenant_name || "Unknown"}
+                          <ExternalLink className="inline w-4 h-4 opacity-70" />
+                        </button>
+                      ) : (
+                        <span className={"inline-block px-2 py-1 text-xs rounded bg-gray-100 font-semibold"}>
+                          {website.tenant_name || "Unknown"}
+                        </span>
+                      )}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right flex gap-2 items-center justify-end">
                       <WebsiteActions website={website} onDeleted={loadWebsites} />
+                      {/* Agency: "Go to Tenant" quick link for client tenants */}
+                      {isViewingAgency && website.tenant_id !== currentTenant?.id && website.tenant_id && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="ml-1"
+                          onClick={() => handleGoToTenant(website.tenant_id)}
+                          title="Switch to this client tenant"
+                        >
+                          Go to Tenant
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -199,3 +247,4 @@ const SavedWebsites = () => {
 };
 
 export default SavedWebsites;
+
