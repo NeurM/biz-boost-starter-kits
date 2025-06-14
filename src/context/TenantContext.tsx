@@ -35,6 +35,7 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
   const [tenantMemberships, setTenantMemberships] = useState<TenantUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCreatingDefaultTenant, setIsCreatingDefaultTenant] = useState(false);
 
   const refreshTenants = async () => {
     if (!user) {
@@ -46,13 +47,45 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
     setError(null);
 
     try {
-      const response = await getUserTenants();
+      let response = await getUserTenants();
 
       if (response.error) {
         throw response.error;
       }
 
-      const dbMemberships = response.data || [];
+      let dbMemberships = response.data || [];
+      // Auto-create tenant for user if none
+      if (!isCreatingDefaultTenant && dbMemberships.length === 0) {
+        setIsCreatingDefaultTenant(true);
+        try {
+          // Reuse existing service function
+          const created = await import('@/utils/tenantService').then(mod => mod.createDefaultTenantForUser(user));
+          if (created) {
+            // After creation, reload memberships
+            response = await getUserTenants();
+            dbMemberships = response.data || [];
+            toast({
+              title: "Default tenant created",
+              description: "A default tenant was created for you.",
+            });
+          } else {
+            toast({
+              title: "Tenant Error",
+              description: "Failed to create a default tenant. Please try again or contact support.",
+              variant: "destructive"
+            });
+          }
+        } catch (e) {
+          toast({
+            title: "Tenant Error",
+            description: "Failed to create a default tenant.",
+            variant: "destructive"
+          });
+        } finally {
+          setIsCreatingDefaultTenant(false);
+        }
+      }
+
       const memberships = dbMemberships.map(convertDbTenantUserToTenantUser);
       setTenantMemberships(memberships);
 
@@ -126,7 +159,7 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
   const value: TenantContextType = {
     currentTenant,
     tenantMemberships,
-    isLoading,
+    isLoading: isLoading || isCreatingDefaultTenant,
     error,
     setCurrentTenant,
     refreshTenants,
@@ -139,3 +172,5 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
     </TenantContext.Provider>
   );
 };
+
+export default TenantProvider;

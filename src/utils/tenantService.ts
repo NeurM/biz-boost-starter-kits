@@ -342,6 +342,42 @@ export const removeTenantUser = async (tenantUserId: string) => {
   }
 };
 
+// Create a default tenant for user if none exist.
+// Returns Tenant object or null if cannot create.
+export const createDefaultTenantForUser = async (user: any) => {
+  if (!user) return null;
+  // Check if any tenant exists for this user
+  const { data: memberships, error } = await getUserTenants();
+  if (error) {
+    console.error('Error fetching memberships for default tenant:', error);
+    return null;
+  }
+  if (memberships && memberships.data && memberships.data.length > 0) {
+    // Already has tenant(s)
+    return null;
+  }
+  // No tenant found — create default tenant
+  const defaultName = user.email
+    ? user.email === 'test@test.com'
+      ? 'Test Organization'
+      : user.email.split('@')[0] + "'s Organization"
+    : 'Default Organization';
+
+  const slug = generateTenantSlug(defaultName);
+
+  const { data: tenant, error: createTenantError } = await createTenant({
+    name: defaultName,
+    slug,
+    domain: undefined,
+  });
+
+  if (createTenantError) {
+    console.error('Failed to auto-create default tenant:', createTenantError);
+    return null;
+  }
+  return tenant;
+};
+
 // Utility functions
 export const generateTenantSlug = (name: string): string => {
   return name
