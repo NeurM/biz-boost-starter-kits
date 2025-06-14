@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { createTenantWebsitesBulk } from "@/services/tenant/websiteService";
 import { useTenant } from "@/context/TenantContext";
+import { createTenantWebsitesBulk } from "@/services/tenant/websiteService";
 import { supabase } from "@/integrations/supabase/client";
+import { createChildTenant, addTenantOwner } from "@/services/tenant/tenantService";
 
 // Small template card for selector
 const TemplateOption = ({ template, selected, onSelect }: { template: any; selected: boolean; onSelect: () => void }) => (
@@ -145,12 +146,28 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
     }
   };
 
-  // Bulk create
+  // Modified Bulk create: one client tenant per company, each with 1 website.
   const handleBulkCreate = async () => {
     if (!currentTenant) {
       toast({ title: "Tenant Required", description: "Select or create a tenant first.", variant: "destructive" });
       return;
     }
+    // Only agencies can bulk create for clients
+    if (currentTenant.tenant_type !== 'agency') {
+      toast({
+        title: "Must be Agency Tenant",
+        description: "Switch to an agency tenant to bulk create for clients.",
+        variant: "destructive"
+      });
+      return;
+    }
+    const userData = await supabase.auth.getUser();
+    if (!userData.data.user) {
+      toast({ title: "Auth Required", description: "You must be logged in.", variant: "destructive" });
+      return;
+    }
+    const user_id = userData.data.user.id;
+
     // Parse company-email pairs
     const pairs = parsePairs(pairsInput);
     if (pairs.length === 0) {
@@ -161,46 +178,74 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
       });
       return;
     }
-    const companyNames = pairs.map(p => p.name);
+
     setIsCreating(true);
     setResults([]);
     setEmailResults([]);
-    try {
-      const sharedSettings = {
-        template_id: selectedTemplate.path,
-        logo: logoUrl.trim() || undefined,
-        color_scheme: primaryColor,
-        secondary_color_scheme: secondaryColor,
-        domainPattern: domainPattern.trim(),
-      };
-      const creationResults = await createTenantWebsitesBulk({
-        tenantId: currentTenant.id,
-        companyNames,
-        sharedSettings,
-      });
-      setResults(creationResults);
+    const creationResults = [];
 
-      const successes = creationResults.filter((r: any) => r.success).length;
-      const failures = creationResults.length - successes;
-      toast({
-        title: `Bulk Completed: ${successes} success, ${failures} failed`,
-        description: "See the results below.",
-        variant: failures > 0 ? "destructive" : "default"
-      });
-      // After creation, send previews only to matching company email
-      if (successes > 0) {
-        await handleSendPreviews(creationResults, pairs);
+    // Iterate pairs: create client tenant & its website for each
+    for (const pair of pairs) {
+      try {
+        // 1. Create client tenant
+        const slug = pair.name
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, "")
+          .replace(/\s+/g, "-")
+          .replace(/-+/g, "-")
+          .trim();
+        const tenantResp = await createChildTenant({
+          name: pair.name,
+          slug,
+          parent_tenant_id: currentTenant.id,
+          tenant_type: 'client',
+        });
+        if (tenantResp.error || !tenantResp.data) {
+          creationResults.push({ companyName: pair.name, success: false, error: "Failed to create client tenant" });
+          continue;
+        }
+        const clientTenantId = tenantResp.data.id;
+        // 2. Add agency user as owner of client tenant
+        await addTenantOwner({ tenant_id: clientTenantId, user_id });
+        // 3. Create website inside client tenant, applying settings
+        const sharedSettings = {
+          template_id: selectedTemplate.path,
+          logo: logoUrl.trim() || undefined,
+          color_scheme: primaryColor,
+          secondary_color_scheme: secondaryColor,
+          domainPattern: domainPattern.trim(),
+        };
+        const websiteResults = await createTenantWebsitesBulk({
+          tenantId: clientTenantId,
+          companyNames: [pair.name],
+          sharedSettings,
+        });
+        // Construct result for this company
+        if (websiteResults?.[0]?.success) {
+          creationResults.push({ companyName: pair.name, success: true, data: websiteResults[0].data });
+        } else {
+          creationResults.push({ companyName: pair.name, success: false, error: websiteResults?.[0]?.error || "Website failed" });
+        }
+      } catch (err: any) {
+        creationResults.push({ companyName: pair.name, success: false, error: err?.message || "Error creating tenant/website" });
       }
-      if (onSuccess) onSuccess();
-    } catch (err: any) {
-      toast({
-        title: "Bulk Creation Failed",
-        description: err.message || "Unexpected error.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsCreating(false);
     }
+
+    setResults(creationResults);
+
+    const successes = creationResults.filter((r: any) => r.success).length;
+    const failures = creationResults.length - successes;
+    toast({
+      title: `Bulk Completed: ${successes} success, ${failures} failed`,
+      description: "See the results below.",
+      variant: failures > 0 ? "destructive" : "default"
+    });
+    // After creation, send previews if successful
+    if (successes > 0) {
+      await handleSendPreviews(creationResults, pairs);
+    }
+    if (onSuccess) onSuccess();
+    setIsCreating(false);
   };
 
   if (!open) return null;

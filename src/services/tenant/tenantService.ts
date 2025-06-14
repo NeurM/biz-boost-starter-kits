@@ -1,4 +1,3 @@
-
 // Core Tenant CRUD operations
 
 import { supabase } from '@/integrations/supabase/client';
@@ -86,4 +85,52 @@ export const updateTenant = async (tenantId: string, updates: Partial<Tenant>) =
     await logApiCall(`/tenants/${tenantId}`, 'PATCH', updates, null, error as Error);
     throw error;
   }
+};
+
+// New: create child tenant under a parent (agency)
+export const createChildTenant = async ({
+  name,
+  slug,
+  parent_tenant_id,
+  tenant_type = 'client',
+  domain,
+}: {
+  name: string;
+  slug: string;
+  parent_tenant_id: string;
+  tenant_type?: 'client' | 'agency';
+  domain?: string;
+}) => {
+  const tenantData = {
+    name,
+    slug,
+    parent_tenant_id,
+    tenant_type,
+    domain,
+  };
+  // Normal insert, returns .data and .error
+  const response = await supabase
+    .from('tenants')
+    .insert(tenantData)
+    .select()
+    .single();
+  return response;
+};
+
+// New: add user as owner to a tenant
+export const addTenantOwner = async ({
+  tenant_id,
+  user_id,
+}: {
+  tenant_id: string;
+  user_id: string;
+}) => {
+  return await supabase
+    .from('tenant_users')
+    .insert({
+      tenant_id,
+      user_id,
+      role: 'owner',
+      joined_at: new Date().toISOString(),
+    });
 };

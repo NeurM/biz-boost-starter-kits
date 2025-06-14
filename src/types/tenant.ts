@@ -1,4 +1,3 @@
-
 import { Database } from '@/integrations/supabase/types';
 
 // Use Supabase generated types as base and extend them
@@ -17,6 +16,8 @@ export interface Tenant {
   settings: Record<string, any>;
   created_at: string;
   updated_at: string;
+  parent_tenant_id?: string | null; // New
+  tenant_type?: 'agency' | 'client'; // New
 }
 
 export interface TenantUser {
@@ -90,7 +91,9 @@ export const convertDbTenantToTenant = (dbTenant: DbTenant): Tenant => ({
   subscription_plan: dbTenant.subscription_plan as 'free' | 'pro' | 'enterprise',
   settings: (dbTenant.settings as Record<string, any>) || {},
   created_at: dbTenant.created_at || '',
-  updated_at: dbTenant.updated_at || ''
+  updated_at: dbTenant.updated_at || '',
+  parent_tenant_id: (dbTenant as any).parent_tenant_id ?? null,
+  tenant_type: (dbTenant as any).tenant_type ?? undefined,
 });
 
 export const convertDbTenantUserToTenantUser = (dbTenantUser: DbTenantUser & { tenant?: DbTenant }): TenantUser => ({

@@ -355,10 +355,12 @@ export type Database = {
           domain: string | null
           id: string
           name: string
+          parent_tenant_id: string | null
           settings: Json | null
           slug: string
           status: string | null
           subscription_plan: string | null
+          tenant_type: Database["public"]["Enums"]["tenant_type_enum"] | null
           updated_at: string | null
         }
         Insert: {
@@ -366,10 +368,12 @@ export type Database = {
           domain?: string | null
           id?: string
           name: string
+          parent_tenant_id?: string | null
           settings?: Json | null
           slug: string
           status?: string | null
           subscription_plan?: string | null
+          tenant_type?: Database["public"]["Enums"]["tenant_type_enum"] | null
           updated_at?: string | null
         }
         Update: {
@@ -377,13 +381,23 @@ export type Database = {
           domain?: string | null
           id?: string
           name?: string
+          parent_tenant_id?: string | null
           settings?: Json | null
           slug?: string
           status?: string | null
           subscription_plan?: string | null
+          tenant_type?: Database["public"]["Enums"]["tenant_type_enum"] | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tenants_parent_tenant_id_fkey"
+            columns: ["parent_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       website_analytics: {
         Row: {
@@ -507,6 +521,7 @@ export type Database = {
     }
     Enums: {
       tenant_role: "owner" | "admin" | "editor" | "viewer"
+      tenant_type_enum: "agency" | "client"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -623,6 +638,7 @@ export const Constants = {
   public: {
     Enums: {
       tenant_role: ["owner", "admin", "editor", "viewer"],
+      tenant_type_enum: ["agency", "client"],
     },
   },
 } as const
