@@ -1,4 +1,3 @@
-
 // Website management for tenants
 
 import { supabase } from '@/integrations/supabase/client';
@@ -88,16 +87,79 @@ export const createTenantWebsitesBulk = async ({
 
 export const getTenantWebsites = async (tenantId: string) => {
   try {
-    const response = await supabase
-      .from('tenant_websites')
+    // Check if tenant is an agency
+    const agencyRes = await supabase
+      .from('tenants')
       .select('*')
-      .eq('tenant_id', tenantId)
-      .order('created_at', { ascending: false });
-    await logApiCall(`/tenant-websites?tenant_id=${tenantId}`, 'GET', null, response.data, response.error);
-    return response;
+      .eq('id', tenantId)
+      .maybeSingle();
+
+    if (agencyRes.error) throw agencyRes.error;
+
+    const tenant = agencyRes.data;
+    if (!tenant) {
+      // fallback, no such tenant
+      return { data: [], error: null };
+    }
+
+    if (tenant.tenant_type === 'agency') {
+      // Fetch direct websites and also client websites under this agency
+      // 1. Get list of client tenant IDs
+      const clientsRes = await supabase
+        .from('tenants')
+        .select('id,name')
+        .eq('parent_tenant_id', tenantId)
+        .eq('tenant_type', 'client');
+
+      if (clientsRes.error) throw clientsRes.error;
+      const clientTenants = clientsRes.data || [];
+      const clientIds = clientTenants.map((c) => c.id);
+
+      // 2. Fetch all websites for the agency and its clients in one go
+      const allIds = [tenantId, ...clientIds];
+      if (allIds.length === 0) {
+        // no clients, no websites
+        return { data: [], error: null };
+      }
+
+      // Fetch websites for all the IDs (agency + clients)
+      // We'll want to show which tenant each website belongs to, so select tenant info
+      const websitesRes = await supabase
+        .from('tenant_websites')
+        .select('*, tenant:tenants(id,name)')
+        .in('tenant_id', allIds)
+        .order('created_at', { ascending: false });
+
+      if (websitesRes.error) throw websitesRes.error;
+
+      // Add client name for each website record (for UI display)
+      const data = (websitesRes.data || []).map((website: any) => ({
+        ...website,
+        tenant_name: website.tenant?.name,
+        tenant_id: website.tenant?.id,
+      }));
+
+      await logApiCall(`/tenant-websites?agency_id=${tenantId}`, 'GET', null, data, null);
+      return { data, error: null };
+    } else {
+      // Old logic for non-agency (client) tenants: just fetch their websites
+      const response = await supabase
+        .from('tenant_websites')
+        .select('*, tenant:tenants(id,name)')
+        .eq('tenant_id', tenantId)
+        .order('created_at', { ascending: false });
+      if (response.error) throw response.error;
+      const data = (response.data || []).map((website: any) => ({
+        ...website,
+        tenant_name: website.tenant?.name,
+        tenant_id: website.tenant?.id,
+      }));
+      await logApiCall(`/tenant-websites?tenant_id=${tenantId}`, 'GET', null, data, null);
+      return { data, error: null };
+    }
   } catch (error) {
     await logApiCall(`/tenant-websites?tenant_id=${tenantId}`, 'GET', null, null, error as Error);
-    throw error;
+    return { data: null, error };
   }
 };
 

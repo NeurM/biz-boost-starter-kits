@@ -137,6 +137,9 @@ const SavedWebsites = () => {
                   <TableHead>Domain</TableHead>
                   <TableHead>Template</TableHead>
                   <TableHead>Created</TableHead>
+                  <TableHead>
+                    Tenant {/* New: Show tenant name */}
+                  </TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -162,6 +165,12 @@ const SavedWebsites = () => {
                       </span>
                     </TableCell>
                     <TableCell>{website.created_at ? format(new Date(website.created_at), 'MMM d, yyyy') : '-'}</TableCell>
+                    <TableCell>
+                      {/* Show the tenant name as a badge if it's different from the selected one */}
+                      <span className={"inline-block px-2 py-1 text-xs rounded bg-gray-100 font-semibold"}>
+                        {website.tenant_name || "Unknown"}
+                      </span>
+                    </TableCell>
                     <TableCell className="text-right">
                       <WebsiteActions website={website} onDeleted={loadWebsites} />
                     </TableCell>
