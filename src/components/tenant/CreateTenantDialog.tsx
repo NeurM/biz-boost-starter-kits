@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { generateTenantSlug, validateTenantSlug } from "@/services/tenant/tenantUtils";
 import { createTenant } from "@/services/tenant/tenantService";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface CreateTenantDialogProps {
   open: boolean;
@@ -15,6 +16,7 @@ interface CreateTenantDialogProps {
 export const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ open, onOpenChange }) => {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
+  const [tenantType, setTenantType] = useState<"agency" | "client">("client");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -27,6 +29,12 @@ export const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ open, on
 
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSlug(e.target.value);
+  };
+
+  const handleTypeChange = (value: string) => {
+    if (value === "agency" || value === "client") {
+      setTenantType(value);
+    }
   };
 
   const handleCreateTenant = async () => {
@@ -46,6 +54,7 @@ export const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ open, on
         name,
         slug,
         domain: undefined,
+        tenant_type: tenantType,
       });
 
       if (response.error) {
@@ -102,6 +111,27 @@ export const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({ open, on
                 onChange={handleSlugChange}
                 className="col-span-3 h-10"
               />
+            </div>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <label className="text-right text-sm font-medium leading-none text-gray-800">
+              Type
+            </label>
+            <div className="col-span-3 flex flex-col gap-2">
+              <RadioGroup value={tenantType} onValueChange={handleTypeChange} className="flex space-x-4">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="agency" id="agency-type" />
+                  <label htmlFor="agency-type" className="text-sm font-medium">Agency</label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="client" id="client-type" />
+                  <label htmlFor="client-type" className="text-sm font-medium">Client</label>
+                </div>
+              </RadioGroup>
+              <p className="text-xs text-muted-foreground mt-1">
+                <span className="block"><b>Agency:</b> Can manage other clients and perform bulk website actions.</span>
+                <span className="block"><b>Client:</b> Standard tenant, managed by an agency.</span>
+              </p>
             </div>
           </div>
         </div>
