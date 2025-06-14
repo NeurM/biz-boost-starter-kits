@@ -23,11 +23,15 @@ export function resolveGoogleAnalyticsId(tenant?: Tenant | null, tenantMembershi
   return {};
 }
 
+// Safe type guard to check if an unknown value is a plain object
+function isObject(value: unknown): value is Record<string, any> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 /**
  * Saves Google Analytics Tracking ID to the current tenant's settings.
  */
 export async function saveGoogleAnalyticsId(tenantId: string, gaId: string): Promise<{ error?: any }> {
-  // Null/empty means "remove"
   // Fetch the current settings first
   const { data, error: fetchError } = await supabase
     .from("tenants")
@@ -39,17 +43,18 @@ export async function saveGoogleAnalyticsId(tenantId: string, gaId: string): Pro
     return { error: fetchError };
   }
 
-  const prevSettings = data?.settings ?? {};
+  // Make sure we operate on an object
+  const prevSettingsRaw = data?.settings;
+  const prevSettings: Record<string, any> = isObject(prevSettingsRaw) ? prevSettingsRaw : {};
 
-  // Update or remove google_analytics_id as needed
-  let newSettings;
+  let newSettings: Record<string, any>;
   if (gaId) {
     newSettings = { ...prevSettings, google_analytics_id: gaId };
   } else {
-    // Remove the field by destructuring
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { google_analytics_id, ...rest } = prevSettings;
-    newSettings = rest;
+    // Remove the google_analytics_id property if it exists
+    const cleaned = { ...prevSettings };
+    delete cleaned.google_analytics_id;
+    newSettings = cleaned;
   }
 
   const { error } = await supabase
@@ -59,3 +64,4 @@ export async function saveGoogleAnalyticsId(tenantId: string, gaId: string): Pro
 
   return { error };
 }
+
