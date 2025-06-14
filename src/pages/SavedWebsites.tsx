@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +11,8 @@ import { useTenant } from "@/context/TenantContext";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/Footer";
 import { ExternalLink } from "lucide-react";
+import GoogleAnalyticsSettings from "@/components/GoogleAnalyticsSettings";
+import { toast } from "@/hooks/use-toast";
 
 const SavedWebsites = () => {
   const { user } = useAuth();
@@ -106,12 +107,40 @@ const SavedWebsites = () => {
     return templates[templateId] || templateId;
   };
 
+  // Extract Google Analytics ID from settings (assuming settings is jsonb)
+  const agencyParentTenant = currentTenant?.parent_tenant_id
+    ? tenantMemberships.find(m => m.tenant?.id === currentTenant.parent_tenant_id)
+    : null;
+
+  const googleAnalyticsId = currentTenant?.settings?.google_analytics_id;
+
+  // Handler for updating tenant analytics (needs backend after SQL migration)
+  const handleSaveAnalyticsId = (id: string) => {
+    toast({
+      title: "Not yet implemented!",
+      description: "Saving GA ID coming after backend migration. Stay tuned.",
+      variant: "destructive"
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <GlobalAppNavbar />
       <div className="container mx-auto py-10 px-4 flex-1 w-full">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-          <h1 className="text-3xl font-bold">Saved Websites</h1>
+          <div className="flex flex-col gap-2">
+            <h1 className="text-3xl font-bold">Saved Websites</h1>
+            {/* Show "Return to Agency" when on client tenant */}
+            {agencyParentTenant?.tenant && (
+              <Button
+                variant="secondary"
+                className="mt-2 w-fit"
+                onClick={() => handleGoToTenant(agencyParentTenant.tenant!.id)}
+              >
+                ← Return to Agency: {agencyParentTenant.tenant.name}
+              </Button>
+            )}
+          </div>
           {showTenantSelector && (
             <div className="flex items-center gap-2">
               <span className="text-sm">Tenant:</span>
@@ -128,6 +157,15 @@ const SavedWebsites = () => {
               </select>
             </div>
           )}
+        </div>
+
+        {/* Google Analytics Settings for current tenant */}
+        <div className="max-w-lg mb-6">
+          <div className="font-semibold mb-2">Google Analytics (Tenant-level)</div>
+          <GoogleAnalyticsSettings
+            analyticsId={googleAnalyticsId}
+            onSave={handleSaveAnalyticsId}
+          />
         </div>
 
         {isLoading ? (
@@ -247,4 +285,3 @@ const SavedWebsites = () => {
 };
 
 export default SavedWebsites;
-
