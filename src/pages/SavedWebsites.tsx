@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { useAuth } from "@/context/AuthContext";
@@ -10,14 +9,29 @@ import WebsiteActions from '@/components/website/WebsiteActions';
 import { format } from 'date-fns';
 import { useTenant } from "@/context/TenantContext";
 import { Button } from "@/components/ui/button";
+import Footer from "@/components/Footer";
 
 const SavedWebsites = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { currentTenant, tenantMemberships, switchTenant } = useTenant();
   const [websites, setWebsites] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // --- New: handle tenant param from query string ---
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tenantParam = params.get("tenant");
+    if (tenantParam && tenantParam !== currentTenant?.id && tenantMemberships.length > 0) {
+      const found = tenantMemberships.find(m => m.tenant?.id === tenantParam);
+      if (found && found.tenant) {
+        switchTenant(found.tenant.id);
+      }
+    }
+    // eslint-disable-next-line
+  }, [location.search, tenantMemberships]);
 
   const loadWebsites = async () => {
     if (!currentTenant) {
@@ -68,9 +82,9 @@ const SavedWebsites = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <GlobalAppNavbar />
-      <div className="container mx-auto py-10 px-4">
+      <div className="container mx-auto py-10 px-4 flex-1 w-full">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
           <h1 className="text-3xl font-bold">Saved Websites</h1>
           {showTenantSelector && (
@@ -158,6 +172,19 @@ const SavedWebsites = () => {
           </div>
         )}
       </div>
+      {/* Footer is now added at the bottom of the SavedWebsites page */}
+      <Footer
+        logo="Website Builder"
+        navItems={[
+          { name: "Home", path: "/" },
+          { name: "Templates", path: "/templates" },
+          { name: "Websites", path: "/saved-websites" },
+          { name: "Agencies", path: "/agency-management" },
+        ]}
+        contactInfo={{
+          email: "support@example.com",
+        }}
+      />
     </div>
   );
 };
