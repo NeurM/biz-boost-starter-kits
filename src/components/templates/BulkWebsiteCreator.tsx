@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { createTenantWebsitesBulk } from "@/services/tenant/websiteService";
 import { useTenant } from "@/context/TenantContext";
+import { supabase } from "@/integrations/supabase/client";
 
 // Small template card for selector
 const TemplateOption = ({ template, selected, onSelect }: { template: any; selected: boolean; onSelect: () => void }) => (
@@ -98,27 +99,28 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
 
     setIsSendingPreview(true);
     try {
-      // We'll call the edge function for batch send (or one-by-one if needed)
-      const functionUrl = `https://jidyjuyniqslfviemrkx.supabase.co/functions/v1/send-website-previews`;
+      // Use supabase.functions.invoke for proper authentication and error handling!
       // Group into { email, websites: [website] }
       const previewsGrouped = previewsToSend.map(p => ({
         emails: [p.email],
         websites: [p.website]
       }));
-      // Call edge function for each
+
       let allEmailResults: any[] = [];
       for (let group of previewsGrouped) {
-        const response = await fetch(functionUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(group),
+        const { data: resData, error } = await supabase.functions.invoke("send-website-previews", {
+          body: group,
         });
-        const resData = await response.json();
-        // result: [{email, success, error}]
-        if (resData.results) {
+
+        if (error) {
+          allEmailResults.push({
+            email: group.emails[0],
+            success: false,
+            error: error.message || "Unknown error from Supabase edge function"
+          });
+        } else if (resData && Array.isArray(resData.results)) {
           allEmailResults = allEmailResults.concat(resData.results);
-        }
-        if (resData.error && group.emails[0]) {
+        } else if (resData?.error) {
           allEmailResults.push({ email: group.emails[0], success: false, error: resData.error });
         }
       }
@@ -135,7 +137,7 @@ export const BulkWebsiteCreator: React.FC<BulkWebsiteCreatorProps> = ({
     } catch (err: any) {
       toast({
         title: "Email Error",
-        description: err.message || "Failed to send previews.",
+        description: err?.message || "Failed to send previews.",
         variant: "destructive"
       });
     } finally {
