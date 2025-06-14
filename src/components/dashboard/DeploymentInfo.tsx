@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -39,10 +38,7 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
   const { toast } = useToast();
   const { user } = useAuth();
   
-  const [repository, setRepository] = useState('');
-  const [branch, setBranch] = useState('main');
-  const [buildCommand, setBuildCommand] = useState('npm run build');
-  const [deployCommand, setDeployCommand] = useState('npm run deploy');
+  const [customDomain, setCustomDomain] = useState('');
   const [cicdConfig, setCicdConfig] = useState<CICDConfig | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [workflowYaml, setWorkflowYaml] = useState<string | null>(null);
@@ -50,28 +46,18 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
   
   useEffect(() => {
     if (!user || !websiteConfig) return;
-    
+    // For each website, custom domain is the key state.
     const loadCiCdConfig = async () => {
       try {
         setIsLoading(true);
-        
         if (websiteConfig && websiteConfig.template_id) {
           const configResponse = await getCiCdConfigs(websiteConfig.template_id);
-          
-          // If there's an existing config, use it
           if (configResponse.data && configResponse.data.length > 0) {
             const config = configResponse.data[0];
-            setRepository(config.repository || '');
-            setBranch(config.branch || 'main');
-            setBuildCommand(config.build_command || 'npm run build');
-            setDeployCommand(config.deploy_command || 'npm run deploy');
+            setCustomDomain(config.custom_domain || websiteConfig.domain_name || '');
             setCicdConfig(config);
           } else {
-            // Initialize with default values based on the website name
-            setRepository(websiteConfig.company_name.toLowerCase().replace(/\s+/g, '-'));
-            setBranch('main');
-            setBuildCommand('npm run build');
-            setDeployCommand('npm run deploy');
+            setCustomDomain(websiteConfig.domain_name || '');
           }
         }
       } catch (error) {
@@ -85,69 +71,50 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
         setIsLoading(false);
       }
     };
-    
     loadCiCdConfig();
+    // eslint-disable-next-line
   }, [user, websiteConfig, toast]);
   
   const handleSaveConfig = async () => {
-    if (!websiteConfig) {
+    if (!websiteConfig || !customDomain) {
       toast({
         title: "Error",
-        description: "No website selected.",
+        description: "Please enter a custom domain.",
         variant: "destructive"
       });
       return;
     }
-    
     setIsLoading(true);
-    
     try {
       let configResponse;
-      
       if (cicdConfig && cicdConfig.id) {
-        // Update existing config
         configResponse = await updateCiCdConfig(cicdConfig.id, {
-          repository,
-          branch,
-          build_command: buildCommand,
-          deploy_command: deployCommand
+          custom_domain: customDomain
         });
       } else {
-        // Create new config
         configResponse = await createCiCdConfig(
           websiteConfig.template_id,
-          repository,
-          branch,
-          buildCommand,
-          deployCommand
+          '', // repository is unused for Hostinger model
+          '', // branch unused
+          '', // build unused
+          '', // deploy unused
+          customDomain
         );
       }
-      
       if (configResponse.error) {
         throw configResponse.error;
       }
-      
       setCicdConfig(configResponse.data);
-      
       toast({
         title: "Configuration Saved",
         description: "Your deployment configuration has been updated."
       });
-      
-      // Update deployment status in website config
-      // Use GitHub Pages URL format: https://username.github.io/repository
-      const repoName = repository.split('/').pop();
-      const username = repository.includes('/') ? repository.split('/')[0] : '';
-      const deploymentUrl = username && repoName 
-        ? `https://${username}.github.io/${repoName}` 
-        : `https://${repository.split('/').pop()}.github.io`;
-      
+      // Just save custom domain as deployment_url (actual deployment service will validate this)
       await saveWebsiteConfig({
         ...websiteConfig,
         deployment_status: 'configured',
-        deployment_url: deploymentUrl
+        deployment_url: `https://${customDomain}`
       });
-      
     } catch (error) {
       console.error('Error saving deployment config:', error);
       toast({
@@ -161,19 +128,14 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
   };
   
   const generateWorkflow = async () => {
-    if (!websiteConfig) return;
-    
+    if (!websiteConfig || !customDomain) return;
     try {
       setIsLoading(true);
+      // Generate Hostinger FTP GitHub Action workflow
       const yaml = await getWorkflowYaml(
         websiteConfig.template_id, 
-        repository, 
-        branch, 
-        buildCommand, 
-        deployCommand
+        '', '', '', '', customDomain // Pass domain to workflow builder
       );
-      
-      console.log("Generated workflow YAML:", yaml ? yaml.substring(0, 100) + "..." : "empty");
       setWorkflowYaml(yaml);
       setShowYaml(true);
     } catch (error) {
@@ -189,14 +151,14 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
   };
   
   const handleViewDeployedSite = () => {
-    if (websiteConfig?.deployment_url) {
-      window.open(websiteConfig.deployment_url, '_blank');
+    if (customDomain) {
+      window.open(`https://${customDomain}`, '_blank');
     }
   };
 
   if (!websiteConfig) {
     return (
-      <DeploymentInfoCard title="Deployment" description="Configure CI/CD for your website">
+      <DeploymentInfoCard title="Deployment" description="Configure deployment for your website">
         <NoWebsiteSelected />
       </DeploymentInfoCard>
     );
@@ -205,36 +167,28 @@ const DeploymentInfo: React.FC<DeploymentInfoProps> = ({ websiteConfig }) => {
   return (
     <DeploymentInfoCard 
       title="Deployment" 
-      description={`Configure CI/CD for ${websiteConfig.company_name}`}
+      description={`Configure deployment for ${websiteConfig.company_name}`}
     >
       <DeploymentStatus 
         deploymentStatus={websiteConfig.deployment_status} 
         lastDeployedAt={websiteConfig.last_deployed_at}
       />
-
       <Alert className="mb-4">
         <AlertDescription>
-          These settings will generate a GitHub Actions workflow for deploying your website.
-          You will need to commit this file to your GitHub repository.
+          Enter the custom domain for this client. On deploy, we'll publish the website directly to Hostinger using the agency's FTP account. 
+          You may need to configure DNS so the domain points to Hostinger. Contact your agency admin if you are unsure.
         </AlertDescription>
       </Alert>
 
       <ConfigurationForm
-        repository={repository}
-        branch={branch}
-        buildCommand={buildCommand}
-        deployCommand={deployCommand}
+        customDomain={customDomain}
         isLoading={isLoading}
-        onRepositoryChange={setRepository}
-        onBranchChange={setBranch}
-        onBuildCommandChange={setBuildCommand}
-        onDeployCommandChange={setDeployCommand}
+        onCustomDomainChange={setCustomDomain}
         onSaveConfig={handleSaveConfig}
         onGenerateWorkflow={generateWorkflow}
         onViewDeployedSite={handleViewDeployedSite}
-        deploymentUrl={websiteConfig.deployment_url}
+        deploymentUrl={customDomain ? `https://${customDomain}` : undefined}
       />
-      
       <WorkflowDisplay 
         workflowYaml={workflowYaml} 
         showYaml={showYaml} 
