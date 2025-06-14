@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Tenant, TenantUser, convertDbTenantUserToTenantUser, convertDbTenantToTenant } from '@/types/tenant';
 import { getUserTenants } from '@/utils/tenantService';
@@ -43,22 +42,31 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
       setCurrentTenant(null);
       return;
     }
-
     setIsLoading(true);
     setError(null);
 
     try {
       const response = await getUserTenants();
-      
+
       if (response.error) {
         throw response.error;
       }
 
       const dbMemberships = response.data || [];
-      
-      // Convert database types to our interface types
       const memberships = dbMemberships.map(convertDbTenantUserToTenantUser);
       setTenantMemberships(memberships);
+
+      // Find current tenant by stored id, otherwise use first one, for more robust switching after creation
+      const savedTenantId = localStorage.getItem('currentTenantId');
+      let tenantToSet = null;
+      if (savedTenantId) {
+        const match = memberships.find(m => m.tenant?.id === savedTenantId);
+        if (match?.tenant) tenantToSet = match.tenant;
+      }
+      if (!tenantToSet && memberships.length > 0) {
+        tenantToSet = memberships[0]?.tenant;
+      }
+      setCurrentTenant(tenantToSet);
 
       // If no current tenant is set, default to the first one
       if (!currentTenant && memberships.length > 0) {

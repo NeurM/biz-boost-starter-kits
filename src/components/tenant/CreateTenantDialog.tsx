@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -70,7 +69,7 @@ export const CreateTenantDialog: React.FC<CreateTenantDialogProps> = ({
     setIsCreating(true);
 
     try {
-      console.log('Starting tenant creation process...');
+      console.log('[TenantDialog] Creating tenant:', name, slug, domain, new Date());
       
       // Validate slug availability
       console.log('Validating slug:', slug);

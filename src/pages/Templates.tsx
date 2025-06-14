@@ -141,6 +141,15 @@ const Templates: React.FC = () => {
     setIsSaving(true);
 
     try {
+      // Save selected color to sessionStorage companyData before creating
+      let parsedData: any = sessionStorage.getItem('companyData') ? JSON.parse(sessionStorage.getItem('companyData') as string) : {};
+      parsedData.companyName = companyName;
+      parsedData.domainName = domainName;
+      parsedData.logo = logoUrl;
+      parsedData.colorScheme = selectedPrimaryColor || template.primaryColor;
+      parsedData.secondaryColorScheme = selectedSecondaryColor || template.secondaryColor;
+      sessionStorage.setItem('companyData', JSON.stringify(parsedData));
+
       const websiteData = {
         tenant_id: currentTenant.id,
         template_id: template.path,

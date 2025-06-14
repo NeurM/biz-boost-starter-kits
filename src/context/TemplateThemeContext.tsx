@@ -92,42 +92,37 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   const [previousTemplateColor, setPreviousTemplateColor] = useState<string | null>(null);
   const [previousSecondaryColor, setPreviousSecondaryColor] = useState<string | null>(null);
   
+  // When selecting a new color, ensure it is also saved in sessionStorage companyData at website creation time.
   const updateTemplateColor = async (color: string) => {
     setPreviousTemplateColor(templateColor);
     setTemplateColor(color);
-    
-    // Check sessionStorage for companyData first
+
     try {
       const sessionData = sessionStorage.getItem('companyData');
-      if (sessionData) {
-        const parsedData = JSON.parse(sessionData);
-        // Update the color in sessionStorage
-        parsedData.colorScheme = color;
-        sessionStorage.setItem('companyData', JSON.stringify(parsedData));
-      }
+      let parsedData = sessionData ? JSON.parse(sessionData) : {};
+      parsedData.colorScheme = color;
+      sessionStorage.setItem('companyData', JSON.stringify(parsedData));
       
-      // Update in database if template is specified
-      if (templateType) {
-        try {
-          const { data: config } = await getWebsiteConfig(templateType);
-          if (config) {
-            await saveWebsiteConfig({
-              template_id: templateType,
-              company_name: config.company_name,
-              domain_name: config.domain_name,
-              logo: config.logo,
-              color_scheme: color,
-              secondary_color_scheme: secondaryColor
-            });
-            
-            toast({
-              title: "Color Updated",
-              description: "Primary color has been updated successfully.",
-            });
-          }
-        } catch (error) {
-          console.error('Error saving color scheme:', error);
+      // Check sessionStorage for companyData first
+      try {
+        const { data: config } = await getWebsiteConfig(templateType);
+        if (config) {
+          await saveWebsiteConfig({
+            template_id: templateType,
+            company_name: config.company_name,
+            domain_name: config.domain_name,
+            logo: config.logo,
+            color_scheme: color,
+            secondary_color_scheme: secondaryColor
+          });
+          
+          toast({
+            title: "Color Updated",
+            description: "Primary color has been updated successfully.",
+          });
         }
+      } catch (error) {
+        console.error('Error saving color scheme:', error);
       }
     } catch (error) {
       console.error('Error updating color:', error);
@@ -138,38 +133,32 @@ export const TemplateThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     setPreviousSecondaryColor(secondaryColor);
     setSecondaryColor(color);
     
-    // Check sessionStorage for companyData first
     try {
       const sessionData = sessionStorage.getItem('companyData');
-      if (sessionData) {
-        const parsedData = JSON.parse(sessionData);
-        // Update the secondary color in sessionStorage
-        parsedData.secondaryColorScheme = color;
-        sessionStorage.setItem('companyData', JSON.stringify(parsedData));
-      }
+      let parsedData = sessionData ? JSON.parse(sessionData) : {};
+      parsedData.secondaryColorScheme = color;
+      sessionStorage.setItem('companyData', JSON.stringify(parsedData));
       
-      // Update in database if template is specified
-      if (templateType) {
-        try {
-          const { data: config } = await getWebsiteConfig(templateType);
-          if (config) {
-            await saveWebsiteConfig({
-              template_id: templateType,
-              company_name: config.company_name,
-              domain_name: config.domain_name,
-              logo: config.logo,
-              color_scheme: templateColor,
-              secondary_color_scheme: color
-            });
-            
-            toast({
-              title: "Color Updated",
-              description: "Secondary color has been updated successfully.",
-            });
-          }
-        } catch (error) {
-          console.error('Error saving secondary color scheme:', error);
+      // Check sessionStorage for companyData first
+      try {
+        const { data: config } = await getWebsiteConfig(templateType);
+        if (config) {
+          await saveWebsiteConfig({
+            template_id: templateType,
+            company_name: config.company_name,
+            domain_name: config.domain_name,
+            logo: config.logo,
+            color_scheme: templateColor,
+            secondary_color_scheme: color
+          });
+          
+          toast({
+            title: "Color Updated",
+            description: "Secondary color has been updated successfully.",
+          });
         }
+      } catch (error) {
+        console.error('Error saving secondary color scheme:', error);
       }
     } catch (error) {
       console.error('Error updating secondary color:', error);
