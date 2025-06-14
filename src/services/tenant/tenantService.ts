@@ -136,35 +136,45 @@ export const addTenantOwner = async ({
 };
 
 /**
- * Get all agency tenants (where tenant_type = 'agency' and user is a member), with their clients
+ * Get all agency tenants (where tenant_type = 'agency' and user is a member), with their clients (that user also has access to)
  */
 export const getUserAgenciesWithClients = async (userId: string) => {
-  // Agencies where the user is a member (could be owner or admin/etc)
-  const agenciesRes = await supabase
-    .from('tenants')
-    .select('*')
-    .eq('tenant_type', 'agency');
+  // Step 1: fetch agencies where user is a member
+  const agencyMembershipsRes = await supabase
+    .from('tenant_users')
+    .select('tenant:tenants(*)')
+    .eq('user_id', userId);
 
-  if (agenciesRes.error) {
-    return { error: agenciesRes.error, data: null };
+  if (agencyMembershipsRes.error) {
+    return { error: agencyMembershipsRes.error, data: null };
   }
-  const agencies = agenciesRes.data || [];
+  // Only agencies
+  const agencyTenants = (agencyMembershipsRes.data || [])
+    .map(m => m.tenant)
+    .filter(t => t?.tenant_type === 'agency');
 
-  // Get clients for each agency
-  const clientsRes = await supabase
-    .from('tenants')
-    .select('*')
-    .eq('tenant_type', 'client')
-    .not('parent_tenant_id', 'is', null);
+  // Step 2: for each agency, fetch its clients where user is also a member
+  let agenciesWithClients = [];
+  for (const agency of agencyTenants) {
+    // fetch clients for agency
+    const clientMembershipsRes = await supabase
+      .from('tenant_users')
+      .select('tenant:tenants(*)')
+      .eq('user_id', userId);
 
-  const clients = clientsRes.data || [];
-  // Attach clients to their parent agency
-  const agenciesWithClients = agencies.map(agency => {
-    const agencyClients = clients.filter(
-      client => client.parent_tenant_id === agency.id
-    );
-    return { ...agency, clients: agencyClients };
-  });
+    // Only client tenants under this agency
+    const clientTenants = (clientMembershipsRes.data || [])
+      .map(m => m.tenant)
+      .filter(
+        t =>
+          t?.tenant_type === 'client' &&
+          t.parent_tenant_id === agency.id // must be child of this agency
+      );
 
+    agenciesWithClients.push({
+      ...agency,
+      clients: clientTenants,
+    });
+  }
   return { error: null, data: agenciesWithClients };
 };
