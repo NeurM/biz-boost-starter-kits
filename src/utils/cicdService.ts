@@ -7,10 +7,16 @@ export interface CICDConfig {
   id?: string;
   user_id?: string;
   template_id: string;
-  custom_domain?: string;
-  deployment_url?: string;
-  deployment_status?: string;
-  last_deployed_at?: string;
+  custom_domain?: string | null; // Now nullable as per SQL
+  deployment_url?: string | null;
+  deployment_status?: string | null;
+  last_deployed_at?: string | null;
+  repository?: string | null;
+  branch?: string | null;
+  build_command?: string | null;
+  deploy_command?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 const getCurrentUser = async () => {
@@ -20,33 +26,37 @@ const getCurrentUser = async () => {
 
 export const createCiCdConfig = async (
   templateId: string,
-  _repository: string,
-  _branch: string,
-  _buildCommand: string,
-  _deployCommand: string,
+  repository: string,
+  branch: string,
+  buildCommand: string,
+  deployCommand: string,
   customDomain?: string
-): Promise<{ data: CICDConfig | null, error: any }> => {
+): Promise<{ data: CICDConfig | null; error: any }> => {
   try {
     const user = await getCurrentUser();
     if (!user) throw new Error("User must be logged in to save CI/CD configurations");
 
-    // Try to save to database first
+    // Only provide known columns for insert
     const { data: dbData, error: dbError } = await supabase
       .from('cicd_configs')
       .insert({
         user_id: user.id,
         template_id: templateId,
-        custom_domain: customDomain,
+        custom_domain: customDomain ?? null,
         deployment_status: 'configured',
-        last_deployed_at: new Date().toISOString()
+        last_deployed_at: new Date().toISOString(),
+        repository: repository || null,
+        branch: branch || null,
+        build_command: buildCommand || null,
+        deploy_command: deployCommand || null,
       })
       .select()
       .single();
+
     if (!dbError && dbData) {
       await logApiCall('/cicd-configs', 'POST', { templateId, customDomain }, dbData, null);
       return { data: dbData as CICDConfig, error: null };
     }
-    // fallback localstorage logic omitted for brevity
     return { data: null, error: dbError };
   } catch (error) {
     await logApiCall('/cicd-configs', 'POST', { templateId, customDomain }, null, error as Error);
@@ -80,6 +90,13 @@ export const updateCiCdConfig = async (
   configId: string,
   updates: {
     custom_domain?: string;
+    deployment_url?: string;
+    deployment_status?: string;
+    last_deployed_at?: string;
+    repository?: string;
+    branch?: string;
+    build_command?: string;
+    deploy_command?: string;
   }
 ) => {
   try {
@@ -121,10 +138,7 @@ export const getWorkflowYaml = async (
   _deployCommand: string,
   customDomain?: string
 ) => {
-  // The deployment folder will be set to /public_html/{domain}/ if domain is not the main domain
-  // Replace the placeholders {HOSTINGER_FTP_HOST},{HOSTINGER_FTP_USER},{HOSTINGER_FTP_PASSWORD} with agency credentials in your GitHub repo settings or secrets.
   const folder = customDomain && customDomain.length > 0 ? `/public_html/${customDomain}/` : `/public_html/`;
-  // Default workflow using FTP deploy action
   const yaml = `
 name: Hostinger FTP Deploy
 
@@ -167,4 +181,3 @@ jobs:
 `;
   return yaml;
 };
-

@@ -74,43 +74,46 @@ export type Database = {
       }
       cicd_configs: {
         Row: {
-          branch: string
-          build_command: string
+          branch: string | null
+          build_command: string | null
           created_at: string
-          deploy_command: string
+          custom_domain: string | null
+          deploy_command: string | null
           deployment_status: string | null
           deployment_url: string | null
           id: string
           last_deployed_at: string | null
-          repository: string
+          repository: string | null
           template_id: string
           updated_at: string
           user_id: string
         }
         Insert: {
-          branch?: string
-          build_command?: string
+          branch?: string | null
+          build_command?: string | null
           created_at?: string
-          deploy_command?: string
+          custom_domain?: string | null
+          deploy_command?: string | null
           deployment_status?: string | null
           deployment_url?: string | null
           id?: string
           last_deployed_at?: string | null
-          repository: string
+          repository?: string | null
           template_id: string
           updated_at?: string
           user_id: string
         }
         Update: {
-          branch?: string
-          build_command?: string
+          branch?: string | null
+          build_command?: string | null
           created_at?: string
-          deploy_command?: string
+          custom_domain?: string | null
+          deploy_command?: string | null
           deployment_status?: string | null
           deployment_url?: string | null
           id?: string
           last_deployed_at?: string | null
-          repository?: string
+          repository?: string | null
           template_id?: string
           updated_at?: string
           user_id?: string
