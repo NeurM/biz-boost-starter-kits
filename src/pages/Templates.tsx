@@ -83,6 +83,9 @@ const Templates: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [createTenantOpen, setCreateTenantOpen] = useState(false);
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
+  const [createForClient, setCreateForClient] = useState(false);
+  const [clientName, setClientName] = useState('');
+  const [isCreatingClientTenant, setIsCreatingClientTenant] = useState(false);
 
   const handleSelectTemplate = (template: any) => {
     if (!user) {
@@ -130,7 +133,6 @@ const Templates: React.FC = () => {
       });
       return;
     }
-
     if (!companyName.trim()) {
       toast({
         title: "Validation Error",
@@ -139,7 +141,6 @@ const Templates: React.FC = () => {
       });
       return;
     }
-
     setIsSaving(true);
 
     try {
@@ -185,6 +186,97 @@ const Templates: React.FC = () => {
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleCreateWebsiteForClient = async (template: any) => {
+    if (!currentTenant || !user) {
+      toast({
+        title: "Error",
+        description: "Please select a tenant and ensure you're logged in.",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (!clientName.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Client name is required.",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (!companyName.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Company name is required.",
+        variant: "destructive"
+      });
+      return;
+    }
+    setIsSaving(true);
+    setIsCreatingClientTenant(true);
+
+    try {
+      // Step 1: Create new client tenant under current agency
+      const slug = clientName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      const { createChildTenant } = await import('@/services/tenant/tenantService');
+      const newClientResp = await createChildTenant({
+        name: clientName.trim(),
+        slug,
+        parent_tenant_id: currentTenant.id,
+        tenant_type: 'client'
+      });
+
+      if (newClientResp.error || !newClientResp.data) {
+        throw newClientResp.error || new Error("Failed to create client tenant");
+      }
+      const clientTenant = newClientResp.data;
+
+      // Step 2: Proceed to create website for the new client tenant
+      let parsedData: any = sessionStorage.getItem('companyData') ? JSON.parse(sessionStorage.getItem('companyData') as string) : {};
+      parsedData.companyName = companyName;
+      parsedData.domainName = domainName;
+      parsedData.logo = logoUrl;
+      parsedData.colorScheme = selectedPrimaryColor || template.primaryColor;
+      parsedData.secondaryColorScheme = selectedSecondaryColor || template.secondaryColor;
+      sessionStorage.setItem('companyData', JSON.stringify(parsedData));
+
+      const websiteData = {
+        tenant_id: clientTenant.id, // assign the new client tenant!
+        template_id: template.path,
+        name: companyName.trim(),
+        domain_name: domainName.trim() || undefined,
+        logo: logoUrl.trim() || undefined,
+        color_scheme: selectedPrimaryColor || template.primaryColor,
+        secondary_color_scheme: selectedSecondaryColor || template.secondaryColor
+      };
+      const response = await createTenantWebsite(websiteData);
+      if (response.error) {
+        throw response.error;
+      }
+
+      toast({
+        title: "Success!",
+        description: "Website created for your client tenant.",
+      });
+
+      // Optionally, refresh tenants so new client appears in switcher
+      if (typeof window !== "undefined") {
+        setTimeout(() => window.location.reload(), 500);
+      }
+    } catch (error) {
+      console.error('Error creating client tenant/website:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create client tenant/website.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+      setIsCreatingClientTenant(false);
+      setClientName('');
+      setCreateForClient(false);
     }
   };
 
@@ -245,13 +337,30 @@ const Templates: React.FC = () => {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             {t('templates.subtitle') || 'Select from our professionally designed templates to get started quickly'}
           </p>
-          
+
           {user && (
-            <div className="flex items-center justify-center gap-4 mt-6">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-6">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600">Current tenant:</span>
                 <TenantSwitcher onCreateTenant={handleCreateTenant} />
               </div>
+              {/* New: Agency website/client website toggle */}
+              {currentTenant && currentTenant.tenant_type === 'agency' && (
+                <div className="flex flex-col md:flex-row gap-2 md:gap-4 items-center ml-4">
+                  <Button
+                    variant={createForClient ? "outline" : "secondary"}
+                    onClick={() => setCreateForClient(false)}
+                  >
+                    Create for Agency
+                  </Button>
+                  <Button
+                    variant={createForClient ? "secondary" : "outline"}
+                    onClick={() => setCreateForClient(true)}
+                  >
+                    Create for New Client
+                  </Button>
+                </div>
+              )}
               {!currentTenant && tenantMemberships.length === 0 && (
                 <Button onClick={handleCreateTenant} variant="outline">
                   Create Your First Tenant
@@ -268,6 +377,20 @@ const Templates: React.FC = () => {
           )}
         </div>
 
+        {/* Only show client name input if user is an agency and chose to create for client */}
+        {user && currentTenant && currentTenant.tenant_type === 'agency' && createForClient && (
+          <div className="max-w-md mx-auto mb-8 p-4 bg-white rounded shadow">
+            <label htmlFor="clientName" className="block text-gray-700 mb-2">Client Name</label>
+            <Input
+              id="clientName"
+              placeholder="Enter client business or person name"
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
+              disabled={isCreatingClientTenant}
+            />
+          </div>
+        )}
+
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {templates.map((template) => (
             <TemplateCard
@@ -276,14 +399,19 @@ const Templates: React.FC = () => {
               selectedTemplate={selectedTemplate}
               onSelectTemplate={handleSelectTemplate}
               onPreviewTemplate={handlePreviewTemplate}
-              onCreateWebsite={handleCreateWebsite}
+              // Change handler for create button: pick for agency/client option!
+              onCreateWebsite={
+                user && currentTenant && currentTenant.tenant_type === 'agency' && createForClient
+                  ? () => handleCreateWebsiteForClient(template)
+                  : () => handleCreateWebsite(template)
+              }
               companyName={companyName}
               setCompanyName={setCompanyName}
               domainName={domainName}
               setDomainName={setDomainName}
               logoUrl={logoUrl}
               setLogoUrl={setLogoUrl}
-              isSaving={isSaving}
+              isSaving={isSaving || isCreatingClientTenant}
               selectedPrimaryColor={selectedPrimaryColor}
               selectedSecondaryColor={selectedSecondaryColor}
               onColorChange={handleColorChange}
